@@ -1,0 +1,18 @@
+FROM kunle12/lurawi:latest
+
+#If additional Python libraries are required uncomment the next line
+#RUN pip install -r requirements.txt
+
+# update the next line with your project name
+#ENV PROJECT_NAME new_project
+
+#COPY new_project.json /opt/defaultsite
+
+#If you have knowledge file, uncomment the next line
+#COPY new_project_knowledge.json /opt/defaultsite
+
+#if you create additional custom function script for your project, uncomment the next line
+#COPY custom /opt/defaultsite/lurawi/custom
+
+# remove "--skip-auth" and "--no-ssl-verify" for production deployment
+ENTRYPOINT ["python", "app.py", "--skip-auth", "--no-ssl-verify" ]

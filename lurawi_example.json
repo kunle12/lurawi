@@ -1,0 +1,94 @@
+{
+  "default": "__init__",
+  "behaviours": [
+    {
+      "name": "__init__",
+      "actions": [
+        [
+          [
+            "knowledge",
+            {
+              "USER_MESSAGE": "",
+              "PROMPT": "",
+              "LLMTEXT": ""
+            }
+          ],
+          [
+            "play_behaviour",
+            "main"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "main",
+      "actions": [
+        [
+          [
+            "workflow_interaction",
+            {
+              "engagement": [
+                "play_behaviour",
+                "input:0"
+              ]
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "input",
+      "actions": [
+        [
+          [
+            "custom",
+            {
+              "name": "query_knowledgebase",
+              "args": {
+                "knowledge_key": "USER_DATA",
+                "query_arg": "message",
+                "query_output": "USER_MESSAGE",
+                "success_action": [
+                  "custom",
+                  {
+                    "name": "build_gpt_prompt",
+                    "args": {
+                      "system_prompt": "As an AI assistant, answer the following question as accurate as possible. If you don't know the answer, just say 'I don't know':\n\n",
+                      "user_prompt": "USER_MESSAGE",
+                      "output": "PROMPT"
+                    }
+                  },
+                  "custom",
+                  {
+                    "name": "invoke_llm",
+                    "args": {
+                      "base_url": "http://localhost:8080",
+                      "api_key": "test",
+                      "model": "qwen3",
+                      "prompt": "PROMPT",
+                      "temperature": 0.6,
+                      "stream": true,
+                      "response": "LLMTEXT",
+                      "success_action": [
+                        "text",
+                        "LLMTEXT"
+                      ],
+                      "failed_action": [
+                        "text",
+                        "System error"
+                      ]
+                    }
+                  }
+                ],
+                "failed_action": [
+                  "text",
+                  "System error"
+                ]
+              }
+            }
+          ]
+        ]
+      ]
+    }
+  ]
+}

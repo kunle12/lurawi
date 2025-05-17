@@ -1,0 +1,147 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="[(wXj4iGH=LLjQ,Cu9v%">user_message</variable>
+    <variable id="Me{wCU?$Bry79xK1M/)-">prompt</variable>
+    <variable id="*{!BFHmbPWT8zE00ku07">llmtext</variable>
+  </variables>
+  <block type="behaviour_behaviour" id="^u)KswFJ5x1X@o)VM+OW" x="230" y="-90">
+    <field name="IS_DEFAULT">TRUE</field>
+    <field name="NAME">main</field>
+    <statement name="ACTIONS">
+      <block type="behaviour_action" id="aPn?{g?ouh(tO)M{5;.H">
+        <field name="PLAY_NEXT">FALSE</field>
+        <statement name="ACTIONLETS">
+          <block type="bot_interaction_primitive" id="$;=K9V5C:zJP`r:jWt]n">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" pt_status="null"></mutation>
+            <statement name="ENGAGEMENT">
+              <block type="play_behaviour_primitive" id="2I/f5@bY$DH#2wtY{8eC">
+                <mutation xmlns="http://www.w3.org/1999/xhtml" existing_behaviours="main,input"></mutation>
+                <field name="BEHAVIOURS">input</field>
+                <field name="ACTION_INDEX">0</field>
+              </block>
+            </statement>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <block type="behaviour_behaviour" id="xUSO!jW%=:GP,VrV)iNh" x="230" y="150">
+    <field name="IS_DEFAULT">FALSE</field>
+    <field name="NAME">input</field>
+    <statement name="ACTIONS">
+      <block type="behaviour_action" id="hy3]f.!+lg8rteVng}SX">
+        <field name="PLAY_NEXT">FALSE</field>
+        <statement name="ACTIONLETS">
+          <block type="custom_primitive" id="~6Wx+wV{v:QUCN{m=Qcd">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" check_custom="query_knowledgebase"></mutation>
+            <field name="SCRIPTS">query_knowledgebase</field>
+            <value name="ARG1">
+              <block type="text" id="G~(RoX+#[6n?F2omez2t">
+                <field name="TEXT">USER_DATA</field>
+              </block>
+            </value>
+            <value name="ARG2">
+              <block type="text" id="nQ!^bTNBIVI^%UXMKnrF">
+                <field name="TEXT">message</field>
+              </block>
+            </value>
+            <value name="ARG4">
+              <block type="variables_get" id="0-!gp$^T`BzQvR]!$u{7">
+                <field name="VAR" id="[(wXj4iGH=LLjQ,Cu9v%">user_message</field>
+              </block>
+            </value>
+            <statement name="ARG6">
+              <block type="custom_primitive" id="bC7@FD1=L7ONmE~b9(k8">
+                <mutation xmlns="http://www.w3.org/1999/xhtml" check_custom="build_gpt_prompt"></mutation>
+                <field name="SCRIPTS">build_gpt_prompt</field>
+                <value name="ARG0">
+                  <block type="text" id="g8Ev@S:m.S2lrZBQz`j%">
+                    <field name="TEXT">As an AI assistant, answer the following question as accurate as possible. If you don't know the answer, just say 'I don't know':\n\n</field>
+                  </block>
+                </value>
+                <value name="ARG1">
+                  <block type="variables_get" id=";{ffPNXaR/l!X@s[,Soo">
+                    <field name="VAR" id="[(wXj4iGH=LLjQ,Cu9v%">user_message</field>
+                  </block>
+                </value>
+                <value name="ARG6">
+                  <block type="variables_get" id="i4bG{YZGH5LPe`)O{]C[">
+                    <field name="VAR" id="Me{wCU?$Bry79xK1M/)-">prompt</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="custom_primitive" id="n*udu/fkx(#a5tH[FG@5">
+                    <mutation xmlns="http://www.w3.org/1999/xhtml" check_custom="invoke_llm"></mutation>
+                    <field name="SCRIPTS">invoke_llm</field>
+                    <value name="ARG0">
+                      <block type="text" id="3xtc1|4[#*u}:N@CS|G{">
+                        <field name="TEXT">http://localhost:8080</field>
+                      </block>
+                    </value>
+                    <value name="ARG1">
+                      <block type="text" id="}}iE`#%J.H_E/QjFoS-x">
+                        <field name="TEXT">test</field>
+                      </block>
+                    </value>
+                    <value name="ARG2">
+                      <block type="text" id="6tOp8=3r2pu^YG,xAx79">
+                        <field name="TEXT">qwen3</field>
+                      </block>
+                    </value>
+                    <value name="ARG3">
+                      <block type="variables_get" id="V8(h%99YRE%11)Ps2mn4">
+                        <field name="VAR" id="Me{wCU?$Bry79xK1M/)-">prompt</field>
+                      </block>
+                    </value>
+                    <value name="ARG4">
+                      <block type="math_number" id="{g[.D}cX6epvA%D._@cX">
+                        <field name="NUM">0.6</field>
+                      </block>
+                    </value>
+                    <value name="ARG6">
+                      <block type="logic_boolean" id="z@9ID$p2!isJh*b$5*MC">
+                        <field name="BOOL">TRUE</field>
+                      </block>
+                    </value>
+                    <value name="ARG7">
+                      <block type="variables_get" id="*2IqxlGI6aE0!D,W/,!F">
+                        <field name="VAR" id="*{!BFHmbPWT8zE00ku07">llmtext</field>
+                      </block>
+                    </value>
+                    <statement name="ARG8">
+                      <block type="text_primitive" id="gLrB/!oZ`rRewHL:oTc3">
+                        <value name="VALUE">
+                          <block type="variables_get" id="Lc?sp:ZSZU!Rzx72p7#x">
+                            <field name="VAR" id="*{!BFHmbPWT8zE00ku07">llmtext</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                    <statement name="ARG9">
+                      <block type="text_primitive" id="OgEzAk5hR|n~d6`w@`|k">
+                        <value name="VALUE">
+                          <block type="text" id="h714WMO@HR/2,_E7*-SS">
+                            <field name="TEXT">System error</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </statement>
+            <statement name="ARG7">
+              <block type="text_primitive" id="~`ote7-BJ,p.k^#rSCEV">
+                <value name="VALUE">
+                  <block type="text" id="O?~1A__Uu{9jWnv.$iH}">
+                    <field name="TEXT">System error</field>
+                  </block>
+                </value>
+              </block>
+            </statement>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>

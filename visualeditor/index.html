@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+
+  <title>Lurawi: Agent Workflow Visual Programming</title>
+</head>
+<body>
+  <table width="100%" height="100%">
+    <tr>
+      <td>
+        <h1>Lurawi Agent Workflow Visual Programming</h1>
+      </td>
+    </tr>
+    <tr>
+      <td colspan=2>
+        <table width="100%">
+          <tr id="tabRow" height="1em">
+            <td id="tab_blocks" class="tabon">Blocks</td>
+            <td class="tabmin">&nbsp;</td>
+            <td id="tab_lurawi" class="taboff">Code</td>
+            <td class="tabmin">&nbsp;</td>
+            </td>
+            <td class="tabmax">
+              <div class="file-upload">
+                <div class='iconbut'>
+                  <label for="file-input" title="Load the blocks from a local XML file.">
+                    <i class="fas fa-file-upload fa-lg"></i>
+                  </label>
+                  <input id="file-input" type="file" name="files" accept="application/xml">
+                </div>
+              </div>
+              <div class='iconbut'>
+                  <label id="file-output" title="Save blocks to a local XML file.">
+                    <i class="fas fa-file-download fa-lg"></i>
+                  </label>
+                </div>
+                <div class='iconbut'>
+                  <label id="file-send" title="Load code in local development server.">
+                    <i class="fas fa-paper-plane fa-lg"></i>
+                  </label>
+                </div>
+                <div class='iconbut'>
+                  <label id="test-console" title="Open test console">
+                    <i class="fas fa-terminal fa-lg"></i>
+                  </label>
+                </div>
+                <div class='iconbut'>
+                  <label id="lurawi-doc" title="Open Lurawi Documentation">
+                    <i class="fas fa-book fa-lg"></i>
+                  </label>
+                </div>
+                <div>&nbsp;&nbsp;
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td height="99%" colspan=2 id="content_area">
+      </td>
+    </tr>
+  </table>
+  <div id="content_blocks" class="content"></div>
+  <!-- <pre id="content_lurawi" class="content"></pre> -->
+  <textarea id="content_lurawi" class="content"></textarea>
+
+  <xml xmlns="http://www.w3.org/1999/xhtml" id="toolbox" style="display: none;">
+    <category name="Behaviour" colour="#ff6680">
+        <block type="behaviour_behaviour"></block>
+        <block type="behaviour_action"></block>
+        <block type="behaviour_chained_action"></block>
+    </category>
+    <category name="Action Primitives" colour="#5b6daa">
+      <block type="text_primitive"></block>
+      <block type="respond_primitive">
+        <value name="STATUS">
+          <shadow type="math_number">
+            <field name="NUM">200</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="delay_primitive">
+          <value name="VALUE">
+            <shadow type="math_number">
+              <field name="NUM">0</field>
+            </shadow>
+          </value>
+      </block>
+      <block type="custom_primitive"></block>
+      <block type="bot_interaction_primitive"></block>
+      <block type="play_behaviour_primitive"></block>
+      <block type="play_next_primitive"></block>
+      <block type="select_behaviour_primitive"></block>
+    </category>
+    <sep></sep>
+    <category name="Math" colour="#a55b5b">
+      <block type="math_number">
+        <field name="NUM">0</field>
+      </block>
+      <block type="math_arithmetic">
+        <field name="OP">ADD</field>
+      </block>
+    </category>
+    <category name="Text" colour="#5CA68D">
+      <block type="text">
+        <field name="TEXT"></field>
+      </block>
+      <block type="text_join">
+        <mutation items="2"></mutation>
+      </block>
+    </category>
+    <category name="Data" colour="%{BKY_LISTS_HUE}">
+      <block type="lists_create_with">
+        <mutation items="0"></mutation>
+      </block>
+      <block type="lists_create_with"></block>
+      <block type="dictionary_create_with">
+        <mutation items="0"></mutation>
+      </block>
+      <block type="dictionary_create_with"></block>
+      <block type="key_value_store">
+          <value name="KEY">
+            <shadow type="text">
+              <field name="TEXT"></field>
+            </shadow>
+          </value>
+      </block>
+      <block type="key_action_store">
+          <value name="KEY">
+            <shadow type="text">
+              <field name="TEXT"></field>
+            </shadow>
+          </value>
+      </block>
+    </category>
+    <category name="Logic" colour="#33cc33">
+      <block type="controls_if"></block>
+      <block type="logic_compare">
+        <field name="OP">EQ</field>
+      </block>
+      <block type="logic_boolean">
+        <field name="BOOL">TRUE</field>
+      </block>
+    </category>
+    <category name="Loops" colour="#5CA65C">
+      <block type="controls_repeat_ext">
+        <value name="TIMES">
+          <shadow type="math_number">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="controls_whileUntil">
+        <field name="MODE">WHILE</field>
+      </block>
+      <block type="controls_for">
+        <field name="VAR" variabletype="">count</field>
+        <value name="FROM">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="TO">
+          <shadow type="math_number">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+        <value name="BY">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+      </block>
+    </category>
+    <category name="Variables" colour="#ff6600" custom="VARIABLE"></category>
+  </xml>
+
+  <script src="blockly/blockly_compressed.js"></script>
+  <script src="blockly/blocks_compressed.js"></script>
+  <script src="blockly/msg/js/en.js"></script>
+  <script src="lurawi_blocks.js"></script>
+  <script src="lurawi.js"></script>
+  <script src="lurawi/text.js"></script>
+  <script src="lurawi/variables.js"></script>
+  <script src="lurawi/logic.js"></script>
+  <script src="lurawi/lists.js"></script>
+  <script src="lurawi/dictionary.js"></script>
+  <script src="lurawi/math.js"></script>
+  <script src="lurawi/loops.js"></script>
+  <script src="lurawi_utilities.js"></script>
+  <script src="lurawi/primitives.js"></script>
+  <script src="lurawi/behaviours.js"></script>
+  <script src="lurawi_workspace.js"> </script>
+
+  <!-- ----Below is Agent custom function definitions. DO NOT DELETE THIS LINE -------- -->
+  <xml xmlns="http://www.w3.org/1999/xhtml" id="scriptlib" style="display: none;">
+    <cscript name="current_datetime">
+      <argument type="string">format</argument>
+      <argument type="string">output</argument>
+    </cscript>
+    <cscript name="text_input">
+      <argument type="string">prompt</argument>
+      <argument type="string">output</argument>
+    </cscript>
+    <cscript name="build_gpt_prompt">
+      <argument type="string">system_prompt</argument>
+      <argument type="string">user_prompt</argument>
+      <argument type="string">query</argument>
+      <argument type="any">history</argument>
+      <argument type="string">documents</argument>
+      <argument type="number">max_tokens</argument>
+      <argument type="string">output</argument>
+    </cscript>
+    <cscript name="has_keyvalue">
+      <argument type="string">store</argument>
+      <argument type="string">key</argument>
+      <argument type="action">true_action</argument>
+      <argument type="action">false_action</argument>
+    </cscript>
+    <cscript name="random_picker">
+      <argument type="any">list</argument>
+      <argument type="string">output</argument>
+    </cscript>
+    <cscript name="get_indexvalue">
+      <argument type="string">array</argument>
+      <argument type="number">index</argument>
+      <argument type="string">value</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="send_data_to_url">
+      <argument type="string">url</argument>
+      <argument type="any">headers</argument>
+      <argument type="any">payload</argument>
+      <argument type="boolean">use_put</argument>
+      <argument type="string">return_status</argument>
+      <argument type="string">return_data</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="invoke_llm">
+      <argument type="string">base_url</argument>
+      <argument type="string">api_key</argument>
+      <argument type="string">model</argument>
+      <argument type="any">prompt</argument>
+      <argument type="number">temperature</argument>
+      <argument type="number">max_tokens</argument>
+      <argument type="boolean">stream</argument>
+      <argument type="string">response</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="query_knowledgebase">
+      <argument type="boolean">phrase_match</argument>
+      <argument type="string">knowledge_key</argument>
+      <argument type="string">query_arg</argument>
+      <argument type="string">query_key</argument>
+      <argument type="string">query_output</argument>
+      <argument type="string">phrase_match_key</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="send_data_to_service_bus">
+      <argument type="string">connect_str</argument>
+      <argument type="string">queue</argument>
+      <argument type="any">payload</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="validate_with_regex">
+      <argument type="string">input_text</argument>
+      <argument type="string">regex</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="user_file_upload">
+      <argument type="string">prompt</argument>
+      <argument type="string">type</argument>
+      <argument type="string">output</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="behaviour_router">
+      <argument type="string">select</argument>
+      <argument type="any">behaviours</argument>
+      <argument type="boolean">restricted</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="cache_conversation_history">
+      <argument type="string">user_input</argument>
+      <argument type="string">llm_output</argument>
+      <argument type="any">history</argument>
+      <argument type="number">max_tokens</argument>
+    </cscript>
+    <cscript name="get_keyvalue">
+      <argument type="string">store</argument>
+      <argument type="string">key</argument>
+      <argument type="string">value</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="populate_prompt">
+      <argument type="string">prompt_text</argument>
+      <argument type="any">replace</argument>
+      <argument type="string">output</argument>
+    </cscript>
+    <cscript name="get_data_from_url">
+      <argument type="string">url</argument>
+      <argument type="any">headers</argument>
+      <argument type="any">params</argument>
+      <argument type="string">return_status</argument>
+      <argument type="string">return_data</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+  </xml>
+  </body>
+</html>
