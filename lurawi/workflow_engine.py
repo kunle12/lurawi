@@ -218,7 +218,7 @@ class WorkflowEngine(TimerClient):
         if discord_id in self.conversation_members:
             activity_manager = self.conversation_members[discord_id]
             self._mutex.release()
-            await activity_manager.updateTurnContext(context=message)
+            await activity_manager.update_turn_context(context=message)
         else:
             if self.pending_behaviours:
                 activity_manager = ActivityManager(
@@ -231,7 +231,7 @@ class WorkflowEngine(TimerClient):
             self.conversation_members[discord_id] = activity_manager
             self._mutex.release()
             await activity_manager.init()
-            await activity_manager.startUserEngagement(context=message)
+            await activity_manager.start_user_engagement(context=message)
 
     async def on_event(
         self,
@@ -263,11 +263,11 @@ class WorkflowEngine(TimerClient):
 
         response = False
         if payload.activity_id:
-            response = await activity_manager.continueWorkflow(
+            response = await activity_manager.continue_workflow(
                 activity_id=payload.activity_id, data=payload.data
             )
         else:
-            response = await activity_manager.startUserWorkflow(
+            response = await activity_manager.start_user_workflow(
                 session_id=payload.session_id, data=payload.data
             )
         if response:
@@ -332,7 +332,7 @@ class WorkflowEngine(TimerClient):
         timerManager.fini()
 
         for member in self.conversation_members.values():
-            member.onShutdown()
+            member.on_shutdown()
         self.stop_remote_services()
 
     async def on_pending_load_complete(self):

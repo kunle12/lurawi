@@ -2,14 +2,14 @@ import asyncio
 import importlib
 import random
 import re
-import simplejson as json
 import time
 import uuid
+from typing import Dict
+from threading import Lock as mutex
+import simplejson as json
 
 from discord import Message as DiscordMessage
 from fastapi.responses import JSONResponse, StreamingResponse
-from typing import Dict
-from threading import Lock as mutex
 
 from .calculate import calculate
 from .callbackmsg_manager import RemoteCallbackMessageUpdateManager
@@ -31,6 +31,7 @@ class ActivityManager(object):
         self.knowledge["CURRENT_SESSION_ID"] = ""
         self.knowledge["MODULES"] = {}
         self.knowledge["__MUTEX__"] = mutex()
+        self.access_time = -1
 
         self.behaviours = {}
         self.resources = {}
@@ -44,7 +45,9 @@ class ActivityManager(object):
         self.action_complete_cb = None
         self.action_complete_cb_args = None
         self.activity_complete_cb = None
-        self.external_notification_cb = None  # notify external (not related to behaviour/actions) module of the completion of action it is interested in.
+        # notify external (not related to behaviour/actions) module of the completion of 
+        # action it is interested in.
+        self.external_notification_cb = None
         self.actions_lined_up = False
         self.current_action_id = ""
         self.on_remote_play_next_activity = False
@@ -64,7 +67,7 @@ class ActivityManager(object):
             self.knowledge
         )
 
-        self.knowledge["MESG_FUNC"] = self.sendMessage
+        self.knowledge["MESG_FUNC"] = self.send_message
 
         self.pending_behaviours = {}
         self.pending_knowledge = {}
@@ -74,44 +77,45 @@ class ActivityManager(object):
     async def init(self):
         await self.playNextActivity()
 
-    async def startUserWorkflow(self, session_id: str = "", data: Dict = {}):
+    async def start_user_workflow(self, session_id: str = "", data: Dict = {}):
         if self.in_user_interaction:
             return False
 
         self.knowledge["ACCESS_TIME"] = self.access_time = time.time()
         self.clearRunningActions()
 
-        await self.loadPendingBehavioursIfExists()
+        await self.load_pending_behaviour_if_exists()
 
         self.knowledge["CURRENT_TURN_CONTEXT"] = str(uuid.uuid4())
         self.knowledge["CURRENT_SESSION_ID"] = session_id
         self.knowledge["USER_DATA"] = data
 
         logger.debug(
-            f"workflow: receiving user {self.knowledge['USER_ID']} input {data} activity_id {self.knowledge['CURRENT_TURN_CONTEXT']}"
+            "workflow: receiving user %s input %s activity_id %s",
+            self.knowledge['USER_ID'], data, self.knowledge['CURRENT_TURN_CONTEXT']
         )
         if self.engagement_action:
             return await self.playAction(
                 "workflow_engagement",
                 [self.engagement_action],
-                external_notification_cb=self.engageComplete,
+                external_notification_cb=self.engage_complete,
             )
-        else:
-            return await self.continueWorkflow(data=data)
 
-    async def stopUserWorkflow(self):
+        return await self.continue_workflow(data=data)
+
+    async def stop_user_workflow(self):
         self.knowledge["CURRENT_TURN_CONTEXT"] = None
         if self.disengagement_action is None:
             return
-        self.playDisruptiveAction(
+        await self.playDisruptiveAction(
             "workflow_disengagement",
             [self.disengagement_action],
-            external_notification_cb=self.disengageComplete,
+            external_notification_cb=self.disengage_complete,
         )
 
-    async def startUserEngagement(self, context):
+    async def start_user_engagement(self, context):
         self.clearRunningActions()
-        await self.loadPendingBehavioursIfExists()
+        await self.load_pending_behaviour_if_exists()
 
         if self.engagement_action is None:
             return
@@ -120,20 +124,20 @@ class ActivityManager(object):
         await self.playAction(
             "workflow_engagement",
             [self.engagement_action],
-            external_notification_cb=self.engageComplete,
+            external_notification_cb=self.engage_complete,
         )
 
-    async def stopUserEngagement(self, context):
+    async def stop_user_engagement(self, context):
         if self.disengagement_action is None:
             return
         self.knowledge["CURRENT_TURN_CONTEXT"] = context
-        self.playDisruptiveAction(
+        await self.playDisruptiveAction(
             "workflow_disengagement",
             [self.disengagement_action],
-            external_notification_cb=self.disengageComplete,
+            external_notification_cb=self.disengage_complete,
         )
 
-    async def loadPendingBehavioursIfExists(self):
+    async def load_pending_behaviour_if_exists(self):
         if not self.pending_behaviours or not self.on_pending_complete:
             return False
 
@@ -151,33 +155,33 @@ class ActivityManager(object):
         self.on_pending_complete = None
         return True
 
-    async def engageComplete(self):
+    async def engage_complete(self):
         logger.debug("interaction engagement completed")
         self.in_user_interaction = True
 
-    async def disengageComplete(self):
+    async def disengage_complete(self):
         logger.debug("interaction disengagement completed")
         self.in_user_interaction = False
 
-    async def userdataComplete(self):
+    async def user_data_complete(self):
         logger.debug("interaction user data completed")
         self.in_user_interaction = False
 
-    async def continueWorkflow(self, activity_id: str = "", data: Dict = {}):
+    async def continue_workflow(self, activity_id: str = "", data: Dict = {}):
         self.knowledge["ACCESS_TIME"] = self.access_time = time.time()
 
         if (
             activity_id and activity_id != self.knowledge["CURRENT_TURN_CONTEXT"]
         ) or await self.usermessage_manager.process_user_messages(data):
-            await self.onUpdateUserData(activity_id=activity_id, data=data)
+            await self.on_update_user_data(activity_id=activity_id, data=data)
         return True
 
-    async def updateTurnContext(self, context):
+    async def update_turn_context(self, context):
         self.knowledge["CURRENT_TURN_CONTEXT"] = context
         self.knowledge["ACCESS_TIME"] = self.access_time = time.time()
         await self.usermessage_manager.process_user_messages(context)
 
-    def getCurrentSessionId(self):
+    def get_current_session_id(self):
         return self.knowledge["CURRENT_TURN_CONTEXT"]
 
     def setPendingBehaviours(self, behaviours, knowledge, on_complete):
@@ -247,7 +251,8 @@ class ActivityManager(object):
                     return self.setActivityIndex(int(index) - 1)
             else:
                 logger.error(
-                    f"Expected activity to be 'some_behaviour:1', got {active_section}"
+                    "Expected activity to be 'some_behaviour:1', got %s",
+                    active_section
                 )
                 return False
         else:
@@ -265,9 +270,9 @@ class ActivityManager(object):
                     self.knowledge["__MUTEX__"].acquire()
                     self.knowledge["USER_INPUTS_CACHE"] = []  # reset cache
                     self.knowledge["__MUTEX__"].release()
-                logger.debug(f"Active behaviour set to {name}")
+                logger.debug("Active behaviour set to %s", name)
                 return True
-        logger.error(f"Cannot find {name} behaviour")
+        logger.error("Cannot find %s behaviour", name)
         return False
 
     def setActivityIndex(self, new_index):
@@ -302,11 +307,12 @@ class ActivityManager(object):
                 found = beh
                 break
         if found is None:
-            logger.error(f"Unable to find behaviour {behaviour}")
+            logger.error("Unable to find behaviour %s", behaviour)
             return found
         if action_index < 0 or action_index >= len(found["actions"]):
             logger.error(
-                f"Invalid action index {action_index} for behaviour {behaviour}"
+                "Invalid action index %d for behaviour %s",
+                action_index, behaviour
             )
             return None
         return found["actions"][action_index]
@@ -370,7 +376,6 @@ class ActivityManager(object):
         #    if alet[0] == 'delay':
         #        message = json.dumps({"node_id": "remote_control", "command":"right_no_suspension"})
         #        self.on_remote_play_next_activity = True
-        #        PyAzureBot.sendMessageToNode('message_router', message)
         #        return
         await self.playNextActivity(action_id=action_id)
 
@@ -391,7 +396,9 @@ class ActivityManager(object):
         self.on_remote_play_next_activity = False
         if self.isBusy():
             logger.warning(
-                f"Already playing actions - {self.current_action_id}, running actions = {self.running_actions}"
+                "Already playing actions - %s, running actions = %s",
+                self.current_action_id,
+                self.running_actions
             )
             return
 
@@ -409,7 +416,7 @@ class ActivityManager(object):
             return
 
         self.setActivityIndex(self.activity_index + 1)
-        logger.debug(f"Playing Index - {self.activity_index}")
+        logger.debug("Playing Index - %d", self.activity_index)
 
         await self.playAction(
             action_id,
@@ -428,7 +435,8 @@ class ActivityManager(object):
         if self.isBusy():
             self.clearRunningActions()
             logger.debug(
-                f"playDisruptiveAction: Activity manager is busy, purge all running and pending actions for executing action - {action_id}"
+                "playDisruptiveAction: Activity manager is busy, purge all running and pending actions for executing action - %s",
+                action_id
             )
 
         await self.playAction(
@@ -481,7 +489,8 @@ class ActivityManager(object):
                     ]
                 ]
                 logger.warning(
-                    f"Activity manager is busy with {self.running_actions}, queued up the current action - {action_id}"
+                    "Activity manager is busy with %s, queued up the current action - %d",
+                    self.running_actions, action_id
                 )
         else:
             await self.playAction(
@@ -530,7 +539,7 @@ class ActivityManager(object):
         if len(alet) == 0:
             return
         elif len(alet) < 2:
-            logger.error(f"Invalid alet {alet}")
+            logger.error("Invalid alet %s", alet)
             return
 
         arg = alet[1]
@@ -601,7 +610,7 @@ class ActivityManager(object):
                 if lc_to_say.startswith("unable") or lc_to_say.startswith("fail"):
                     logger.error(f"sending error message to user: {lc_to_say}")
                     status = 400
-                await self.sendMessage(status=status, data={"response": to_say})
+                await self.send_message(status=status, data={"response": to_say})
                 await self.actionHandler(cmd)
             except Exception as err:
                 logger.error(f"unable to sending message to user: {lc_to_say}: {err}")
@@ -654,7 +663,7 @@ class ActivityManager(object):
                     payload["status"] = "failed"
             del payload["status_code"]
             try:
-                await self.sendRawMessage(status_code, payload)
+                await self.send_raw_message(status_code, payload)
                 await self.actionHandler(cmd)
             except Exception as _:
                 await self.actionFailHandler(cmd)
@@ -715,7 +724,8 @@ class ActivityManager(object):
                 await self.actionHandler(cmd)
             else:
                 logger.error(
-                    f"Invalid random action, should look like - {sample}, ignoring - {alet}"
+                    "Invalid random action, should look like - %s, ignoring - %s",
+                    sample, alet
                 )
                 await self.actionFailHandler(cmd)
         elif cmd == "delay":
@@ -723,7 +733,7 @@ class ActivityManager(object):
                 await asyncio.sleep(arg)
                 await self.actionHandler(cmd)
             else:
-                logger.error(f"Invalid arg({arg}) for delay, expected int/float > 0")
+                logger.error("Invalid arg(%s) for delay, expected int/float > 0", arg)
                 await self.actionFailHandler(cmd)
         elif cmd == "custom":
             if isinstance(arg, dict):
@@ -732,7 +742,8 @@ class ActivityManager(object):
                     module_arg = arg["args"]
                     if not isinstance(module_arg, dict):
                         logger.error(
-                            f"Invalid alet({alet}). Action arguments must be a dictionary"
+                            "Invalid alet(%s). Action arguments must be a dictionary",
+                            alet
                         )
                         await self.actionFailHandler(cmd)
                         return
@@ -754,7 +765,8 @@ class ActivityManager(object):
                 await self.custom_behaviours[module_name].run()
             else:
                 logger.warning(
-                    f"Custom script has to be an instance of CustomBehaviour. Ignoring {alet}"
+                    "Custom script has to be an instance of CustomBehaviour. Ignoring %s",
+                    alet
                 )
                 await self.actionFailHandler(module_name)
         elif cmd == "workflow_interaction":
@@ -807,7 +819,8 @@ class ActivityManager(object):
                                 self.action_complete_cb = self.playNextActivityRouter
                             else:
                                 logger.warning(
-                                    f"play_behaviour: only execute pending disruptable actions {aid}. purge all other pending action after current play_behaviour concludes"
+                                    "play_behaviour: only execute pending disruptable actions %d. purge all other pending action after current play_behaviour concludes",
+                                    aid
                                 )
                                 self.pending_actions = []
                                 self.action_complete_cb = self.playAction
@@ -817,7 +830,8 @@ class ActivityManager(object):
                             return
 
                         logger.warning(
-                            f"play_behaviour: purge existing pending_actions {self.pending_actions}"
+                            "play_behaviour: purge existing pending_actions %s",
+                            self.pending_actions
                         )
                         self.pending_actions = []
 
@@ -826,7 +840,7 @@ class ActivityManager(object):
                 else:
                     await self.actionFailHandler(cmd)
         else:
-            logger.error(f"unknown action - {alet}")
+            logger.error("unknown action - %s", alet)
             await self.actionFailHandler(cmd)
 
     async def actionHandler(self, action, data=None):
@@ -980,10 +994,10 @@ class ActivityManager(object):
                 await self.activity_complete_cb()
                 self.activity_complete_cb = None
 
-    def onShutdown(self):
+    def on_shutdown(self):
         self.fini()
 
-    async def onUpdateUserData(self, activity_id: str, data: Dict = {}):
+    async def on_update_user_data(self, activity_id: str, data: Dict = {}):
         if not data or not isinstance(data, dict):
             logger.error(f"missing or invalid user data {data}")
             return
@@ -996,7 +1010,7 @@ class ActivityManager(object):
             await self.playOrQueueAction(
                 "user_data",
                 [self.userdata_action],
-                external_notification_cb=self.userdataComplete,
+                external_notification_cb=self.user_data_complete,
             )
 
     def checkRemoteCallbackAccess(self, access_key: str):
@@ -1007,7 +1021,7 @@ class ActivityManager(object):
             method=method, message=data
         )
 
-    async def sendMessage(
+    async def send_message(
         self, status: int = 200, data: Dict | DataStreamHandler = {}, headers: Dict = {}
     ):
         if isinstance(data, DataStreamHandler):
@@ -1045,7 +1059,7 @@ class ActivityManager(object):
 
         self.response = write_http_response(status, payload, headers=headers)
 
-    async def sendRawMessage(self, status, payload, headers: Dict = {}):
+    async def send_raw_message(self, status, payload, headers: Dict = {}):
         payload["activity_id"] = self.knowledge["CURRENT_TURN_CONTEXT"]
         self.response = write_http_response(status, payload, headers=headers)
 
