@@ -19,12 +19,13 @@ class UserMessageUpdateManager(object):
     def register_for_user_message_updates(self, callableObj, interests: List[str] = []):
         if not isinstance(callableObj, UserMessageListener):
             logger.error(
-                f"{callableObj.__class__.__name__} is not a UserMessageListener"
+                "%s is not a UserMessageListener", callableObj.__class__.__name__
             )
             return
         if interests is not None and not isinstance(interests, list):
             logger.error(
-                f"{callableObj.__class__.__name__}'s interests must be a list of node_id string"
+                "%s's interests must be a list of node_id string",
+                callableObj.__class__.__name__,
             )
             return
 

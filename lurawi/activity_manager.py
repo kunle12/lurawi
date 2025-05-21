@@ -1039,7 +1039,7 @@ class ActivityManager(object):
         return access_key == self.knowledge["CURRENT_TURN_CONTEXT"]
 
     async def process_remote_callback_payload(self, method: str, data: Dict):
-        await self.callbackmessage_manager.processRemoteCallbackMessages(
+        await self.callbackmessage_manager.process_remote_callback_messages(
             method=method, message=data
         )
 

@@ -6,7 +6,7 @@ class RemoteCallbackMessageListener(object):
     def __init__(self):
         pass
 
-    async def onRemoteCallbackMessageUpdate(self, data: Dict = {}):
+    async def on_remote_callback_message_update(self, data: Dict = {}):
         return True  # allow node status message to be passed on
 
 
@@ -21,12 +21,14 @@ class RemoteCallbackMessageUpdateManager(object):
     ):
         if not isinstance(callableObj, RemoteCallbackMessageListener):
             logger.error(
-                f"{callableObj.__class__.__name__} is not a RemoteCallbackMessageListener"
+                "%s is not a RemoteCallbackMessageListener",
+                callableObj.__class__.__name__,
             )
             return
         if interests is not None and not isinstance(interests, list):
             logger.error(
-                f"{callableObj.__class__.__name__}'s interests must be a list of node_id string"
+                "%s's interests must be a list of node_id string",
+                callableObj.__class__.__name__,
             )
             return
 
@@ -42,21 +44,21 @@ class RemoteCallbackMessageUpdateManager(object):
         if found is not None:
             del self.listeners[found]
 
-    async def processRemoteCallbackMessages(self, method: str, message: Dict):
+    async def process_remote_callback_messages(self, method: str, message: Dict):
         for k, interests in self.listeners:
             if method in interests:
                 ret = await cast(
                     RemoteCallbackMessageListener, k
-                ).onRemoteCallbackMessageUpdate(message)
+                ).on_remote_callback_message_update(message)
                 if (
                     ret is None or ret is False
                 ):  # the listener has consume the message and don't pass on
                     return False
         return True
 
-    def clearRemoteCallbackMessageListeners(self):
+    def clear_remote_callback_message_listeners(self):
         self.listeners = []
 
     def fini(self):
-        self.clearRemoteCallbackMessageListeners()
+        self.clear_remote_callback_message_listeners()
         self.knowledge["MODULES"]["RemoteCallbackMessageManager"] = None

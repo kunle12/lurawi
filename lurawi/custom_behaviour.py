@@ -47,7 +47,8 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
     def register_for_user_message_updates(self, interests: List[str] = []):
         if self._registered_for_user_message:
             logger.warning(
-                f"{self.__class__.__name__} already registered for receiving user message update"
+                "%s already registered for receiving user message update",
+                self.__class__.__name__,
             )
             return
 
@@ -64,7 +65,8 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
     def register_for_callback_message_updates(self, interests: List[str] = []):
         if self._registered_for_callback_message:
             logger.warning(
-                f"{self.__class__.__name__} already registered for receiving remote service callback update"
+                "%s already registered for receiving remote service callback update",
+                self.__class__.__name__,
             )
             return
 
@@ -116,11 +118,11 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     def gotoSuspension(self, data=None):
         if not self.is_suspendable:
-            logger.error(f"{self.__class__.__name__} is not suspendable")
+            logger.error("%s is not suspendable", self.__class__.__name__)
             return False
 
         if self.is_suspended:
-            logger.error(f"{self.__class__.__name__} is already suspended")
+            logger.error("%s is already suspended", self.__class__.__name__)
             return True
 
         self.is_suspended = self.onSuspension(data)
@@ -128,7 +130,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     def restoreFromSuspension(self, data=None):
         if not self.is_suspended:
-            logger.error(f"{self.__class__.__name__ } is not in suspension")
+            logger.error("%s is not in suspension", self.__class__.__name__)
             return True
 
         return self.onRestoration(data)
