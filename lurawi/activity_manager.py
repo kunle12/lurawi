@@ -73,8 +73,17 @@ class ActivityManager(object):
         self.pending_knowledge = {}
         self.on_pending_complete = None
         self.response = None
+        self._is_initialised = False
+
+    @property
+    def is_initialised(self):
+        return self._is_initialised
 
     async def init(self):
+        if self._is_initialised:
+            return
+
+        self._is_initialised = True
         await self.play_next_activity()
 
     async def start_user_workflow(self, session_id: str = "", data: Dict = {}):

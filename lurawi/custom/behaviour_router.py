@@ -33,7 +33,7 @@ class behaviour_router(CustomBehaviour):
                 selection = self.kb[selection]
 
             is_restricted = (
-                "restricted" in self.details and self.details["restricted"] == True
+                "restricted" in self.details and self.details["restricted"]
             )
 
             if "behaviours" in self.details:

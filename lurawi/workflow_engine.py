@@ -1,19 +1,37 @@
-import boto3
+"""Workflow Engine for Lurawi.
+
+This module implements the core workflow engine that powers the Lurawi system.
+It provides functionality for:
+- Managing user conversations and activities
+- Loading and executing behaviors from configuration files
+- Handling events from various sources (Discord, API calls)
+- Managing knowledge bases for behaviors
+- Dynamically loading and managing remote services
+- Supporting timer-based operations
+
+The WorkflowEngine class serves as the central coordinator for all these
+activities, maintaining conversation state, loading behaviors and knowledge,
+and routing events to appropriate handlers.
+"""
+
 import importlib
 import inspect
-import os
-import simplejson as json
 import time
+import os
+
+from io import StringIO
+from threading import Lock as mutex
+from typing import Dict, Any
+
+import simplejson as json
+import boto3
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobClient
 from discord import Message as DiscordMessage
 from fastapi import Depends
 from fastapi.responses import JSONResponse
-from io import StringIO
 from pydantic import BaseModel, Extra
-from threading import Lock as mutex
-from typing import Dict, Any
 
 from .activity_manager import ActivityManager
 from .remote_service import RemoteService
@@ -27,25 +45,48 @@ STANDARD_LURAWI_CONFIGS = [
 
 
 class WorkflowInputPayload(BaseModel, extra=Extra.allow):
-    uid: str
-    name: str
-    session_id: str = ""
-    activity_id: str = ""
-    data: Dict[str, Any] = None
+    """Payload model for workflow input data.
+
+    This model defines the structure of input data required to trigger
+    a workflow in the system. It allows for extra fields beyond those
+    explicitly defined.
+    """
+
+    uid: str  # Unique identifier for the user/entity
+    name: str  # Name of the user/entity
+    session_id: str = ""  # Optional session identifier
+    activity_id: str = ""  # Optional activity identifier
+    data: Dict[str, Any] = {}  # Additional data payload
 
     @property
     def extra_fields(self) -> set[str]:
+        """Returns a set of field names that are not part of the model's defined fields.
+
+        Returns:
+            set[str]: Set of extra field names present in the instance
+        """
         return set(self.__dict__) - set(self.model_fields)
 
 
 class BehaviourCodePayload(BaseModel):
-    jsonCode: str
-    xmlCode: str = ""
-    toSave: bool = False
+    """Payload model for behavior code updates.
+
+    This model defines the structure for updating behavior code in the system,
+    supporting both JSON and XML formats.
+    """
+
+    jsonCode: str  # JSON representation of the behavior code
+    xmlCode: str = ""  # Optional XML representation of the behavior code
+    toSave: bool = False  # Flag indicating whether to save the code
 
 
 class WorkflowEngine(TimerClient):
-    """ """
+    """Workflow engine that manages user interactions, behaviors, and remote services.
+
+    This class is the core engine that handles workflow execution, user activity management,
+    behavior loading, and integration with remote services. It inherits from TimerClient
+    to support scheduled operations.
+    """
 
     def __init__(self, custom_behaviour: str) -> None:
         super(WorkflowEngine, self).__init__()
@@ -76,6 +117,20 @@ class WorkflowEngine(TimerClient):
         self.start_remote_services()
 
     def load_knowledge(self, kbase: str) -> bool:
+        """Load knowledge base from a JSON file.
+
+        Attempts to load knowledge from various sources in the following order:
+        1. Azure Blob Storage (if AzureWebJobsStorage is configured)
+        2. AWS S3 (if AWS credentials are configured)
+        3. Local file system at various paths
+
+        Args:
+            kbase: Base name of the knowledge file (without extension)
+
+        Returns:
+            bool: True if knowledge was loaded successfully or if file was not found,
+                  False if there was an error loading the file
+        """
         kbase_path = kbase + ".json"
         try:
             if "AzureWebJobsStorage" in os.environ:
@@ -106,15 +161,17 @@ class WorkflowEngine(TimerClient):
                     json_data = json.load(data)
             else:
                 logger.warning(
-                    f"load_knowledge: no knowledge file {kbase} is provided."
+                    "load_knowledge: no knowledge file %s is provided.", kbase
                 )
                 return True
         except ResourceNotFoundError:
-            logger.warning(f"load_knowledge: no knowledge file {kbase} is provided.")
+            logger.warning("load_knowledge: no knowledge file %s is provided.", kbase)
             return True
         except Exception as err:
             logger.error(
-                f"load_knowledge: unable to load knowledge file '{kbase_path}' from blob storage:{err}"
+                "load_knowledge: unable to load knowledge file %s from blob storage:%s",
+                kbase_path,
+                err,
             )
             return False
 
@@ -126,12 +183,25 @@ class WorkflowEngine(TimerClient):
             if config in os.environ:
                 self.knowledge[config] = os.environ[config]
 
-        logger.info(f"load_knowledge: Knowledge file {kbase_path} is loaded!")
+        logger.info("load_knowledge: Knowledge file %s is loaded!", kbase_path)
 
         # check for custom domain specific language analysis model
         return True
 
     def load_behaviours(self, behaviour=""):
+        """Load behaviors from a JSON file.
+
+        Attempts to load behaviors from various sources in the following order:
+        1. Azure Blob Storage (if AzureWebJobsStorage is configured)
+        2. AWS S3 (if AWS credentials are configured)
+        3. Local file system at various paths
+
+        Args:
+            behaviour: Base name of the behavior file (without extension)
+
+        Returns:
+            dict: Dictionary containing loaded behaviors, or empty dict if loading failed
+        """
         loaded_behaviours = {}
         if not behaviour:
             if self.custom_behaviour:
@@ -174,11 +244,12 @@ class WorkflowEngine(TimerClient):
                     loaded_behaviours = json.load(data)
             else:
                 logger.error(
-                    f"load_behaviours: no custom behaviour file {behaviour_file} is provided."
+                    "load_behaviours: no custom behaviour file %s is provided.",
+                    behaviour_file,
                 )
                 return loaded_behaviours
         except Exception as err:
-            logger.error(f"Cannot load behaviours {behaviour_file}, Exception-{err}")
+            logger.error("Cannot load behaviours %s, %s", behaviour_file, err)
             return loaded_behaviours
 
         if "default" not in loaded_behaviours:
@@ -190,10 +261,22 @@ class WorkflowEngine(TimerClient):
         if not self.load_knowledge(behaviour + "_knowledge"):
             logger.info("No custom knowledge for new behaviours is loaded")
 
-        logger.info(f"load_behaviours: behaviours file {behaviour_file} is loaded!")
+        logger.info("load_behaviours: behaviours file %s is loaded!", behaviour_file)
         return loaded_behaviours
 
     def load_pending_behaviours(self, behaviour):
+        """Load behaviors into a pending state for gradual adoption.
+
+        Loads behaviors into a pending state and notifies conversation members
+        to prepare for the behavior change. When all members have acknowledged,
+        the pending behaviors become active.
+
+        Args:
+            behaviour: Base name of the behavior file to load
+
+        Returns:
+            str: Status message indicating success or failure
+        """
         self.pending_behaviours = self.load_behaviours(behaviour)
         self.pending_behaviours_load_cnt = len(self.conversation_members)
         if self.pending_behaviours:
@@ -213,6 +296,15 @@ class WorkflowEngine(TimerClient):
         return replymsg
 
     async def on_discord_event(self, user_name: str, message: DiscordMessage):
+        """Handle incoming Discord events.
+
+        Processes Discord messages by either updating an existing conversation
+        or creating a new one for the user.
+
+        Args:
+            user_name: Name of the Discord user
+            message: Discord message object containing the event data
+        """
         discord_id = message.author.id
         self._mutex.acquire()
         if discord_id in self.conversation_members:
@@ -238,6 +330,18 @@ class WorkflowEngine(TimerClient):
         payload: WorkflowInputPayload,
         authorised: bool = Depends(api_access_check),
     ):
+        """Handle incoming workflow events.
+
+        Processes workflow events by either continuing an existing workflow
+        or starting a new one based on the payload.
+
+        Args:
+            payload: Input data for the workflow
+            authorised: Flag indicating if the request is authorized
+
+        Returns:
+            Response object with workflow results or error message
+        """
         if not authorised:
             return write_http_response(
                 401, {"status": "failed", "message": "Unauthorised access."}
@@ -282,11 +386,22 @@ class WorkflowEngine(TimerClient):
             )
 
     async def on_code_update(self, payload: BehaviourCodePayload):
+        """Update behavior code dynamically.
+
+        Updates the behavior code with the provided JSON code, purging all
+        existing users to ensure clean adoption of the new behaviors.
+
+        Args:
+            payload: Behavior code payload containing JSON and XML code
+
+        Returns:
+            HTTP response indicating success or failure
+        """
         loaded_behaviours = {}
         try:
             loaded_behaviours = json.loads(payload.jsonCode)
         except Exception as err:
-            logger.error(f"Cannot load code update: {err}")
+            logger.error("Cannot load code update: %s", err)
             return write_http_response(
                 400, {"status": "failed", "message": "unable to load code updates."}
             )
@@ -308,6 +423,14 @@ class WorkflowEngine(TimerClient):
         return write_http_response(200, {"status": "success"})
 
     def get_member(self, uid: str) -> ActivityManager | None:
+        """Retrieve a conversation member by user ID.
+
+        Args:
+            uid: User ID to look up
+
+        Returns:
+            ActivityManager for the user if found, None otherwise
+        """
         if uid in self.conversation_members:
             return self.conversation_members[uid]
         return None
@@ -315,20 +438,40 @@ class WorkflowEngine(TimerClient):
     async def on_executing_behaviour_for_uid(
         self, uid: str, behaviour: str, knowledge: Dict = {}
     ) -> bool:
+        """Execute a specific behavior for a given user.
+
+        Args:
+            uid: User ID to execute the behavior for
+            behaviour: Name of the behavior to execute
+            knowledge: Additional knowledge to provide to the behavior
+
+        Returns:
+            bool: True if behavior was executed successfully, False otherwise
+        """
         if uid in self.conversation_members:
             activity_manager = self.conversation_members[uid]
             return await activity_manager.executeBehaviour(behaviour, knowledge)
 
-        logger.error(f"unable to find uid {uid} for behaviour execution")
+        logger.error("unable to find uid %s for behaviour execution", uid)
         return False
 
     async def health_check(self):
+        """Perform a health check on the workflow engine.
+
+        Returns:
+            JSONResponse with status information
+        """
         result = "Welcome to the HealthCheck Service!"
         return JSONResponse(
             status_code=200, content={"status": "success", "result": result}
         )
 
     def on_shutdown(self):
+        """Clean up resources when the workflow engine is shutting down.
+
+        Finalizes the timer manager, notifies all conversation members of shutdown,
+        and stops all remote services.
+        """
         timerManager.fini()
 
         for member in self.conversation_members.values():
@@ -336,6 +479,11 @@ class WorkflowEngine(TimerClient):
         self.stop_remote_services()
 
     async def on_pending_load_complete(self):
+        """Handle completion of pending behavior loading.
+
+        Called when a conversation member completes loading pending behaviors.
+        When all members have completed loading, the pending behaviors become active.
+        """
         if self.pending_behaviours_load_cnt == 0:
             return
 
@@ -346,11 +494,23 @@ class WorkflowEngine(TimerClient):
             self.pending_behaviours = {}
 
     async def on_timer(self, tid):
+        """Handle timer events.
+
+        Called when a timer fires. Handles different timer types based on the timer ID.
+
+        Args:
+            tid: Timer ID that triggered this event
+        """
         if self.auto_purge_timer == tid:
             logger.info("checking current online users status, auto purge idle users.")
             await self.purge_idle_users()
 
     async def purge_idle_users(self):
+        """Remove idle users from the conversation members.
+
+        Identifies users who have been idle for more than 2400 seconds (40 minutes)
+        and removes them from the active conversation members list.
+        """
         idle_users = []
         self._mutex.acquire()
         for mid, member in self.conversation_members.items():
@@ -363,6 +523,11 @@ class WorkflowEngine(TimerClient):
         self._mutex.release()
 
     def _init_remote_services(self):
+        """Initialize remote services from the services directory.
+
+        Dynamically loads and initializes all remote service modules found in
+        the lurawi/services directory.
+        """
         self.remote_services = []
         for _, _, files in os.walk("lurawi/services"):
             for f in files:
@@ -372,7 +537,7 @@ class WorkflowEngine(TimerClient):
                         m = importlib.import_module(mpath)
                     except Exception as err:
                         logger.error(
-                            f"Unable to import service module script {f}: {err}"
+                            "Unable to import service module script %s: %s", f, err
                         )
                         continue
                     for name, objclass in inspect.getmembers(m, inspect.isclass):
@@ -384,19 +549,33 @@ class WorkflowEngine(TimerClient):
                                 obj = objclass(owner=self)
                                 if obj.init():
                                     self.remote_services.append(obj)
-                                    logger.info(f"{name} service is initialised.")
+                                    logger.info("%s service is initialised.", name)
                             except Exception as err:
-                                logger.error(f"Unable to load {name} service: {err}.")
+                                logger.error(
+                                    "Unable to load %s service: %s.", name, err
+                                )
 
     def fini_remote_services(self):
+        """Finalize all remote services.
+
+        Calls the fini method on all remote services and clears the services list.
+        """
         for s in self.remote_services:
             s.fini()
         self.remote_services = []
 
     def start_remote_services(self):
+        """Start all initialized remote services.
+
+        Calls the start method on all remote services.
+        """
         for s in self.remote_services:
             s.start()
 
     def stop_remote_services(self):
+        """Stop all running remote services.
+
+        Calls the stop method on all remote services.
+        """
         for s in self.remote_services:
             s.stop()
