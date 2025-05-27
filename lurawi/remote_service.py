@@ -1,4 +1,3 @@
-from typing import Dict
 from .timer_manager import TimerClient, timerManager
 from .utils import logger
 
@@ -29,13 +28,9 @@ class RemoteService(TimerClient):
     def is_running(self):
         return self._is_running
 
-    def register_for_timer(self, interval):
-        if (
-            not isinstance(interval, float)
-            and not isinstance(interval, int)
-            and interval <= 0
-        ):
-            logger.error(f"register_for_timer: invalid time interval {interval}")
+    def register_for_timer(self, interval: int):
+        if interval <= 0:
+            logger.error("register_for_timer: invalid time interval %d", interval)
             return
 
         tid = timerManager.add_timer(self, init_start=interval, interval=interval)
