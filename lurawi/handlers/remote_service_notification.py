@@ -56,7 +56,7 @@ class RemoteServiceNotificationHandler(WebhookHandler):
                 },
             )
 
-        if not member.checkRemoteCallbackAccess(payload.access_key):
+        if not member.check_remote_callback_access(payload.access_key):
             return self.write_http_response(
                 400,
                 {
@@ -66,7 +66,7 @@ class RemoteServiceNotificationHandler(WebhookHandler):
             )
 
         if payload.success:
-            await member.processRemoteCallbackPayload(
+            await member.process_remote_callback_payload(
                 method=payload.method, data=payload.data
             )
 
