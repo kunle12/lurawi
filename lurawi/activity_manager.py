@@ -350,14 +350,14 @@ class ActivityManager(object):
             for _, args in self.running_actions.items():
                 if "_custom_obj" in args:  # a custom
                     obj = args["_custom_obj"]
-                    if obj.isSuspendable():
+                    if obj.is_suspendable():
                         suspendable_objs.append(obj)
             if len(self.running_actions) == len(
                 suspendable_objs
             ):  # we can suspend all running customs
                 logger.info("Suspend all suspendable custom actions")
                 for obj in suspendable_objs:
-                    obj.gotoSuspension()
+                    obj.goto_suspension()
                 self.suspended_actions = self.running_actions
                 self.running_actions = {}
             else:
@@ -727,8 +727,8 @@ class ActivityManager(object):
             # ['calculate', ['KB_KEY', '2*time+KB_KEY2']]
             # 'time' is UNIX time int(time.time())
             self.custom_behaviours["calculate"] = calculate(self.knowledge, *arg)
-            self.custom_behaviours["calculate"].onSuccess = self.actionHandler
-            self.custom_behaviours["calculate"].onFailure = self.actionFailHandler
+            self.custom_behaviours["calculate"].on_success = self.actionHandler
+            self.custom_behaviours["calculate"].on_failure = self.actionFailHandler
             await self.custom_behaviours["calculate"].run()
         elif cmd == "compare":
             # ['compare', {
@@ -740,8 +740,8 @@ class ActivityManager(object):
             # }]
             # 'time' is UNIX time int(time.time())
             self.custom_behaviours["compare"] = compare(self.knowledge, arg)
-            self.custom_behaviours["compare"].onSuccess = self.actionHandler
-            self.custom_behaviours["compare"].onFailure = self.actionFailHandler
+            self.custom_behaviours["compare"].on_success = self.actionHandler
+            self.custom_behaviours["compare"].on_failure = self.actionFailHandler
             await self.custom_behaviours["compare"].run()
         elif cmd == "random":
             sample = ["random", ["KB_KEYNAME", [1, 2, 3]]]
@@ -787,8 +787,8 @@ class ActivityManager(object):
                 self.running_actions[module_name]["_custom_obj"] = (
                     self.custom_behaviours[module_name]
                 )
-                self.custom_behaviours[module_name].onSuccess = self.actionHandler
-                self.custom_behaviours[module_name].onFailure = self.actionFailHandler
+                self.custom_behaviours[module_name].on_success = self.actionHandler
+                self.custom_behaviours[module_name].on_failure = self.actionFailHandler
                 await self.custom_behaviours[module_name].run()
             else:
                 logger.warning(
@@ -1007,7 +1007,7 @@ class ActivityManager(object):
                 )
         elif len(self.suspended_actions) > 0:
             for _, args in self.suspended_actions.items():
-                args["_custom_obj"].restoreFromSuspension()
+                args["_custom_obj"].restore_from_suspension()
             self.running_actions = (
                 self.suspended_actions
             )  # reinsert into running actions
