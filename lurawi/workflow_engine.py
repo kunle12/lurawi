@@ -375,7 +375,7 @@ class WorkflowEngine(TimerClient):
                 session_id=payload.session_id, data=payload.data
             )
         if response:
-            return activity_manager.getResponse()
+            return activity_manager.get_response()
         else:
             return JSONResponse(
                 status_code=429,
@@ -450,7 +450,7 @@ class WorkflowEngine(TimerClient):
         """
         if uid in self.conversation_members:
             activity_manager = self.conversation_members[uid]
-            return await activity_manager.executeBehaviour(behaviour, knowledge)
+            return await activity_manager.execute_behaviour(behaviour, knowledge)
 
         logger.error("unable to find uid %s for behaviour execution", uid)
         return False

@@ -843,7 +843,7 @@ class ActivityManager(object):
                                 logger.warning(
                                     "play_behaviour: disruptable pending action, however we are in no disruption mode, continue current action and keep the queue"
                                 )
-                                self.action_complete_cb = self.play_next_activityRouter
+                                self.action_complete_cb = self.play_next_activity_router
                             else:
                                 logger.warning(
                                     "play_behaviour: only execute pending disruptable actions %d. purge all other pending action after current play_behaviour concludes",
@@ -862,8 +862,8 @@ class ActivityManager(object):
                         )
                         self.pending_actions = []
 
-                    self.action_complete_cb = self.play_next_activityRouter
-                    await self.actionHandler(cmd)  # calling play_next_activityRouter
+                    self.action_complete_cb = self.play_next_activity_router
+                    await self.actionHandler(cmd)  # calling play_next_activity_router
                 else:
                     await self.actionFailHandler(cmd)
         else:
@@ -909,7 +909,8 @@ class ActivityManager(object):
     async def actionFailHandler(self, action, data=None):
         if action not in self.running_actions:
             logger.error(
-                f"Running action(failed) error. Got {action}, but running actions = {self.running_actions.keys()}"
+                "Running action(failed) error. Got %s, but running actions = {self.running_actions.keys()}",
+                action,
             )
             return
 
@@ -919,7 +920,9 @@ class ActivityManager(object):
 
         del self.running_actions[action]
         logger.error(
-            f"Completed(failed) {action}, running actions = {self.running_actions.keys()}"
+            "Completed(failed) %s, running actions = %s",
+            action,
+            self.running_actions.keys(),
         )
 
         # purge all left over actions
@@ -931,11 +934,13 @@ class ActivityManager(object):
             await self.play_actionLet(data)
 
         if not self.is_busy():
-            logger.error(f"Completed(failed) action with id - {self.current_action_id}")
+            logger.error(
+                "Completed(failed) action with id - %d", self.current_action_id
+            )
             self.chained_actions = {}
             await self.on_action_completed(self.current_action_id)
 
-    def resetRunningActions(self):
+    def reset_running_actions(self):
         self.clear_running_actions()
 
     def clear_running_actions(self):
@@ -956,7 +961,9 @@ class ActivityManager(object):
 
     async def on_action_completed(self, action_id=""):
         logger.debug(
-            f"on_action_completed: completed action {action_id} Complete_cb = {self.action_complete_cb}"
+            "on_action_completed: completed action %d Complete_cb = %s",
+            action_id,
+            self.action_complete_cb,
         )
         if self.external_notification_cb is not None and callable(
             self.external_notification_cb
@@ -1094,7 +1101,7 @@ class ActivityManager(object):
         payload["activity_id"] = self.knowledge["CURRENT_TURN_CONTEXT"]
         self.response = write_http_response(status, payload, headers=headers)
 
-    async def executeBehaviour(self, behaviour, knowledge={}):
+    async def execute_behaviour(self, behaviour, knowledge={}):
         self.knowledge.update(knowledge)
         if behaviour in self.knowledge:
             behaviour = self.knowledge[behaviour]
@@ -1103,7 +1110,7 @@ class ActivityManager(object):
             "manual_execution", [["play_behaviour", behaviour]]
         )
 
-    def getResponse(self):
+    def get_response(self):
         response = None
         self.in_user_interaction = False
         if self.response is None:

@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import sys
 from venv import EnvBuilder
-from typing import List
+from typing import Dict
 from version import VERSION
 
 ## Calling example
@@ -59,7 +59,7 @@ class {{function_template}}(CustomBehaviour):
 '''
 
 
-def _create_activate_working_environment(path: str) -> List:
+def _create_activate_working_environment(path: str) -> Dict:
     venv_dir = f"{path}/.venv"
     venv_env = os.environ.copy()
     if os.path.isdir(venv_dir):
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     ]
     if command != "create" and missing_variables:
         print(f"Missing environment variables: {', '.join(missing_variables)}")
-        exit(-1)
+        sys.exit(-1)
 
     script_path = os.path.realpath(__file__)
     base_path = os.path.dirname(os.path.dirname(script_path))
