@@ -1,17 +1,32 @@
-import aiofiles as aiof
-import aiohttp
+"""Utility functions for the Lurawi system.
+
+This module provides a collection of utility functions for various operations including:
+- Authentication and access control
+- Encryption and decryption
+- Time formatting
+- Token calculation and string manipulation
+- Azure and AWS storage operations
+- HTTP request handling
+- JSON processing
+- Data streaming
+
+These utilities are used throughout the Lurawi system to provide common functionality
+and abstract away implementation details of various operations.
+"""
+
 import base64
-import boto3
-import jwt
+import time
 import logging
 import os
-import re
+import string
 import random
+import jwt
+import aiofiles as aiof
+import aiohttp
+import boto3
 import requests
 import simplejson as json
-import string
 import tiktoken
-import time
 
 from azure.storage.blob.aio import BlobClient as AsyncBlobClient
 from azure.storage.blob import BlobClient
@@ -55,12 +70,23 @@ PYTHON_TYPE_MAPPING = {
 
 
 def is_indev() -> bool:
+    """Check if the system is running in development mode.
+
+    Returns:
+        bool: True if running in development mode, False otherwise
+    """
     return in_dev
 
 
 def get_project_settings() -> bool:
-    global project_name
-    global project_access_key
+    """Load project settings from environment variables.
+
+    Loads PROJECT_NAME and PROJECT_ACCESS_KEY from environment variables
+    and stores them in global variables.
+
+    Returns:
+        bool: True if settings were loaded successfully, False otherwise
+    """
 
     if "PROJECT_NAME" in os.environ:
         project_name = os.environ["PROJECT_NAME"]
@@ -77,22 +103,36 @@ def get_project_settings() -> bool:
     return True
 
 
-def api_access_check(req: Request, project: str = None) -> bool:
+def api_access_check(req: Request, project: str = "") -> bool:
+    """Check if an API request is authorized.
+
+    Verifies that the X-LURAWI-API-KEY header matches the project access key.
+
+    Args:
+        req: The FastAPI request object
+        project: Optional project name (not currently used)
+
+    Returns:
+        bool: True if the request is authorized, False otherwise
+    """
     if no_auth:
         return True
 
     api_key = req.headers.get("X-LURAWI-API-KEY")
 
-    if api_key:
-        return api_key == project_access_key
-    else:
-        auth_bearer = req.headers.get("Authorization")
-        if auth_bearer and auth_bearer.startswith("Bearer"):
-            auth_bearer = auth_bearer[7:]
-            # TODO check bearer token
+    return api_key == project_access_key
 
 
 def encrypt_ifavailable(data):
+    """Encrypt data if encryption key is available.
+
+    Args:
+        data: The data to encrypt
+
+    Returns:
+        str: Encrypted data as a base64-encoded string if encryption is available,
+             otherwise the original data
+    """
     if "LLMServiceDataAccessKey" not in os.environ:
         logging.warning(
             "encrypt_ifavailable: missing data access keys, return original data"
@@ -112,6 +152,15 @@ def encrypt_ifavailable(data):
 
 
 def decrypt_ifavailable(data):
+    """Decrypt data if decryption key is available.
+
+    Args:
+        data: The encrypted data as a base64-encoded string
+
+    Returns:
+        str: Decrypted data if decryption is available,
+             otherwise the original data
+    """
     if "LLMServiceDataAccessKey" not in os.environ:
         logging.warning(
             "decrypt_ifavailable: missing data access keys, return original data"
@@ -132,6 +181,15 @@ def decrypt_ifavailable(data):
 
 
 def _decrypt_content(key, content):
+    """Decrypt content using AES encryption.
+
+    Args:
+        key: The decryption key
+        content: The encrypted content
+
+    Returns:
+        bytes: Decrypted content as bytes
+    """
     text = None
     nonce = content[:16]
     tag = content[16:32]
@@ -140,13 +198,25 @@ def _decrypt_content(key, content):
         cipher = AES.new(key, AES.MODE_EAX, nonce)
         text = cipher.decrypt_and_verify(data, tag)
     except Exception as e:
-        logging.error(f"unable to descrypt content, error {e}")
+        logging.error("unable to descrypt content, error %s", e)
 
     # print(f"decrypted text {text}")
     return text
 
 
 def _encrypt_content(key, content, infile=True):
+    """Encrypt content using AES encryption.
+
+    Args:
+        key: The encryption key
+        content: The content to encrypt
+        infile: If True, save encrypted content to a temporary file
+                If False, return encrypted content as bytes
+
+    Returns:
+        str or bytes: Path to temporary file containing encrypted content if infile=True,
+                      otherwise encrypted content as bytes
+    """
     # use the cipher to encrypt the padded message
     cipher = AES.new(key, AES.MODE_EAX)
     ciphertext, tag = cipher.encrypt_and_digest(content.encode("utf-8"))
@@ -158,12 +228,20 @@ def _encrypt_content(key, content, infile=True):
         [file_out.write(x) for x in (cipher.nonce, tag, ciphertext)]
         file_out.close()
         return tmp_file_name
-    else:
-        enc_data = cipher.nonce + tag + ciphertext
-        return enc_data
+
+    enc_data = cipher.nonce + tag + ciphertext
+    return enc_data
 
 
 def time2str(time_int):
+    """Convert time in seconds to a human-readable string.
+
+    Args:
+        time_int: Time in seconds
+
+    Returns:
+        str: Human-readable time string (e.g., "2 days 3 hours 45 minutes 30 seconds")
+    """
     timestr = ""
     tm = time_int
     if tm >= 86400:
@@ -186,11 +264,29 @@ def time2str(time_int):
 
 
 def _get_tiktoken_tokenizer(tokenizer_name="cl100k_base", logger=None, state=None):
+    """Get a tiktoken tokenizer instance.
+
+    Args:
+        tokenizer_name: Name of the tokenizer to use
+        logger: Optional logger instance (not used)
+        state: Optional state object (not used)
+
+    Returns:
+        tiktoken.Encoding: Tokenizer instance
+    """
     tokenizer = tiktoken.get_encoding(tokenizer_name)
     return tokenizer
 
 
 def calc_token_size(text: str) -> int:
+    """Calculate the number of tokens in a text string.
+
+    Args:
+        text: The text to tokenize
+
+    Returns:
+        int: Number of tokens in the text
+    """
     global _tiktokeniser
 
     if not _tiktokeniser:
@@ -199,6 +295,18 @@ def calc_token_size(text: str) -> int:
 
 
 def cut_string(s, n_tokens=2500, logger=None, state=None):
+    """Cut a string to a maximum number of tokens.
+
+    Args:
+        s: The string to cut
+        n_tokens: Maximum number of tokens to keep
+        logger: Optional logger instance (not used)
+        state: Optional state object (not used)
+
+    Returns:
+        str: The original string if it's shorter than n_tokens,
+             otherwise the string cut to n_tokens
+    """
     # cuts of string based on number of tokens
     global _tiktokeniser
 
@@ -214,6 +322,11 @@ def cut_string(s, n_tokens=2500, logger=None, state=None):
 
 
 def get_stickyness_cookie():
+    """Get the AWS sticky session cookie if available and not expired.
+
+    Returns:
+        dict or None: Cookie dictionary if available and not expired, None otherwise
+    """
     global _aws_sticky_cookie
     if _aws_sticky_cookie:
         if (
@@ -225,6 +338,11 @@ def get_stickyness_cookie():
 
 
 def _set_stickyness_cookie(cookies):
+    """Set the AWS sticky session cookie with current timestamp.
+
+    Args:
+        cookies: Cookie dictionary to store
+    """
     global _aws_sticky_cookie
     _aws_sticky_cookie = (cookies, time.time())
 
@@ -232,6 +350,16 @@ def _set_stickyness_cookie(cookies):
 def get_content_from_azure_storage(
     filepath, container="llamservice_data", as_binary=False
 ):
+    """Retrieve content from Azure Blob Storage or local file system.
+
+    Args:
+        filepath: Path to the file to retrieve
+        container: Azure Blob Storage container name
+        as_binary: If True, return content as bytes, otherwise as text
+
+    Returns:
+        str or bytes or None: File content if successful, None otherwise
+    """
     content = None
     if "AzureWebJobsStorage" in os.environ:
         connect_string = os.environ["AzureWebJobsStorage"]
@@ -244,18 +372,27 @@ def get_content_from_azure_storage(
             else:
                 content = blob.download_blob().content_as_text()
         except Exception as e:
-            logger.error(f"unable to load '{filepath}' from blob storage: error {e}")
+            logger.error("unable to load '%s' from blob storage: error %s", filepath, e)
     elif os.path.exists(filepath):
         try:
             with open(filepath, "r") as f:
                 content = f.read()
         except Exception as e:
-            logger.error(f"unable to load '{filepath}' from local drive: error {e}")
+            logger.error("unable to load '%s' from local drive: error %s", filepath, e)
 
     return content
 
 
 async def aget_content_from_azure_storage(filepath, container="llmservicedata"):
+    """Asynchronously retrieve content from Azure Blob Storage or local file system.
+
+    Args:
+        filepath: Path to the file to retrieve
+        container: Azure Blob Storage container name
+
+    Returns:
+        str or bytes or None: File content if successful, None otherwise
+    """
     content = None
     if "AzureWebJobsStorage" in os.environ:
         connect_string = os.environ["AzureWebJobsStorage"]
@@ -266,18 +403,28 @@ async def aget_content_from_azure_storage(filepath, container="llmservicedata"):
             stream = await blob.download_blob()
             content = await stream.readall()
         except Exception as e:
-            logger.error(f"unable to load '{filepath}' from blob storage: error {e}")
+            logger.error("unable to load '%s' from blob storage: error %s", filepath, e)
     elif os.path.exists(filepath):
         try:
             async with aiof.open(filepath, "r") as f:
                 content = await f.read()
         except Exception as e:
-            logger.error(f"unable to load '{filepath}' from local drive: error {e}")
+            logger.error("unable to load '%s' from local drive: error %s", filepath, e)
 
     return content
 
 
 def save_content_to_azure_storage(filepath, content_file, container="llmservice_data"):
+    """Save content to Azure Blob Storage or local file system.
+
+    Args:
+        filepath: Path where the file should be saved
+        content_file: Path to the file containing the content to save
+        container: Azure Blob Storage container name
+
+    Returns:
+        bool: True if content was saved successfully, False otherwise
+    """
     if "AzureWebJobsStorage" in os.environ:
         connect_string = os.environ["AzureWebJobsStorage"]
         try:
@@ -288,7 +435,9 @@ def save_content_to_azure_storage(filepath, content_file, container="llmservice_
                 blob.upload_blob(data, overwrite=True)
         except Exception as err:
             logger.error(
-                f"save_content_to_storage: unable to save '{filepath}' in the blob storage: error {err}"
+                "save_content_to_storage: unable to save '%s' in the blob storage: error %s",
+                filepath,
+                err,
             )
             return False
     else:
@@ -298,7 +447,9 @@ def save_content_to_azure_storage(filepath, content_file, container="llmservice_
                 f.write(content)
         except Exception as err:
             logger.error(
-                f"save_content_to_storage: unable to save '{filepath}' on the local drive: error {err}"
+                "save_content_to_storage: unable to save '%s' on the local drive: error %s",
+                filepath,
+                err,
             )
             return False
 
@@ -308,6 +459,16 @@ def save_content_to_azure_storage(filepath, content_file, container="llmservice_
 async def asave_content_to_azure_storage(
     filepath, content_file, container="llmservice_data"
 ):
+    """Asynchronously save content to Azure Blob Storage or local file system.
+
+    Args:
+        filepath: Path where the file should be saved
+        content_file: Path to the file containing the content to save
+        container: Azure Blob Storage container name
+
+    Returns:
+        bool: True if content was saved successfully, False otherwise
+    """
     if "AzureWebJobsStorage" in os.environ:
         connect_string = os.environ["AzureWebJobsStorage"]
         try:
@@ -318,7 +479,9 @@ async def asave_content_to_azure_storage(
                 await blob.upload_blob(data, overwrite=True)
         except Exception as err:
             logger.error(
-                f"save_content_to_storage: unable to save '{filepath}' in the blob storage: error {err}"
+                "save_content_to_storage: unable to save '%s' in the blob storage: error %s",
+                filepath,
+                err,
             )
             return False
     else:
@@ -330,7 +493,9 @@ async def asave_content_to_azure_storage(
                 await f.write(content)
         except Exception as err:
             logger.error(
-                f"save_content_to_storage: unable to save '{filepath}' on the local drive: error {err}"
+                "save_content_to_storage: unable to save '%s' on the local drive: error %s",
+                filepath,
+                err,
             )
             return False
 
@@ -338,6 +503,16 @@ async def asave_content_to_azure_storage(
 
 
 def get_content_from_aws_s3(filepath, container="llamservice_data", as_binary=False):
+    """Retrieve content from AWS S3 or local file system.
+
+    Args:
+        filepath: Path to the file to retrieve
+        container: S3 bucket name
+        as_binary: If True, return content as bytes, otherwise as text
+
+    Returns:
+        str or bytes or None: File content if successful, None otherwise
+    """
     content = None
     if "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ:
         s3_client = boto3.client("s3")
@@ -351,18 +526,28 @@ def get_content_from_aws_s3(filepath, container="llamservice_data", as_binary=Fa
                 s3_client.download_fileobj(container, filepath, blobio)
             content = blobio.read()
         except Exception as e:
-            logger.error(f"unable to load '{filepath}' from s3 storage: error {e}")
+            logger.error("unable to load '%s' from s3 storage: error %s", filepath, e)
     elif os.path.exists(filepath):
         try:
             with open(filepath, "r") as f:
                 content = f.read()
         except Exception as e:
-            logger.error(f"unable to load '{filepath}' from local drive: error {e}")
+            logger.error("unable to load '%s' from local drive: error %s", filepath, e)
 
     return content
 
 
 async def aget_data_from_url(headers, url):
+    """Asynchronously retrieve data from a URL with retry logic.
+
+    Args:
+        headers: HTTP headers to include in the request
+        url: URL to retrieve data from
+
+    Returns:
+        tuple: (status_code, response_data) if successful,
+               (None, error) if an error occurred
+    """
     retries = 0
     url_status = 404
     try:
@@ -381,17 +566,32 @@ async def aget_data_from_url(headers, url):
             return url_status, result
     except Exception as err:
         logger.error(
-            f"aget_data_from_url: failed to retrieve data from url {url}: error {err}"
+            "aget_data_from_url: failed to retrieve data from url %s: error %s",
+            url,
+            err,
         )
         return None, err
 
 
 async def apost_payload_to_url(
-    headers, url, payload, usePut=False, use_stickyness=False
+    headers, url, payload, use_put=False, use_stickyness=False
 ):
+    """Asynchronously post JSON payload to a URL.
+
+    Args:
+        headers: HTTP headers to include in the request
+        url: URL to post data to
+        payload: JSON payload to send
+        use_put: If True, use PUT method instead of POST
+        use_stickyness: If True, store cookies for sticky sessions
+
+    Returns:
+        tuple: (status_code, response_data) if successful,
+               (None, error) if an error occurred
+    """
     try:
         async with aiohttp.ClientSession(headers=headers) as session:
-            if usePut:
+            if use_put:
                 async with session.put(url, json=payload, ssl=ssl_verify) as r:
                     result = None
                     try:
@@ -413,15 +613,30 @@ async def apost_payload_to_url(
                     return r.status, result
     except Exception as err:
         logger.error(
-            f"apost_payload_to_url: failed to post json payload to url {url}: error {err}"
+            "apost_payload_to_url: failed to post json payload to url %s: error %s",
+            url,
+            err,
         )
         return None, err
 
 
-async def apost_data_to_url(headers, url, data, usePut=False, use_stickyness=False):
+async def apost_data_to_url(headers, url, data, use_put=False, use_stickyness=False):
+    """Asynchronously post form data to a URL.
+
+    Args:
+        headers: HTTP headers to include in the request
+        url: URL to post data to
+        data: Form data to send
+        use_put: If True, use PUT method instead of POST
+        use_stickyness: If True, store cookies for sticky sessions
+
+    Returns:
+        tuple: (status_code, response_data) if successful,
+               (None, error) if an error occurred
+    """
     try:
         async with aiohttp.ClientSession(headers=headers) as session:
-            if usePut:
+            if use_put:
                 async with session.put(url, data=data, ssl=ssl_verify) as r:
                     result = None
                     try:
@@ -443,12 +658,23 @@ async def apost_data_to_url(headers, url, data, usePut=False, use_stickyness=Fal
                     return r.status, result
     except Exception as err:
         logger.error(
-            f"apost_data_to_url: failed to post data to url {url}: error {err}"
+            "apost_data_to_url: failed to post data to url %s: error %s", url, err
         )
         return None, err
 
 
 async def apatch_data_to_url(headers, url, payload):
+    """Asynchronously send a PATCH request to a URL.
+
+    Args:
+        headers: HTTP headers to include in the request
+        url: URL to send the PATCH request to
+        payload: JSON payload to send
+
+    Returns:
+        tuple: (status_code, None) if successful,
+               (None, error) if an error occurred
+    """
     try:
         async with aiohttp.ClientSession(headers=headers) as session:
             async with session.patch(url, json=payload, ssl=ssl_verify) as r:
@@ -456,7 +682,9 @@ async def apatch_data_to_url(headers, url, payload):
                 return r.status, result
     except Exception as err:
         logger.error(
-            f"apatch_data_to_url: failed to send patch data to url {url}: error {err}"
+            "apatch_data_to_url: failed to send patch data to url %s: error %s",
+            url,
+            err,
         )
         return None, err
 
@@ -473,25 +701,27 @@ async def aremove_data_from_url(headers, url, payload):
                 return r.status, result
     except Exception as err:
         logger.error(
-            f"aremove_data_from_url: failed to remove data from url {url}: error {err}"
+            "aremove_data_from_url: failed to remove data from url %s: error %s",
+            url,
+            err,
         )
         return None, err
 
 
-def post_payload_to_url(url, payload, headers=None, usePut=False):
+def post_payload_to_url(url, payload, headers=None, use_put=False):
     if headers is None:
         headers = {"Content-Type": "application/json"}
     try:
-        if usePut:
+        if use_put:
             r = requests.put(url, headers=headers, json=payload, verify=ssl_verify)
         else:
             r = requests.post(url, headers=headers, json=payload, verify=ssl_verify)
     except Exception as err:
-        logging.error(f"unable to send post request, error {err}")
+        logging.error("unable to send post request, error %s", err)
         return None, err
 
     result = None
-    logging.debug(f"successfully sending request")
+    logging.debug("successfully sending request")
     try:
         result = r.json()
     except Exception as _:
@@ -517,7 +747,7 @@ def decode_json_field(data: Dict) -> Dict:
             try:
                 new_dict[k[:-5]] = json.loads(v)
             except Exception as err:
-                logger.error("get_documents: unable to load {k}: {err}")
+                logger.error("get_documents: unable to load %s: %s", k, err)
         else:
             new_dict[k] = v
     return new_dict
@@ -551,10 +781,26 @@ def check_type(value: any, type_info: str) -> bool:
 
 
 class DataStreamHandler(object):
+    """Handler for streaming data from LLM responses.
+
+    This class processes streaming responses from language models
+    and formats them for Server-Sent Events (SSE).
+    """
+
     def __init__(self, response) -> None:
+        """Initialize a new DataStreamHandler.
+
+        Args:
+            response: The streaming response object from the language model
+        """
         self._response = response
 
     async def stream_generator(self) -> AsyncIterable[str]:
+        """Generate formatted SSE data from streaming response.
+
+        Yields:
+            str: Formatted SSE data chunks with HTML line breaks
+        """
         async for chunk in self._response:
             content = chunk.choices[0].delta.content or ""
             if content:

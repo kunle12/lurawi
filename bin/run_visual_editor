@@ -21,39 +21,40 @@ table, th, td { border: 1px solid; border-collapse: collapse; padding-left: 4px;
 img { max-width: 100%; }
 """
 
+
 def parse_custom_scripts(fdir: str):
-    content = ''
-    dumbhead_str = f"dumb|{fdir}" # keep snyk happy
-    for root, _, files in os.walk(dumbhead_str.split('|')[1], topdown=False):
+    content = ""
+    dumbhead_str = f"dumb|{fdir}"  # keep snyk happy
+    for root, _, files in os.walk(dumbhead_str.split("|")[1], topdown=False):
         for name in files:
-            if name.endswith('.py') and name != '__init__.py':
-                #print("processing custom script {}".format(name))
+            if name.endswith(".py") and name != "__init__.py":
+                # print("processing custom script {}".format(name))
                 content = content + extract_example_info(os.path.join(root, name))
     return content
 
 
 def extract_example_info(fname: str):
-    content = ''
+    content = ""
     if not os.path.isfile(fname):
         return content
-    with open(fname, 'r') as f:
+    with open(fname, "r") as f:
         tree = ast.parse(f.read())
 
-        modef = tuple({ast.ClassDef: 'Class'})
+        modef = tuple({ast.ClassDef: "Class"})
         for n in ast.walk(tree):
             if isinstance(n, modef):
                 ds = ast.get_docstring(n)
-                #print("extracted class docstring {}".format(ds))
+                # print("extracted class docstring {}".format(ds))
                 if ds is None:
                     continue
-                cindex = ds.find('\"custom\"')
+                cindex = ds.find('"custom"')
                 if cindex > 0:
-                    exstr = ds[ds.rfind('[', 0, cindex):]
-                    eindex = exstr.rfind(']', 0, len(exstr))
+                    exstr = ds[ds.rfind("[", 0, cindex) :]
+                    eindex = exstr.rfind("]", 0, len(exstr))
                     if eindex <= 0:
                         print(f"unable to parse doc string example 1: {exstr}")
                         continue
-                    exstr = exstr[:eindex+1]
+                    exstr = exstr[: eindex + 1]
                     try:
                         exalet = ast.literal_eval(exstr)
                     except Exception as _:
@@ -64,24 +65,33 @@ def extract_example_info(fname: str):
                         print(f"unable to parse the example 3: {exalet}")
                         continue
                     if isinstance(exalet[1], dict):
-                        #print("custom script {} with".format(exalet[1]['name']))
-                        content = content + f"    <cscript name=\"{exalet[1]['name']}\">\n"
-                        kargs = exalet[1]['args']
-                        for k,t in kargs.items():
-                            atype = 'any'
+                        # print("custom script {} with".format(exalet[1]['name']))
+                        content = (
+                            content + f"    <cscript name=\"{exalet[1]['name']}\">\n"
+                        )
+                        kargs = exalet[1]["args"]
+                        for k, t in kargs.items():
+                            atype = "any"
                             if isinstance(t, bool):
-                                atype = 'boolean'
+                                atype = "boolean"
                             elif isinstance(t, str):
-                                atype = 'string'
+                                atype = "string"
                             elif isinstance(t, float) or isinstance(t, int):
-                                atype = 'number'
-                            elif isinstance(t, list) and ('action' in k or 'command' in k):
-                                atype = 'action'
-                            content = content + f"      <argument type=\"{atype}\">{k}</argument>\n"
+                                atype = "number"
+                            elif isinstance(t, list) and (
+                                "action" in k or "command" in k
+                            ):
+                                atype = "action"
+                            content = (
+                                content
+                                + f'      <argument type="{atype}">{k}</argument>\n'
+                            )
                         content = content + "    </cscript>\n"
                     elif isinstance(exalet[1], str):
-                        #print("custom script: {} no arg".format(exalet[1]))
-                        content = content + f"    <cscript name=\"{exalet[1]}\"></cscript>\n"
+                        # print("custom script: {} no arg".format(exalet[1]))
+                        content = (
+                            content + f'    <cscript name="{exalet[1]}"></cscript>\n'
+                        )
                     else:
                         print(f"unable to parse doc string example 4: {exstr}")
                         continue
@@ -89,31 +99,34 @@ def extract_example_info(fname: str):
                     continue
     return content
 
+
 def update_documentation(editor_dir: str):
     def markdown_to_html(in_file_path: str, out_file_path: str) -> bool:
         try:
-            with open(in_file_path, 'r') as ifile, open(out_file_path, 'w') as ofile:    
+            with open(in_file_path, "r") as ifile, open(out_file_path, "w") as ofile:
                 text = ifile.read()
-                html_text = MarkdownIt_obj.render(text)
+                html_text = mark_down_it_obj.render(text)
                 # pretty CSS
-                soup = BeautifulSoup(html_text, "html5lib")  # adds <html>, <head>,  <body>
+                soup = BeautifulSoup(
+                    html_text, "html5lib"
+                )  # adds <html>, <head>,  <body>
                 soup.select_one("head").append(soup.new_tag("meta"))
                 soup.select_one("meta").attrs["charset"] = "UTF-8"
 
                 # syntax highlighting
-                soup.select_one('head').append(soup.new_tag('link'))
+                soup.select_one("head").append(soup.new_tag("link"))
                 soup.select_one("link").attrs["rel"] = "stylesheet"
                 soup.select_one("link").attrs["href"] = "../assets/monokai.min.css"
 
-                soup.select_one('head').append(soup.new_tag('script'))
-                soup.select("script")[0].attrs['src'] ="../assets/highlight.min.js"
-                soup.select_one('head').append(soup.new_tag('script'))
-                soup.select("script")[1].string = 'hljs.highlightAll();'
+                soup.select_one("head").append(soup.new_tag("script"))
+                soup.select("script")[0].attrs["src"] = "../assets/highlight.min.js"
+                soup.select_one("head").append(soup.new_tag("script"))
+                soup.select("script")[1].string = "hljs.highlightAll();"
 
                 soup.select_one("head").append(soup.new_tag("style"))
                 soup.select_one("style").string = DOC_CSS
                 outtext = str(soup).replace(".md", ".html")
-                outtext = outtext.replace("docs/","")
+                outtext = outtext.replace("docs/", "")
                 ofile.write(outtext)
         except Exception as err:
             print(f"Failed to generate html for {in_file_path}: {err}")
@@ -126,16 +139,22 @@ def update_documentation(editor_dir: str):
         return
 
     os.mkdir(html_doc_path)
-    MarkdownIt_obj = MarkdownIt("gfm-like").enable("table").enable("strikethrough")
-    markdown_to_html(in_file_path='README.md', out_file_path=f"{html_doc_path}/index.html")
+    mark_down_it_obj = MarkdownIt("gfm-like").enable("table").enable("strikethrough")
+    markdown_to_html(
+        in_file_path="README.md", out_file_path=f"{html_doc_path}/index.html"
+    )
     for file in os.listdir(doc_path):
         file_path = f"{doc_path}/{file}"
         if os.path.isdir(file_path):
             shutil.copytree(src=file_path, dst=f"{html_doc_path}/{file}")
         elif file.endswith(".md"):
-            markdown_to_html(in_file_path=file_path, out_file_path=f"{html_doc_path}/{file[:-3]}.html")
+            markdown_to_html(
+                in_file_path=file_path,
+                out_file_path=f"{html_doc_path}/{file[:-3]}.html",
+            )
         else:
             shutil.copy(src=file_path, dst=f"{html_doc_path}/{file}")
+
 
 def update_editor_custom_definitions(custom_dir: str, editor_dir: str) -> bool:
     index_file = f"{editor_dir}/index.html"
@@ -146,7 +165,7 @@ def update_editor_custom_definitions(custom_dir: str, editor_dir: str) -> bool:
     if content:
         index_content = ""
         try:
-            with open(index_file, 'r') as f:
+            with open(index_file, "r") as f:
                 reached_comment = False
                 for line in f.readlines():
                     if reached_comment:
@@ -154,29 +173,42 @@ def update_editor_custom_definitions(custom_dir: str, editor_dir: str) -> bool:
                     else:
                         index_content += line
                         reached_comment = "DO NOT DELETE THIS LINE" in line
-            with open(index_file, 'w') as f:
+            with open(index_file, "w") as f:
                 f.write(index_content)
-                f.write('  <xml xmlns="http://www.w3.org/1999/xhtml" id="scriptlib" style="display: none;">\n')
+                f.write(
+                    '  <xml xmlns="http://www.w3.org/1999/xhtml" id="scriptlib" style="display: none;">\n'
+                )
                 f.write(content)
-                f.write('  </xml>\n  </body>\n</html>\n')
+                f.write("  </xml>\n  </body>\n</html>\n")
         except Exception as err:
-            print(f"unable to update custom function definitions in visual editor: {err}")
+            print(
+                f"unable to update custom function definitions in visual editor: {err}"
+            )
     else:
         print("unable to find custom function definitions")
-    
+
     return True
+
 
 def handler_from(directory):
     def _init(self, *args, **kwargs):
-        return http.server.SimpleHTTPRequestHandler.__init__(self, *args, directory=self.directory, **kwargs)
-    return type(f'HandlerFrom<{directory}>',
-                (http.server.SimpleHTTPRequestHandler,),
-                {'__init__': _init, 'directory': directory})
+        return http.server.SimpleHTTPRequestHandler.__init__(
+            self, *args, directory=self.directory, **kwargs
+        )
+
+    return type(
+        f"HandlerFrom<{directory}>",
+        (http.server.SimpleHTTPRequestHandler,),
+        {"__init__": _init, "directory": directory},
+    )
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run Lurawi Agent Visual Programming Editor")
-    parser.add_argument( '--custom_dir', nargs = 1, help='path to the custom functions' )
-    parser.add_argument( '--editor_dir', nargs = 1, help='path to the visual editor' )
+    parser = argparse.ArgumentParser(
+        description="Run Lurawi Agent Visual Programming Editor"
+    )
+    parser.add_argument("--custom_dir", nargs=1, help="path to the custom functions")
+    parser.add_argument("--editor_dir", nargs=1, help="path to the visual editor")
     args = parser.parse_args()
 
     script_path = os.path.realpath(__file__)
@@ -194,7 +226,9 @@ if __name__ == "__main__":
         print(f"Visual Editor invalid custom path {custom_dir}")
         exit(-1)
 
-    if not update_editor_custom_definitions(custom_dir=custom_dir,editor_dir=editor_dir):
+    if not update_editor_custom_definitions(
+        custom_dir=custom_dir, editor_dir=editor_dir
+    ):
         print("Visual Editor is not found")
         exit(-1)
 
@@ -205,11 +239,10 @@ if __name__ == "__main__":
 
     with socketserver.TCPServer((host, port), handler_from(editor_dir)) as httpd:
         print("serving at port", port)
-        if host == 'localhost':
+        if host == "localhost":
             webbrowser.open(f"http://localhost:{port}")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
             print("exiting...")
             httpd.server_close()
- 
