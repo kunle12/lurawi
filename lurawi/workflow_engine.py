@@ -282,7 +282,7 @@ class WorkflowEngine(TimerClient):
         if self.pending_behaviours:
             if self.pending_behaviours_load_cnt > 0:
                 for member in self.conversation_members.values():
-                    member.setPendingBehaviours(
+                    member.set_pending_behaviours(
                         self.pending_behaviours,
                         self.knowledge,
                         self.on_pending_load_complete,
