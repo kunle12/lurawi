@@ -1,3 +1,23 @@
+"""
+This module provides Discord bot integration for a home automation system.
+
+The module contains two main classes:
+
+1. HomeBot:
+   - A Discord bot client that handles incoming messages and events.
+   - Uses asyncio for event handling and threading for non-blocking operations.
+   - Implements message processing, status updates, and clean shutdown.
+
+2. DiscordMessenger:
+   - A service wrapper that initializes and manages the HomeBot instance.
+   - Inherits from RemoteService for remote procedure handling.
+   - Handles token validation, startup/shutdown sequences, and resource cleanup.
+   - Provides a clean interface for integrating Discord bot functionality into the larger system.
+
+The implementation uses Discord's Python API (discord.py) for bot functionality,
+and leverages asyncio for asynchronous operations. The bot can send and receive messages,
+process user commands, and handle status updates through the Discord interface.
+"""
 import asyncio
 
 # import concurrent.futures
@@ -14,7 +34,7 @@ intents.dm_messages = True
 
 class HomeBot(discord.Client):
     def __init__(self, owner):
-        super(HomeBot, self).__init__(intents=intents)
+        super().__init__(intents=intents)
         self._loop = asyncio.new_event_loop()
         self.kb = owner.knowledge
         self.status = discord.Status.online
@@ -26,8 +46,12 @@ class HomeBot(discord.Client):
         self._main_channel = None
 
     async def on_ready(self):
-        guild = discord.utils.get(self.guilds, name="困了的家")
-        self._main_channel = discord.utils.get(guild.channels, name="常规")
+        guild = discord.utils.get(
+            self.guilds, name=self.kb.get("DiscordGuild", "default")
+        )
+        self._main_channel = discord.utils.get(
+            guild.channels, name=self.kb.get("DiscordChannel", "default")
+        )
         await self._main_channel.send("I am alive", delete_after=5.0)
 
     async def on_message(self, message: Message):
