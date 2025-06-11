@@ -2,6 +2,7 @@ import os
 import urllib.request
 import json
 
+from typing import Dict
 from azure.storage.blob import BlobClient
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
@@ -71,11 +72,12 @@ class user_file_upload(CustomBehaviour):
                 else:
                     sample = ["hello {}, good {}", ["KB_KEY1", "KB_KEY2"]]
                     logger.error(
-                        f"user_file_upload: invalid prompt {prompt}). action should be of form- {sample}"
+                        "user_file_upload: invalid prompt %s). action should be of form-%s",
+                        prompt, sample
                     )
                     prompt = ""
             elif not isinstance(prompt, str):
-                logger.error(f"user_file_upload: invalid prompt {prompt}).")
+                logger.error("user_file_upload: invalid prompt %s).", prompt)
                 prompt = ""
 
         if prompt == "":
@@ -84,7 +86,7 @@ class user_file_upload(CustomBehaviour):
         self.register_for_user_message_updates()
         await self.message(prompt)
 
-    async def on_user_message_update(self, context):
+    async def on_user_message_update(self, context: Dict):
         if not context.activity.attachments or len(context.activity.attachments) == 0:
             await self.message("please upload your file")
             return
@@ -124,7 +126,7 @@ class user_file_upload(CustomBehaviour):
             response = urllib.request.urlopen(attachment.content_url)
             headers = response.info()
 
-            logger.error(f"uploaded file type {headers['content-type']}")
+            logger.error("uploaded file type %s", headers['content-type'])
             # if self.content_types not in headers['content-type']:
             # If user uploads JSON file, this prevents it from being written as
             # "{"type":"Buffer","data":[123,13,10,32,32,34,108lurawi.."

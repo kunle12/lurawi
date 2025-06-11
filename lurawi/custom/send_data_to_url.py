@@ -62,7 +62,7 @@ class send_data_to_url(CustomBehaviour):
                 else:
                     payload[k] = value
 
-        logger.debug(f"final payload to send {payload}")
+        logger.debug("final payload to send %s", payload)
 
         headers = {"Content-Type": "application/json"}
         if "headers" in self.details:
@@ -88,7 +88,7 @@ class send_data_to_url(CustomBehaviour):
             use_put = False
 
         status, data = await apost_payload_to_url(
-            headers=headers, url=url, payload=payload, usePut=use_put
+            headers=headers, url=url, payload=payload, use_put=use_put
         )
         if (
             status

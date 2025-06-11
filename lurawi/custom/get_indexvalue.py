@@ -53,6 +53,7 @@ class get_indexvalue(CustomBehaviour):
                 await self.succeeded()
         else:
             logger.error(
-                f"get_indexvalue: arg expected to be a dict with keys 'array', 'index'. Got {self.details}. Aborting"
+                "get_indexvalue: arg expected to be a dict with keys 'array', 'index'. Got %s. Aborting",
+                self.details
             )
             await self.failed()

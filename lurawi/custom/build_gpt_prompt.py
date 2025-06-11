@@ -87,7 +87,8 @@ class build_gpt_prompt(CustomBehaviour):
                     doc_token_size = calc_token_size(documents)
                     doc_token_size -= mesg_token_size - max_tokens
                     logger.warning(
-                        f"build_gpt_prompt: total prompt token size {mesg_token_size} exceeds max allowed token size {max_tokens}, clipping the search doc."
+                        "build_gpt_prompt: total prompt token size %d exceeds max allowed token size %d, clipping the search doc.",
+                        mesg_token_size, max_tokens
                     )
                     clipped_docs = cut_string(s=documents, n_tokens=doc_token_size - 10)
                     user_content = [
@@ -101,12 +102,13 @@ class build_gpt_prompt(CustomBehaviour):
                     outmesg = system_content + user_content
                 else:  # it seems our user prompt is also too big
                     logger.error(
-                        f"build_gpt_prompt: total prompt token size {mesg_token_size} exceeds max allowed token size {max_tokens}, trim down system and user prompt."
+                        "build_gpt_prompt: total prompt token size %d exceeds max allowed token size %d, trim down system and user prompt.",
+                        mesg_token_size, max_tokens
                     )
                     await self.failed()
                     return
 
-        logger.debug(f"build_gpt_prompt: final prompt {outmesg}")
+        logger.debug("build_gpt_prompt: final prompt %s", outmesg)
 
         if "output" in self.details and isinstance(self.details["output"], str):
             self.kb[self.details["output"]] = outmesg

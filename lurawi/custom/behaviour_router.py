@@ -43,14 +43,16 @@ class behaviour_router(CustomBehaviour):
 
                 if not isinstance(behaviours, list):
                     logger.error(
-                        f"behaviour_router: 'behaviours' expected to be a list. Got {self.details}. Aborting"
+                        "behaviour_router: 'behaviours' expected to be a list. Got %s. Aborting",
+                        self.details
                     )
                     await self.failed()
                     return
 
             if is_restricted and not behaviours:
                 logger.error(
-                    f"behaviour_router: 'behaviours' is not defined when restricted is true. Got {self.details}. Aborting"
+                    "behaviour_router: 'behaviours' is not defined when restricted is true. Got %s. Aborting",
+                    self.details
                 )
                 await self.failed()
                 return
@@ -68,7 +70,8 @@ class behaviour_router(CustomBehaviour):
                             trials += 1
                     if not selection:
                         logger.error(
-                            f"behaviour_router: provided behaviours list is inconsistent with active behaviours. Got {self.details}. Aborting"
+                            "behaviour_router: provided behaviours list is inconsistent with active behaviours. Got %s. Aborting",
+                            self.details
                         )
                         await self.failed()
                         return
@@ -76,26 +79,26 @@ class behaviour_router(CustomBehaviour):
                     selection = random.choice(self.active_behaviours)["name"]
             elif behaviours and is_restricted and selection not in behaviours:
                 logger.error(
-                    f"behaviour_router: 'select' behaviour is not in the 'behaviours' list. Got {self.details}. Aborting"
+                    "behaviour_router: 'select' behaviour is not in the 'behaviours' list. Got %s. Aborting",
+                    self.details
                 )
                 await self.failed()
                 return
             elif not self._check_if_exists(selection):
                 logger.error(
-                    f"behaviour_router: 'select' behaviour does not exist. Got {self.details}. Aborting"
+                    "behaviour_router: 'select' behaviour does not exist. Got %s. Aborting",
+                    self.details
                 )
                 await self.failed()
                 return
 
             selected_action = ["play_behaviour", f"{selection}"]
-            logger.info(f"behaviour_router: play selected behaviour {selection}")
-            await self.log_to_cosmos(
-                "UserStories", {"story": selection, "state": "start"}
-            )
+            logger.info("behaviour_router: play selected behaviour %s", selection)
             await self.succeeded(action=selected_action)
         else:
             logger.error(
-                f"behaviour_router: arg expected to be a dict with keys 'select'. Got {self.details}. Aborting"
+                "behaviour_router: arg expected to be a dict with keys 'select'. Got %s. Aborting",
+                self.details
             )
             await self.failed()
 

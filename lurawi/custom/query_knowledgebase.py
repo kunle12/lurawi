@@ -32,7 +32,8 @@ class query_knowledgebase(CustomBehaviour):
             knowledge_key = self.details["knowledge_key"]
             if knowledge_key not in self.kb:
                 logger.error(
-                    f"query_knowledgebase: cannot find {self.details['knowledge_key']} key in the knowledge base."
+                    "query_knowledgebase: cannot find %s key in the knowledge base.",
+                    self.details['knowledge_key']
                 )
                 await self.failed()
                 return
@@ -45,13 +46,15 @@ class query_knowledgebase(CustomBehaviour):
                         knowledge_variable = json.loads(knowledge_variable)
                     except Exception as _:
                         logger.error(
-                            f"query_knowledgebase: knowledge[{knowledge_key}] is not a dict"
+                            "query_knowledgebase: knowledge[%s] is not a dict",
+                            knowledge_key
                         )
                         await self.failed()
                         return
                 elif not isinstance(knowledge_variable, dict):
                     logger.error(
-                        f"query_knowledgebase: knowledge[{knowledge_key}] is not a dict"
+                        "query_knowledgebase: knowledge[%s] is not a dict",
+                        knowledge_key
                     )
                     await self.failed()
                     return
@@ -79,7 +82,8 @@ class query_knowledgebase(CustomBehaviour):
                                 input_arg = input_arg[0]
                     else:
                         logger.error(
-                            f"query_knowledgebase: query_arg dict {self.details['query_arg']} does not contain query key {self.details['query_key']}"
+                            "query_knowledgebase: query_arg dict %s does not contain query key %s",
+                            self.details['query_arg'], self.details['query_key']
                         )
                         await self.failed()
                         return
@@ -102,7 +106,8 @@ class query_knowledgebase(CustomBehaviour):
                                 break
                         else:
                             logger.error(
-                                f"query_knowledgebase: no phrase in kb['{knowledge_key}']['{t}']"
+                                "query_knowledgebase: no phrase in kb['%s']['%s']",
+                                {knowledge_key}, t
                             )
                 else:
                     if input_arg in knowledge_variable:

@@ -75,7 +75,7 @@ class cache_conversation_history(CustomBehaviour):
                 mesg_str = json.dumps(history)
                 mesg_token_size = calc_token_size(mesg_str)
 
-        logger.debug(f"cache_conversation_history: final history list {history}")
+        logger.debug("cache_conversation_history: final history list %s", {history})
 
         if "history" in self.details and isinstance(self.details["history"], str):
             self.kb[self.details["history"]] = history

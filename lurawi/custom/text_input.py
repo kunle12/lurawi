@@ -1,3 +1,4 @@
+from typing import Dict
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 
@@ -55,6 +56,6 @@ class text_input(CustomBehaviour):
         if prompt:
             await self.message(prompt)
 
-    async def on_user_message_update(self, context):
+    async def on_user_message_update(self, context: Dict):
         self.kb[self.data_key] = context.content
         await self.succeeded()

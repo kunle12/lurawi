@@ -55,7 +55,7 @@ class populate_prompt(CustomBehaviour):
                 else:
                     replace[k] = value
 
-        logger.debug(f"final replacement string {replace}")
+        logger.debug("final replacement string %s", replace)
 
         for k, v in replace.items():
             prompt_text = prompt_text.replace(k, v)

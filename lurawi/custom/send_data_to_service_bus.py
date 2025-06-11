@@ -67,8 +67,8 @@ class send_data_to_service_bus(CustomBehaviour):
                         return
                     content = value[0]
                     for key in keys:
-                        if key in self.knowledge:
-                            content = content.replace("{}", str(self.knowledge[key]), 1)
+                        if key in self.kb:
+                            content = content.replace("{}", str(self.kb[key]), 1)
                         else:
                             _key = str(key).replace("_", " ")
                             content = content.replace("{}", _key, 1)

@@ -29,9 +29,8 @@ class UserMessageListener:
         This is a placeholder initialization method that subclasses can override
         if they need specific initialization.
         """
-        pass
 
-    async def on_user_message_update(self, data: Dict = {}):
+    async def on_user_message_update(self, context: Dict = {}):
         """
         Handle user message updates.
         
@@ -39,7 +38,7 @@ class UserMessageListener:
         override this method to implement custom behavior.
         
         Args:
-            data (Dict): The user message data
+            context (Dict): The user message data context
             
         Returns:
             bool: True to allow the message to be passed to other listeners,
@@ -48,7 +47,7 @@ class UserMessageListener:
         return True  # allow node status message to be passed on
 
 
-class UserMessageUpdateManager(object):
+class UserMessageUpdateManager:
     """
     Manager for user message updates.
     

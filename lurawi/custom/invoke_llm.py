@@ -157,7 +157,7 @@ class invoke_llm(CustomBehaviour):
                 stream=stream,
             )
         except Exception as err:
-            logger.error(f"invoke_llm: failed to call Agent {model}: {err}")
+            logger.error("invoke_llm: failed to call Agent %s: %s", model, err)
             self.kb["ERROR_MESSAGE"] = str(err)
             await self.failed()
             self.kb["ERROR_MESSAGE"] = ""

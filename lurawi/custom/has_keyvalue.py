@@ -43,6 +43,7 @@ class has_keyvalue(CustomBehaviour):
                 await self.succeeded(action=self.details["false_action"])
         else:
             logger.error(
-                f"has_keyvalue: arg expected to be a dict with keys 'store', 'key', 'true_action' and 'false_action'. Got {self.details}. Aborting"
+                "has_keyvalue: arg expected to be a dict with keys 'store', 'key', 'true_action' and 'false_action'. Got %s. Aborting",
+                self.details
             )
             await self.failed()

@@ -43,6 +43,7 @@ class get_keyvalue(CustomBehaviour):
                 await self.succeeded()
         else:
             logger.error(
-                f"get_keyvalue: arg expected to be a dict with keys 'store', 'key'. Got {self.details}. Aborting"
+                "get_keyvalue: arg expected to be a dict with keys 'store', 'key'. Got %s. Aborting",
+                self.details
             )
             await self.failed()

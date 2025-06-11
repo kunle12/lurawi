@@ -33,6 +33,6 @@ class current_datetime(CustomBehaviour):
         else:
             self.kb["CURRENT_DATETIME"] = output_time_string
 
-        logger.debug(f"current_datetime: {output_time_string}")
+        logger.debug("current_datetime: %s", output_time_string)
 
         await self.succeeded()

@@ -35,7 +35,7 @@ class validate_with_regex(CustomBehaviour):
         try:
             regex = re.compile(regex)
         except Exception as err:
-            logger.error(f"validate_with_regex: invalid regex: {err}")
+            logger.error("validate_with_regex: invalid regex: %s", err)
             await self.failed()
             return
 
