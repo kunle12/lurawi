@@ -85,7 +85,7 @@ class HomeBot(discord.Client):
         except (discord.LoginFailure, discord.HTTPException) as e:
             logger.error("Unable to log into the bot, error %s", e)
             self._task = None
-        except KeyboardInterrupt:
+        except (asyncio.exceptions.CancelledError, KeyboardInterrupt):
             self._loop.run_until_complete(self.logging_out())
             self._task = None
         self._run_thread = None
