@@ -12,10 +12,10 @@ The module enables components to:
 """
 
 from typing import Dict, List
-from .utils import logger
+from lurawi.utils import logger
 
 
-class UserMessageListener(object):
+class UserMessageListener:
     """
     Base class for objects that want to receive user message updates.
     

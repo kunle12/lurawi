@@ -1,7 +1,7 @@
 import simplejson as json
 
-from ..custom_behaviour import CustomBehaviour
-from ..utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 
 class populate_prompt(CustomBehaviour):
@@ -16,9 +16,6 @@ class populate_prompt(CustomBehaviour):
                 }
     ]
     """
-
-    def __init__(self, kb, details):
-        super(populate_prompt, self).__init__(kb, details)
 
     async def run(self):
         prompt_text = self.parse_simple_input(key="prompt_text", check_for_type="str")

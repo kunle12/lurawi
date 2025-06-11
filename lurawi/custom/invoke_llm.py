@@ -2,9 +2,9 @@ import os
 import simplejson as json
 import time
 
-from ..custom_behaviour import CustomBehaviour
+from lurawi.custom_behaviour import CustomBehaviour
 from openai import AsyncOpenAI
-from ..utils import is_indev, logger, DataStreamHandler, set_dev_stream_handler
+from lurawi.utils import is_indev, logger, DataStreamHandler, set_dev_stream_handler
 
 
 class invoke_llm(CustomBehaviour):
@@ -27,9 +27,6 @@ class invoke_llm(CustomBehaviour):
     ]
     @note only limited parameters are supported in this call
     """
-
-    def __init__(self, kb, details):
-        super(invoke_llm, self).__init__(kb, details)
 
     async def run(self):
         invoke_time = time.time()

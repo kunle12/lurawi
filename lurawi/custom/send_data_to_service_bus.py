@@ -1,7 +1,7 @@
 import os
 import simplejson as json
-from ..utils import logger
-from ..custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
 from azure.servicebus import ServiceBusMessage
 from azure.servicebus.aio import ServiceBusClient
 
@@ -21,9 +21,6 @@ class send_data_to_service_bus(CustomBehaviour):
     ]
     @note this custom provide a generic call to a specific connect_str to post data
     """
-
-    def __init__(self, kb, details):
-        super(send_data_to_service_bus, self).__init__(kb, details)
 
     async def run(self):
         if "connect_str" not in self.details or not isinstance(

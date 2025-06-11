@@ -1,6 +1,6 @@
 import re
-from ..custom_behaviour import CustomBehaviour
-from ..utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 
 class validate_with_regex(CustomBehaviour):
@@ -16,9 +16,6 @@ class validate_with_regex(CustomBehaviour):
                 }
     ]
     """
-
-    def __init__(self, kb, details):
-        super(validate_with_regex, self).__init__(kb, details)
 
     async def run(self):
         input_text = self.parse_simple_input(key="input_text", check_for_type="str")

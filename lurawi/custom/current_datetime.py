@@ -1,6 +1,6 @@
-from ..custom_behaviour import CustomBehaviour
+from lurawi.custom_behaviour import CustomBehaviour
 from datetime import datetime
-from ..utils import logger
+from lurawi.utils import logger
 
 
 class current_datetime(CustomBehaviour):
@@ -15,9 +15,6 @@ class current_datetime(CustomBehaviour):
                 }
     ]
     """
-
-    def __init__(self, kb, details={}):
-        super(current_datetime, self).__init__(kb, details)
 
     async def run(self):
         current_time = datetime.now()

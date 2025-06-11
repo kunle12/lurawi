@@ -1,5 +1,5 @@
-from ..custom_behaviour import CustomBehaviour
-from ..utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 
 class get_indexvalue(CustomBehaviour):
@@ -17,9 +17,6 @@ class get_indexvalue(CustomBehaviour):
     ]
     @note success_action and failed_action are optional.
     """
-
-    def __init__(self, kb, details):
-        super(get_indexvalue, self).__init__(kb, details)
 
     async def run(self):
         found = None

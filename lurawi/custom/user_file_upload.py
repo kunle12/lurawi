@@ -3,8 +3,8 @@ import urllib.request
 import json
 
 from azure.storage.blob import BlobClient
-from ..custom_behaviour import CustomBehaviour
-from ..utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 SUPPORTED_DATATYPES = ["json", "txt", "png", "jpeg"]
 
@@ -27,7 +27,7 @@ class user_file_upload(CustomBehaviour):
     """
 
     def __init__(self, kb, details):
-        super(user_file_upload, self).__init__(kb, details)
+        super().__init__(kb, details)
         self.content_types = ["text"]
         self.data_key = None
 
@@ -127,7 +127,7 @@ class user_file_upload(CustomBehaviour):
             logger.error(f"uploaded file type {headers['content-type']}")
             # if self.content_types not in headers['content-type']:
             # If user uploads JSON file, this prevents it from being written as
-            # "{"type":"Buffer","data":[123,13,10,32,32,34,108..."
+            # "{"type":"Buffer","data":[123,13,10,32,32,34,108lurawi.."
             if headers["content-type"] == "application/json":
                 if self.content_types[0] != "json":
                     await self.message(
