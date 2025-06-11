@@ -4,8 +4,8 @@ import asyncio
 from threading import Thread
 import discord
 from discord import Message
-from ..remote_service import RemoteService
-from ..utils import logger
+from lurawi.remote_service import RemoteService
+from lurawi.utils import logger
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -59,7 +59,7 @@ class HomeBot(discord.Client):
         try:
             self._loop.run_until_complete(self._task)
         except (discord.LoginFailure, discord.HTTPException) as e:
-            logger.error(f"Unable to log into the bot, error {e}")
+            logger.error("Unable to log into the bot, error %s", e)
             self._task = None
         except KeyboardInterrupt:
             self._loop.run_until_complete(self.logging_out())
@@ -80,11 +80,12 @@ class HomeBot(discord.Client):
         # also listen for termination of hearbeat / connection
         if self._task and not self._task.cancelled():
             self._task.cancel()
+        self._run_thread.join()
 
 
 class DiscordMessenger(RemoteService):
     def __init__(self, owner):
-        super(DiscordMessenger, self).__init__(owner=owner)
+        super().__init__(owner=owner)
         self.token = None
         self.client = None
 
@@ -113,4 +114,4 @@ class DiscordMessenger(RemoteService):
     def fini(self):
         self.stop()
         self.client = None
-        super(DiscordMessenger, self).fini()
+        super().fini()

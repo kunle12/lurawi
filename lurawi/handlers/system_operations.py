@@ -1,7 +1,7 @@
 import os
-from pydantic import BaseModel, Extra
 from typing import Dict
-from ..webhook_handler import WebhookHandler
+from pydantic import BaseModel
+from lurawi.webhook_handler import WebhookHandler
 
 
 class SystemOperationPayload(BaseModel):

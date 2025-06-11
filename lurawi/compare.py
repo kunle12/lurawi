@@ -1,12 +1,12 @@
 import operator
 import time
-from .custom_behaviour import CustomBehaviour
-from .utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 
 class compare(CustomBehaviour):
     def __init__(self, kb, details):
-        super(compare, self).__init__(kb)
+        super().__init__(kb)
         self.kb = kb
         self.details = details
         # details is a dict with keys operand1, operand2, comparison_operator, true_action, false_action

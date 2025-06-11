@@ -21,7 +21,7 @@ import os
 
 from io import StringIO
 from threading import Lock as mutex
-from typing import Dict, Any
+from typing import Dict, List, Any
 
 import simplejson as json
 import boto3
@@ -33,10 +33,10 @@ from fastapi import Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Extra
 
-from .activity_manager import ActivityManager
-from .remote_service import RemoteService
-from .timer_manager import TimerClient, timerManager
-from .utils import logger, api_access_check, write_http_response
+from lurawi.activity_manager import ActivityManager
+from lurawi.remote_service import RemoteService
+from lurawi.timer_manager import TimerClient, timerManager
+from lurawi.utils import logger, api_access_check, write_http_response
 
 STANDARD_LURAWI_CONFIGS = [
     "PROJECT_NAME",
@@ -89,7 +89,7 @@ class WorkflowEngine(TimerClient):
     """
 
     def __init__(self, custom_behaviour: str) -> None:
-        super(WorkflowEngine, self).__init__()
+        super().__init__()
         self.startup_time = time.time()
 
         self.conversation_members = {}
@@ -528,14 +528,14 @@ class WorkflowEngine(TimerClient):
         Dynamically loads and initializes all remote service modules found in
         the lurawi/services directory.
         """
-        self.remote_services = []
+        self.remote_services: List[RemoteService] = []
         for _, _, files in os.walk("lurawi/services"):
             for f in files:
                 if f.endswith(".py") and f != "__init__.py":
                     mpath = "lurawi.services." + os.path.splitext(f)[0]
                     try:
                         m = importlib.import_module(mpath)
-                    except Exception as err:
+                    except Exception as err:  # pylint: disable=broad-exception-caught
                         logger.error(
                             "Unable to import service module script %s: %s", f, err
                         )
@@ -578,4 +578,4 @@ class WorkflowEngine(TimerClient):
         Calls the stop method on all remote services.
         """
         for s in self.remote_services:
-            s.stop()
+            s.fini()

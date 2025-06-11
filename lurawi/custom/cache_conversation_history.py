@@ -1,8 +1,8 @@
 import re
 import simplejson as json
 
-from ..custom_behaviour import CustomBehaviour
-from ..utils import calc_token_size, logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import calc_token_size, logger
 
 
 class cache_conversation_history(CustomBehaviour):
@@ -19,9 +19,6 @@ class cache_conversation_history(CustomBehaviour):
     ]
     @note only limited parameters are supported in this call
     """
-
-    def __init__(self, kb, details):
-        super(cache_conversation_history, self).__init__(kb, details)
 
     async def run(self):
         user_input = self.parse_simple_input(key="user_input", check_for_type="str")

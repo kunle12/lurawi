@@ -15,12 +15,12 @@ import signal
 
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from .workflow_engine import WorkflowEngine
-from .webhook_handler import WebhookHandler
-from .utils import logger, is_indev
+from lurawi.workflow_engine import WorkflowEngine
+from lurawi.webhook_handler import WebhookHandler
+from lurawi.utils import logger, is_indev
 
 
-class WorkflowService(object):
+class WorkflowService:
     """
     Service class for managing workflow execution and API endpoints.
 
@@ -159,8 +159,8 @@ class WorkflowService(object):
                                     self.webhook_handlers[obj.route] = obj
                                     logger.info("%s is initialised.", name)
                             except (
-                                Exception
-                            ) as err:  # pylint: disable=broad-exception-caught
+                                Exception  # pylint: disable=broad-exception-caught
+                            ) as err:
                                 logger.error(
                                     "Unable to webhook handler %s: %s", name, err
                                 )

@@ -1,5 +1,5 @@
-from ..custom_behaviour import CustomBehaviour
-from ..utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 
 class text_input(CustomBehaviour):
@@ -17,7 +17,7 @@ class text_input(CustomBehaviour):
     """
 
     def __init__(self, kb, details):
-        super(text_input, self).__init__(kb, details)
+        super().__init__(kb, details)
         self.data_key = None
 
     async def run(self):

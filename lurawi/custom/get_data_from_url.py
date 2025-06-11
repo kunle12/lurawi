@@ -1,5 +1,5 @@
-from ..utils import aget_data_from_url as get_remote_data, logger
-from ..custom_behaviour import CustomBehaviour
+from lurawi.utils import aget_data_from_url as get_remote_data, logger
+from lurawi.custom_behaviour import CustomBehaviour
 
 
 class get_data_from_url(CustomBehaviour):
@@ -18,9 +18,6 @@ class get_data_from_url(CustomBehaviour):
                 }
     ]
     """
-
-    def __init__(self, kb, details):
-        super(get_data_from_url, self).__init__(kb, details)
 
     async def run(self):
         url = self.parse_simple_input(key="url", check_for_type="str")

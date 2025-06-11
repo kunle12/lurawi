@@ -9,8 +9,8 @@ Remote services are used to interact with external systems or perform periodic
 tasks within the Lurawi system.
 """
 
-from .timer_manager import TimerClient, timerManager
-from .utils import logger
+from lurawi.timer_manager import TimerClient, timerManager
+from lurawi.utils import logger
 
 
 class RemoteService(TimerClient):

@@ -1,9 +1,10 @@
 import os
-import requests
-from pydantic import BaseModel, Extra
 from typing import Dict
-from ..webhook_handler import WebhookHandler
-from ..utils import is_indev, logger
+
+import requests
+from pydantic import BaseModel
+from lurawi.webhook_handler import WebhookHandler
+from lurawi.utils import is_indev, logger
 
 
 class RemoteServiceNotificationPayload(BaseModel):

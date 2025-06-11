@@ -20,7 +20,6 @@ import logging
 import os
 import string
 import random
-import jwt
 import aiofiles as aiof
 import aiohttp
 import boto3

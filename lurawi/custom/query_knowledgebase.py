@@ -1,6 +1,6 @@
 import simplejson as json
-from ..custom_behaviour import CustomBehaviour
-from ..utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 
 class query_knowledgebase(CustomBehaviour):
@@ -25,9 +25,6 @@ class query_knowledgebase(CustomBehaviour):
     @note query_output, success_action and failed_action are optional.
     @note if phrase_match, query key is determined through phrase match
     """
-
-    def __init__(self, kb, details):
-        super(query_knowledgebase, self).__init__(kb, details)
 
     async def run(self):
         found = None

@@ -1,12 +1,12 @@
 import operator
 import time
-from .custom_behaviour import CustomBehaviour
-from .utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 
 class calculate(CustomBehaviour):
     def __init__(self, kb, kb_key, operand):
-        super(calculate, self).__init__(kb)
+        super().__init__(kb)
         self.kb = kb
 
         # operand can be: "a" where a is a key in kb or any number

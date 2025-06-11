@@ -1,6 +1,6 @@
 from fastapi.responses import StreamingResponse
-from ..webhook_handler import WebhookHandler
-from ..utils import is_indev, get_dev_stream_handler, set_dev_stream_handler
+from lurawi.webhook_handler import WebhookHandler
+from lurawi.utils import is_indev, get_dev_stream_handler, set_dev_stream_handler
 
 
 class GetConversationStream(WebhookHandler):

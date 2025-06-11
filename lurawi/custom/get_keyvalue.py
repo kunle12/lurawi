@@ -1,5 +1,5 @@
-from ..custom_behaviour import CustomBehaviour
-from ..utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 
 class get_keyvalue(CustomBehaviour):
@@ -17,9 +17,6 @@ class get_keyvalue(CustomBehaviour):
     ]
     @note success_action and failed_action are optional. If store is not defined, the base of knowledge is used.
     """
-
-    def __init__(self, kb, details):
-        super(get_keyvalue, self).__init__(kb, details)
 
     async def run(self):
         found = None
