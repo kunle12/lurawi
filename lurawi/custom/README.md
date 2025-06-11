@@ -1,6 +1,7 @@
 # Lurawi Custom Action Primitives
 
 ## Prerequisite
+
 Follow the instruction [here](../../docs/LurawiDevContainer.md) to run Lurawi as a dev docker container.
 
 <figure>
@@ -15,6 +16,7 @@ The ```custom``` directory(Fig. 1) contains a set of prebuilt custom action prim
 **WARNING**: Any code modifications in the dev container will be lost if the dev container is rebuilt!!! BE SURE to copy and save all your code changes under ```/home/lurawi``` directory before changing ```.devcontainer.json``` file, for example.
 
 ## A custom that generates a Fibonacci Sequence
+
 To illustrate the steps required to create a custom action primitive, we are going to create a simple custom that generates a Fibonacci sequence (with an input size) as a concrete example.
 
 ### Step 1. Create a custom class
@@ -39,18 +41,21 @@ class fibonacci_seq(CustomBehaviour):
     """
 
     def __init__(self, kb, details):
-        super(fibonacci_seq, self).__init__(kb,details)
+        super().__init__(kb,details)
 ```
 
 In the code above, we import the custom base class `CustomBehaviour` and create a new custom class called `fibonacci_seq`.
 
 #### The class DocString
+
 The docstring defines a JSON code example of how `fibonacci_seq` should be called. It is essential that this docstring is created and maintained in correspondence to the acutal custom implementation. The example JSON code (with dummy data input) must presented so that visual programming editor runner can keep the editor up-to-date.
 
 #### Class initialisation
+
 A stardard Python class `__init__` def should be followed as shown above. You may place additional variables in the `__init__` method.
 
 ### Step 2. Implement **`run`** method
+
 ```Python
     async def run(self):
         size = self.parse_simple_input(key="size", check_for_type="int")
@@ -102,9 +107,11 @@ If the follow on `success_action` is defined, we call the action, whereas in *fa
         # do cleaning up here
         pass
 ```
+
 You can implement a `fini` method for cleaning up any additional resources after the cusom finishes its execution.
 
 ## Usage
+
 To use a newly created custom function, simply rerun ```./run_lurawi_service.sh```. **NOTE**: you need download/save your workflow xml file before you restart the lurawi service because the visual editor will be automagically updated with latest custom definitions.
 
-For any code changes made to an existing custom, no lurawi service restart required. New code will be hot-loaded when you run/call the workflow. 
+For any code changes made to an existing custom, no lurawi service restart required. New code will be hot-loaded when you run/call the workflow.

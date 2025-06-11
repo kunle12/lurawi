@@ -17,8 +17,8 @@ from multi_agent_orchestrator.agents import (
 from multi_agent_orchestrator.types import ConversationMessage, ParticipantRole
 from typing import AsyncGenerator, List, Dict, Sequence, Any
 
-from .utils import logger
-from .activity_manager import ActivityManager
+from lurawi.utils import logger
+from lurawi.activity_manager import ActivityManager
 
 STANDARD_GENAI_CONFIGS = [
     "PROJECT_NAME",

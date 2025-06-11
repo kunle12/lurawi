@@ -1,6 +1,6 @@
 import simplejson as json
-from ..utils import apost_payload_to_url, logger
-from ..custom_behaviour import CustomBehaviour
+from lurawi.utils import apost_payload_to_url, logger
+from lurawi.custom_behaviour import CustomBehaviour
 
 
 class send_data_to_url(CustomBehaviour):
@@ -21,9 +21,6 @@ class send_data_to_url(CustomBehaviour):
     ]
     @note this custom provide a generic call to a specific url to post data
     """
-
-    def __init__(self, kb, details):
-        super(send_data_to_url, self).__init__(kb, details)
 
     async def run(self):
         url = self.parse_simple_input(key="url", check_for_type="str")

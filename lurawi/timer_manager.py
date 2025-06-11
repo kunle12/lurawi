@@ -15,10 +15,10 @@ and used throughout the application.
 
 import asyncio
 from threading import Thread
-from .utils import logger
+from lurawi.utils import logger
 
 
-class TimerClient(object):
+class TimerClient:
     """
     Base class for clients that want to receive timer events.
     
@@ -67,7 +67,7 @@ class TimerClient(object):
         return
 
 
-class TimerManager(object):
+class TimerManager:
     """
     Central manager for creating and tracking timers.
     
@@ -206,7 +206,7 @@ class TimerManager(object):
         del self._timers[timer_id]
 
 
-class BotTimer(object):
+class BotTimer:
     """
     Individual timer implementation.
     

@@ -19,9 +19,9 @@ the run() method to implement their specific logic.
 from time import time
 from typing import List, Optional, Callable, Awaitable, Any
 
-from .callbackmsg_manager import RemoteCallbackMessageListener
-from .usermsg_manager import UserMessageListener
-from .utils import logger, check_type
+from lurawi.callbackmsg_manager import RemoteCallbackMessageListener
+from lurawi.usermsg_manager import UserMessageListener
+from lurawi.utils import logger, check_type
 
 
 class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):

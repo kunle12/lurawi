@@ -7,7 +7,7 @@ components.
 """
 
 from typing import Dict, List, cast
-from .utils import logger
+from lurawi.utils import logger
 
 
 class RemoteCallbackMessageListener:

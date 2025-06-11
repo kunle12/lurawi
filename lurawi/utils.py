@@ -20,7 +20,6 @@ import logging
 import os
 import string
 import random
-import jwt
 import aiofiles as aiof
 import aiohttp
 import boto3
@@ -87,6 +86,7 @@ def get_project_settings() -> bool:
     Returns:
         bool: True if settings were loaded successfully, False otherwise
     """
+    global project_name, project_access_key
 
     if "PROJECT_NAME" in os.environ:
         project_name = os.environ["PROJECT_NAME"]

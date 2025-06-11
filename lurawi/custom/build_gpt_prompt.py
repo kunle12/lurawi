@@ -1,5 +1,5 @@
-from ..utils import cut_string, calc_token_size, logger
-from ..custom_behaviour import CustomBehaviour
+from lurawi.utils import cut_string, calc_token_size, logger
+from lurawi.custom_behaviour import CustomBehaviour
 
 
 class build_gpt_prompt(CustomBehaviour):
@@ -19,9 +19,6 @@ class build_gpt_prompt(CustomBehaviour):
     ]
     @note only limited parameters are supported in this call
     """
-
-    def __init__(self, kb, details):
-        super(build_gpt_prompt, self).__init__(kb, details)
 
     async def run(self):
         system_prompt = self.parse_simple_input(

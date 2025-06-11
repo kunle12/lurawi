@@ -19,7 +19,7 @@ from .usermsg_manager import UserMessageUpdateManager
 from .utils import write_http_response, DataStreamHandler, logger
 
 
-class ActivityManager(object):
+class ActivityManager:
     """
     Manages activities, behaviors, and actions for the Lurawi system.
     

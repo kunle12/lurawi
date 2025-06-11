@@ -1,5 +1,5 @@
-from ..custom_behaviour import CustomBehaviour
-from ..utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 import random
 
 
@@ -14,9 +14,6 @@ class random_picker(CustomBehaviour):
                 }
     ]
     """
-
-    def __init__(self, kb, details):
-        super(random_picker, self).__init__(kb, details)
 
     async def run(self):
         data_list = self.parse_simple_input(key="list", check_for_type="list")

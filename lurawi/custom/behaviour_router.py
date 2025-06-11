@@ -1,6 +1,6 @@
-from ..custom_behaviour import CustomBehaviour
-from ..utils import logger
 import random
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 
 class behaviour_router(CustomBehaviour):
@@ -20,7 +20,7 @@ class behaviour_router(CustomBehaviour):
     """
 
     def __init__(self, kb, details):
-        super(behaviour_router, self).__init__(kb, details)
+        super().__init__(kb, details)
         self.active_behaviours = self.kb["MODULES"]["ActivityManager"].behaviours[
             "behaviours"
         ]

@@ -1,10 +1,10 @@
 from pydantic import BaseModel
 from fastapi import Depends
 from fastapi.responses import JSONResponse
-from .utils import logger
+from lurawi.utils import logger
 
 
-class WebhookHandler(object):
+class WebhookHandler:
     def __init__(self, server=None):
         self.server = server
         self.route = "/unknown"
