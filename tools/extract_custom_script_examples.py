@@ -1,4 +1,10 @@
 #! /usr/bin/env python3
+"""
+This module extracts example information from custom Python script class docstrings
+to construct an XML definition file for the Lurawi Visual Programming system.
+It parses Python files, looks for class docstrings containing a specific '"custom"'
+marker, and then extracts argument definitions to generate XML tags.
+"""
 
 from __future__ import print_function
 import os
@@ -7,6 +13,16 @@ import ast
 
 
 def parse_custom_scripts(fdir):
+    """
+    Parses all custom Python scripts in a given directory and its subdirectories
+    to extract example information.
+
+    Args:
+        fdir (str): The path to the directory containing custom scripts.
+
+    Returns:
+        str: A concatenated string of XML content extracted from the scripts.
+    """
     content = ""
     for root, _, files in os.walk(fdir, topdown=False):
         for name in files:
@@ -17,9 +33,21 @@ def parse_custom_scripts(fdir):
 
 
 def extract_example_info(fname):
+    """
+    Extracts example information from the docstring of a single Python file.
+    It specifically looks for class docstrings that contain a '"custom"' marker
+    and then parses a JSON-like structure within to get script name and arguments.
+
+    Args:
+        fname (str): The path to the Python file.
+
+    Returns:
+        str: An XML string representing the custom script definition, or an empty string
+             if no valid example is found or an error occurs.
+    """
     content = ""
-    with open(fname, "r", encoding="UTF-8") as file:
-        tree = ast.parse(file.read())
+    with open(fname, "r", encoding="UTF-8") as f:
+        tree = ast.parse(f.read())
 
         modef = tuple({ast.ClassDef: "Class"})
         for n in ast.walk(tree):
@@ -98,13 +126,13 @@ if __name__ == "__main__":
     content = parse_custom_scripts(args.datadir)
     if content != "":
         try:
-            with open(outputname, "w") as file:
+            with open(outputname, "w", encoding='utf-8') as file:
                 file.write(
                     '<xml xmlns="http://www.w3.org/1999/xhtml" id="scriptlib" style="display: none;">\n'
                 )
                 file.write(content)
                 file.write("</xml>\n")
                 file.close()
-        except:
+        except Exception as _:
             print(f"unable to save custom script definition to {outputname}.")
         print(f"saved custom script definition to {outputname}")

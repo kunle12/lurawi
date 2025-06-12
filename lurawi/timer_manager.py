@@ -14,54 +14,50 @@ and used throughout the application.
 """
 
 import asyncio
+from typing import Dict
 from threading import Thread
 from lurawi.utils import logger
 
 
 class TimerClient:
     """
-    Base class for clients that want to receive timer events.
-    
-    Any class that needs to receive timer notifications should inherit from this class
-    and override the on_timer and on_timer_lapsed methods.
+    Base class for clients that wish to receive timer events.
+
+    Classes that need to be notified of timer events should inherit from
+    `TimerClient` and override the `on_timer` and `on_timer_lapsed` methods
+    to implement their specific logic.
     """
     def __init__(self):
         """
-        Initialize a new TimerClient.
-        
-        Creates an empty timercontext dictionary that can be used to store
-        timer-related data specific to this client.
+        Initializes a new TimerClient instance.
+
+        An empty `timercontext` dictionary is created, which can be used by
+        subclasses to store timer-related data specific to this client.
         """
         self.timercontext = {}
 
     async def on_timer(self, tid: int):  # pylint: disable=unused-argument
         """
-        Called when a timer fires.
-        
-        This method should be overridden by subclasses to implement
-        custom behavior when a timer event occurs.
-        
+        Callback method invoked when a timer fires.
+
+        Subclasses should override this method to define custom behavior
+        that executes each time the associated timer's interval elapses.
+
         Args:
-            tid (int): The ID of the timer that fired
-            
-        Returns:
-            None
+            tid (int): The unique identifier of the timer that fired.
         """
         logger.info("TimerClient: on_timer called")
         return
 
     async def on_timer_lapsed(self, tid: int):  # pylint: disable=unused-argument
         """
-        Called when a timer has completed all its repetitions.
-        
-        This method should be overridden by subclasses to implement
-        custom behavior when a timer completes.
-        
+        Callback method invoked when a timer has completed all its repetitions.
+
+        Subclasses should override this method to define custom behavior
+        that executes once the associated timer has finished its lifecycle.
+
         Args:
-            tid (int): The ID of the timer that lapsed
-            
-        Returns:
-            None
+            tid (int): The unique identifier of the timer that lapsed.
         """
         logger.info("TimerClient: on_timer_lapsed called")
         return
@@ -69,21 +65,23 @@ class TimerClient:
 
 class TimerManager:
     """
-    Central manager for creating and tracking timers.
-    
-    TimerManager runs an event loop in a separate thread to handle timer events
-    asynchronously. It provides methods to create, manage, and remove timers.
+    Centralized manager for creating, tracking, and controlling timers.
+
+    `TimerManager` operates an asynchronous event loop in a dedicated thread
+    to handle timer events efficiently without blocking the main application flow.
+    It provides an interface for adding, managing, and removing `BotTimer` instances.
     """
     def __init__(self) -> None:
         """
-        Initialize a new TimerManager.
-        
-        Creates a new event loop in a separate thread and starts it.
-        Initializes the timer tracking structures.
+        Initializes a new TimerManager instance.
+
+        A new asyncio event loop is created and started in a separate thread.
+        Internal data structures for tracking timers are initialized, and a
+        unique ID counter for new timers is set up.
         """
-        self._run_thread = None
+        self._run_thread: Thread | None = None
         self._loop = asyncio.new_event_loop()
-        self._timers = {}
+        self._timers: Dict[int, BotTimer] = {}
         self._next_timer_id = 1
         self._run_thread = Thread(target=self._start_run_thread)
         self._run_thread.start()
@@ -91,19 +89,17 @@ class TimerManager:
 
     def fini(self) -> None:
         """
-        Finalize and shut down the TimerManager.
-        
-        Cancels all active timers and stops the event loop.
-        This method should be called when the TimerManager is no longer needed.
-        
-        Returns:
-            None
+        Finalizes and gracefully shuts down the TimerManager.
+
+        This method cancels all currently active timers and stops the underlying
+        asyncio event loop. It should be called when the `TimerManager` instance
+        is no longer required to ensure proper resource cleanup.
         """
         logger.info("Shutting down TimerManager")
         if not self._run_thread:
             return
 
-        for timer in self._timers.values():
+        for timer in list(self._timers.values()):  # Iterate over a copy to allow modification
             timer.cancel()
 
         self._loop.call_soon_threadsafe(self._loop.stop)
@@ -111,22 +107,21 @@ class TimerManager:
 
     def is_running(self) -> bool:
         """
-        Check if the TimerManager is currently running.
-        
+        Checks if the TimerManager's internal event loop thread is active.
+
         Returns:
-            bool: True if the timer manager is running, False otherwise
+            bool: `True` if the timer manager is running, `False` otherwise.
         """
-        return self._run_thread is not None
+        return self._run_thread is not None and self._run_thread.is_alive()
 
     def _start_run_thread(self) -> None:
         """
-        Start the event loop in a separate thread.
-        
-        This is an internal method called during initialization.
-        It sets up the event loop and handles any exceptions that occur.
-        
-        Returns:
-            None
+        Internal method to start the asyncio event loop in a separate thread.
+
+        This method is executed by the dedicated thread created during
+        `TimerManager` initialization. It sets the event loop for the thread
+        and runs it indefinitely until explicitly stopped. Any exceptions
+        during the event loop's execution are logged.
         """
         try:
             asyncio.set_event_loop(self._loop)
@@ -142,24 +137,28 @@ class TimerManager:
         init_start: int = 0,
         interval: int = 1,
         repeats: int = -1,
-    ):
+    ) -> int:
         """
-        Add a new timer.
-        
-        Creates a new timer that will call the client's on_timer method according
-        to the specified parameters.
-        
+        Adds a new timer to be managed.
+
+        A new `BotTimer` instance is created and configured to call the
+        `client`'s `on_timer` method based on the specified parameters.
+
         Args:
-            client (TimerClient): The client that will receive timer events
-            init_start (int, optional): Initial delay in seconds before the first event. Defaults to 0.
-            interval (int, optional): Interval between timer events in seconds. Defaults to 1.
-            repeats (int, optional): Number of times to repeat the timer. Defaults to -1 (infinite).
-            
+            client (TimerClient): The client object that will receive timer events.
+                                  Must be an instance of `TimerClient` or its subclass.
+            init_start (int, optional): The initial delay in seconds before the
+                                        first timer event fires. Defaults to 0.
+            interval (int, optional): The interval in seconds between subsequent
+                                      timer events. Defaults to 1.
+            repeats (int, optional): The number of times the timer should repeat.
+                                     -1 indicates infinite repetitions. Defaults to -1.
+
         Returns:
-            int: The ID of the newly created timer
+            int: The unique ID assigned to the newly created timer.
         """
         timer_id = self._next_timer_id
-        self._next_timer_id = self._next_timer_id + 1
+        self._next_timer_id += 1
         self._timers[timer_id] = BotTimer(
             tid=timer_id,
             loop=self._loop,
@@ -170,32 +169,32 @@ class TimerManager:
         )
         return timer_id
 
-    def add_task(self, coro):
+    def add_task(self, coro) -> asyncio.Future:
         """
-        Add a coroutine to be executed in the timer manager's event loop.
-        
+        Adds a coroutine to be executed within the timer manager's event loop.
+
+        This allows other asynchronous tasks to be scheduled and run in the
+        same event loop that manages the timers.
+
         Args:
-            coro: The coroutine to execute
-            
+            coro: The coroutine function or coroutine object to be executed.
+
         Returns:
-            asyncio.Future: A Future representing the execution of the coroutine
+            asyncio.Future: A Future object representing the eventual result
+                             of the coroutine's execution.
         """
         return asyncio.run_coroutine_threadsafe(coro, self._loop)
 
-    def del_timer(self, timer_id):
+    def del_timer(self, timer_id: int) -> None:
         """
-        Delete a timer.
-        
-        Cancels the timer with the specified ID and removes it from the manager.
-        
+        Deletes and cancels a specific timer.
+
+        If the timer with the given `timer_id` exists, it is cancelled and
+        removed from the manager's tracking. An error is logged if the timer
+        does not exist.
+
         Args:
-            timer_id (int): The ID of the timer to delete
-            
-        Returns:
-            None
-            
-        Note:
-            Logs an error if the timer does not exist
+            timer_id (int): The unique ID of the timer to be deleted.
         """
         if timer_id not in self._timers:
             logger.error("Timer %d does not exist", timer_id)
@@ -208,24 +207,31 @@ class TimerManager:
 
 class BotTimer:
     """
-    Individual timer implementation.
-    
-    Represents a single timer that can fire repeatedly at specified intervals.
-    Each timer is associated with a client that receives notifications when the timer fires.
+    Represents an individual timer instance with configurable firing behavior.
+
+    Each `BotTimer` is designed to fire repeatedly at specified intervals and
+    is associated with a `TimerClient` that receives notifications when the
+    timer events occur.
     """
     def __init__(
-        self, tid, loop, client: TimerClient, init_start=0, interval=1, repeats=-1
+        self, tid: int, loop: asyncio.AbstractEventLoop, client: TimerClient,
+        init_start: int = 0, interval: int = 1, repeats: int = -1
     ):  # pylint: disable=too-many-arguments, too-many-positional-arguments
         """
-        Initialize a new BotTimer.
-        
+        Initializes a new BotTimer instance.
+
         Args:
-            tid (int): The timer ID
-            loop (asyncio.AbstractEventLoop): The event loop to run the timer in
-            client (TimerClient): The client that will receive timer events
-            init_start (int, optional): Initial delay in seconds before the first event. Defaults to 0.
-            interval (int, optional): Interval between timer events in seconds. Defaults to 1.
-            repeats (int, optional): Number of times to repeat the timer. Defaults to -1 (infinite).
+            tid (int): The unique identifier for this timer.
+            loop (asyncio.AbstractEventLoop): The asyncio event loop on which
+                                              this timer's coroutine will run.
+            client (TimerClient): The client object that will receive `on_timer`
+                                  and `on_timer_lapsed` callbacks.
+            init_start (int, optional): The initial delay in seconds before the
+                                        first timer event. Defaults to 0.
+            interval (int, optional): The interval in seconds between subsequent
+                                      timer events. Defaults to 1.
+            repeats (int, optional): The number of times the timer should repeat.
+                                     -1 indicates infinite repetitions. Defaults to -1.
         """
         self.id = tid
         self._loop = loop
@@ -236,18 +242,14 @@ class BotTimer:
         self._is_running = True
         self._task = asyncio.run_coroutine_threadsafe(self._job(), self._loop)
 
-    async def _job(self):
+    async def _job(self) -> None:
         """
-        Internal coroutine that handles the timer's execution.
-        
-        This method is responsible for:
-        1. Waiting for the initial delay
-        2. Calling the client's on_timer method at the specified intervals
-        3. Handling the repeat count
-        4. Calling the client's on_timer_lapsed method when the timer completes
-        
-        Returns:
-            None
+        Internal asynchronous job that manages the timer's execution lifecycle.
+
+        This coroutine handles the initial delay, repeatedly calls the client's
+        `on_timer` method at the specified interval, manages the repetition count,
+        and finally invokes the client's `on_timer_lapsed` method when the
+        timer completes its cycle or is cancelled.
         """
         if self._init_start > 0:
             await asyncio.sleep(self._init_start)
@@ -267,21 +269,20 @@ class BotTimer:
 
     def is_active(self) -> bool:
         """
-        Check if the timer is currently active.
-        
+        Checks if the timer is currently active and running.
+
         Returns:
-            bool: True if the timer is active, False otherwise
+            bool: `True` if the timer is active, `False` otherwise.
         """
         return self._is_running
 
-    def cancel(self):
+    def cancel(self) -> None:
         """
-        Cancel the timer.
-        
-        Stops the timer from firing any more events and marks it as inactive.
-        
-        Returns:
-            None
+        Cancels the timer, stopping any further scheduled events.
+
+        This method attempts to cancel the underlying asynchronous task and
+        marks the timer as inactive, preventing `on_timer` callbacks from
+        being invoked further.
         """
         self._task.cancel()
         self._is_running = False

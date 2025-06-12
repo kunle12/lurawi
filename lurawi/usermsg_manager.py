@@ -24,65 +24,74 @@ class UserMessageListener:
     """
     def __init__(self):
         """
-        Initialize a new UserMessageListener.
+        Initializes a new UserMessageListener.
         
         This is a placeholder initialization method that subclasses can override
-        if they need specific initialization.
+        if they need specific initialization logic.
         """
-        pass
 
-    async def on_user_message_update(self, data: Dict = {}):
+    async def on_user_message_update(self, context: Dict = {}):
         """
-        Handle user message updates.
+        Handles incoming user message updates.
         
-        This method is called when a user message is received. Subclasses should
-        override this method to implement custom behavior.
+        This method is invoked when a user message is received. Subclasses should
+        override this method to implement custom behavior for processing the message.
         
         Args:
-            data (Dict): The user message data
+            context (Dict): A dictionary containing the user message data and context.
+                            Defaults to an empty dictionary.
             
         Returns:
-            bool: True to allow the message to be passed to other listeners,
-                  False to consume the message and prevent further processing
+            bool:
+                - True: Allows the message to be passed to other registered listeners.
+                - False: Consumes the message, preventing further processing by subsequent listeners.
         """
         return True  # allow node status message to be passed on
 
 
-class UserMessageUpdateManager(object):
+class UserMessageUpdateManager:
     """
-    Manager for user message updates.
+    Manages the registration and distribution of user message updates to listeners.
     
-    This class manages the registration of listeners for user message updates
-    and handles the distribution of messages to registered listeners.
+    This class provides functionality to:
+    - Register `UserMessageListener` objects to receive updates.
+    - Deregister listeners.
+    - Process incoming user messages and distribute them to interested listeners.
+    - Clear all registered listeners.
     """
-    def __init__(self, kb):
+    def __init__(self, kb: Dict):
         """
-        Initialize a new UserMessageUpdateManager.
+        Initializes a new UserMessageUpdateManager.
         
         Args:
-            kb (dict): Knowledge base dictionary to store the manager reference
+            kb (Dict): The knowledge base dictionary where the manager will store
+                       itself under the "MODULES.UserMessageManager" key.
             
         Note:
-            The manager registers itself in the knowledge base under MODULES.UserMessageManager
+            The manager automatically registers itself in the knowledge base
+            under `kb["MODULES"]["UserMessageManager"]`.
         """
-        self.listeners = []  # list of tuples (listener, interests)
+        self.listeners: List[tuple[UserMessageListener, List[str]]] = []
         self.knowledge = kb
         self.knowledge["MODULES"]["UserMessageManager"] = self
 
-    def register_for_user_message_updates(self, callable_obj, interests: List[str] = []):
+    def register_for_user_message_updates(self, callable_obj: UserMessageListener, interests: List[str] = []):
         """
-        Register an object to receive user message updates.
+        Registers an object to receive user message updates.
+        
+        Listeners are added to the front of the list, giving them higher priority
+        in message processing.
         
         Args:
-            callable_obj (UserMessageListener): The object to register
-            interests (List[str], optional): List of message types this object is interested in
+            callable_obj (UserMessageListener): The object to register. Must be an
+                                                instance of `UserMessageListener`.
+            interests (List[str], optional): A list of message types (e.g., node IDs)
+                                             that this object is interested in.
+                                             Defaults to an empty list, meaning all messages.
             
-        Returns:
-            None
-            
-        Note:
-            The object must be an instance of UserMessageListener
-            New listeners are added to the front of the list, giving them higher priority
+        Raises:
+            TypeError: If `callable_obj` is not an instance of `UserMessageListener`.
+            TypeError: If `interests` is not a list of strings.
         """
         if not isinstance(callable_obj, UserMessageListener):
             logger.error(
@@ -98,15 +107,12 @@ class UserMessageUpdateManager(object):
 
         self.listeners.insert(0, (callable_obj, interests))
 
-    def deregister_for_user_message_updates(self, callable_obj):
+    def deregister_for_user_message_updates(self, callable_obj: UserMessageListener):
         """
-        Deregister an object from receiving user message updates.
+        Deregisters an object from receiving user message updates.
         
         Args:
-            callable_obj (UserMessageListener): The object to deregister
-            
-        Returns:
-            None
+            callable_obj (UserMessageListener): The object to deregister.
         """
         found = None
         for i, (k, v) in enumerate(self.listeners):
@@ -119,18 +125,19 @@ class UserMessageUpdateManager(object):
 
     async def process_user_messages(self, message: Dict):
         """
-        Process a user message by distributing it to registered listeners.
+        Processes a user message by distributing it to registered listeners.
         
-        This method calls the on_user_message_update method of each registered listener
-        in order of registration (newest first). If any listener returns False or None,
-        the message is considered consumed and not passed to further listeners.
+        This method iterates through registered listeners in order of priority (newest first).
+        If a listener's `on_user_message_update` method returns `False` or `None`,
+        the message is considered consumed, and further distribution is halted.
         
         Args:
-            message (Dict): The user message to process
+            message (Dict): The user message data to be processed.
             
         Returns:
-            bool: True if the message was processed by all listeners or none consumed it,
-                  False if a listener consumed the message
+            bool:
+                - True: If the message was processed by all listeners or no listener consumed it.
+                - False: If a listener explicitly consumed the message (returned `False` or `None`).
         """
         for k, _ in self.listeners:
             ret = await k.on_user_message_update(message)
@@ -142,27 +149,23 @@ class UserMessageUpdateManager(object):
 
     def clear_user_message_listeners(self):
         """
-        Clear all registered listeners.
+        Clears all registered listeners from the manager.
         
-        This removes all objects from the list of registered listeners.
-        
-        Returns:
-            None
+        This effectively removes all objects from the list of registered listeners,
+        preventing them from receiving future user message updates.
         """
         self.listeners = []
 
     def fini(self):
         """
-        Finalize the manager.
+        Finalizes the UserMessageUpdateManager.
         
-        This method:
-        1. Clears all registered listeners
-        2. Removes the manager reference from the knowledge base
+        This method performs necessary cleanup by:
+        1. Clearing all registered listeners.
+        2. Removing the manager's reference from the knowledge base.
         
-        This method should be called when the manager is no longer needed.
-        
-        Returns:
-            None
+        This method should be called when the manager instance is no longer needed
+        to ensure proper resource release and prevent memory leaks.
         """
         self.clear_user_message_listeners()
         self.knowledge["MODULES"]["UserMessageManager"] = None

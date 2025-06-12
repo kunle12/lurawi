@@ -1,3 +1,7 @@
+"""
+This module defines the RemoteServiceNotificationHandler for processing
+notifications from remote services.
+"""
 import os
 from typing import Dict
 
@@ -8,6 +12,17 @@ from lurawi.utils import is_indev, logger
 
 
 class RemoteServiceNotificationPayload(BaseModel):
+    """
+    Represents the payload structure for remote service notifications.
+
+    Attributes:
+        success (bool): Indicates if the remote service operation was successful.
+        access_key (str): The access key for authorization.
+        uid (str): The unique identifier of the user associated with the notification.
+        method (str): The method or type of remote service operation.
+        data (str | Dict): Method-specific data, can be a string or a dictionary.
+    """
+
     success: bool
     access_key: str
     uid: str
@@ -16,8 +31,23 @@ class RemoteServiceNotificationPayload(BaseModel):
 
 
 class RemoteServiceNotificationHandler(WebhookHandler):
+    """
+    Handles incoming notifications from remote services.
+
+    This handler sets up a webhook endpoint to receive callbacks from external
+    services, processing the payload to update member information or trigger
+    specific actions based on the remote service's response. It also dynamically
+    determines the callback URL based on the environment.
+    """
+
     def __init__(self, server):
-        super(RemoteServiceNotificationHandler, self).__init__(server)
+        """
+        Initializes the RemoteServiceNotificationHandler.
+
+        Args:
+            server: The server instance to which this handler is attached.
+        """
+        super().__init__(server)
         self.route = "/remote_callback"
         if "RemoteWebhookURL" in os.environ:
             self.server.knowledge["REMOTE_CALLBACK_URL"] = (
