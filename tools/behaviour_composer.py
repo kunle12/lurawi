@@ -1,4 +1,10 @@
 #! /usr/bin/env python3
+"""
+This module provides the BehaviourComposer class for composing a master behaviour file
+from a directory of smaller JSON files. It handles loading, validating, and saving
+behaviour definitions, including managing default behaviours and program variables.
+"""
+
 from __future__ import print_function
 import os
 import sys
@@ -7,11 +13,23 @@ import simplejson as json
 
 
 def print_error(*args, **kwargs):
+    """Prints error messages to stderr."""
     print(*args, file=sys.stderr, **kwargs)
 
 
 class BehaviourComposer(object):
+    """
+    Composes a master behaviour file from a directory of small JSON files.
+
+    This class manages the loading, validation, and saving of behaviour definitions,
+    including handling default behaviours, program variables, and asset URLs.
+    """
+
     def __init__(self):
+        """
+        Initializes the BehaviourComposer with predefined behaviour keywords
+        and master data structure.
+        """
         self.behaviour_keywords = {
             "text": [str, list],
             "knowledge": [dict],
@@ -34,15 +52,42 @@ class BehaviourComposer(object):
         self.program_variables = {}
 
     def set_default_behaviour(self, name):
+        """
+        Sets the default behaviour for the master file.
+
+        Args:
+            name (str): The name of the behaviour to set as default.
+        """
         self.master_data["default"] = name
 
     def set_output_name(self, name):
+        """
+        Sets the output file name for the master behaviour file.
+
+        Args:
+            name (str): The desired output file name.
+        """
         self.outputname = name
 
     def set_asset_url(self, url):
+        """
+        Sets the base URL for image assets.
+
+        Args:
+            url (str): The base URL for assets.
+        """
         self.asset_url = url
 
     def load_data_from_directory(self, path):
+        """
+        Loads behaviour data from JSON files within a specified directory.
+
+        Args:
+            path (str): The path to the directory containing behaviour JSON files.
+
+        Returns:
+            bool: True if a default behaviour is found and data is loaded, False otherwise.
+        """
         if not os.path.isdir(path):
             print_error(f"Invalid data path {path}")
             return False
@@ -82,11 +127,21 @@ class BehaviourComposer(object):
         return self.found_default_behaviour
 
     def load_behaviours(self, script):
+        """
+        Loads and validates behaviours from a single JSON script file.
+
+        Args:
+            script (str): The path to the JSON behaviour file.
+
+        Returns:
+            tuple: A tuple containing (default_behaviour_name, list_of_behaviours)
+                   if valid, otherwise (None, None).
+        """
         data = None
         valid = True
         if script is not None:
             try:
-                f = open(script, "r")
+                f = open(script, "r", encoding='utf-8')
                 data = json.load(f)
                 f.close()
             except Exception as err:
@@ -102,7 +157,7 @@ class BehaviourComposer(object):
             default_demo = None
             if "default" in data:
                 default_demo = data["default"]
-                self.extractVariablesFromDefault(data)
+                self.extract_variables_from_default(data)
             for be in data["behaviours"]:
                 if "actions" not in be:
                     print_error(f"missing actions in behaviour {be['name']}")
@@ -111,7 +166,7 @@ class BehaviourComposer(object):
                 for id_ac, ac in enumerate(be["actions"]):
                     for id_al, al in enumerate(ac):
                         if isinstance(al, list):
-                            if len(al) % 2 != 0 or not self.validateActionLet(al):
+                            if len(al) % 2 != 0 or not self.validate_action_let(al):
                                 valid = False
                                 print_error(
                                     f"invalid actionlet in behaviour {be['name']} action {id_ac} index {id_al}."
@@ -121,7 +176,7 @@ class BehaviourComposer(object):
                             print_error(
                                 f"invalid behaviour {be['name']} action {id_ac} {al}."
                             )
-        except:
+        except Exception as _:
             print_error("the behaviour file contains unresolved errors.")
             valid = False
 
@@ -131,7 +186,16 @@ class BehaviourComposer(object):
             print_error(f"loaded behaviour file {script} is corrupted.")
             return (None, None)
 
-    def validateActionLet(self, alet):
+    def validate_action_let(self, alet):
+        """
+        Validates a single actionlet within a behaviour.
+
+        Args:
+            alet (list): The actionlet to validate.
+
+        Returns:
+            bool: True if the actionlet is valid, False otherwise.
+        """
         if len(alet) == 0:
             return True
 
@@ -160,7 +224,7 @@ class BehaviourComposer(object):
                             if (
                                 not isinstance(v, list)
                                 or len(v) % 2 != 0
-                                or not self.validateActionLet(v)
+                                or not self.validate_action_let(v)
                             ):
                                 s_valid = False
                                 print_error(
@@ -177,11 +241,17 @@ class BehaviourComposer(object):
             )
 
         if len(alet) > 2:
-            valid &= self.validateActionLet(alet[2:])
+            valid &= self.validate_action_let(alet[2:])
 
         return valid
 
-    def extractVariablesFromDefault(self, data):
+    def extract_variables_from_default(self, data):
+        """
+        Extracts program variables from the default '__init__' behaviour.
+
+        Args:
+            data (dict): The loaded behaviour data.
+        """
         if data["default"] != "__init__":
             return
         try:
@@ -192,19 +262,25 @@ class BehaviourComposer(object):
                 self.program_variables.update(init_action[0][1])
                 if len(init_action) == 1:  # the file has no default behaviour
                     del data["behaviours"][0]  # delete the __init__ block
-        except:
+        except Exception as _:
             print_error(f"unexpected default init behaviour, ignore")
             return
 
-    def saveMasterData(self):
+    def save_master_data(self):
+        """
+        Saves the composed master behaviour data to the output file.
+
+        Returns:
+            bool: True if the data is saved successfully, False otherwise.
+        """
         try:
-            f = open(self.outputname, "w")
+            f = open(self.outputname, "w", encoding="utf-8")
             json.dump(
                 self.master_data, f, sort_keys=True, indent=2, separators=(",", ": ")
             )
             f.close()
-        except:
-            print_error(f"unable to save behaviours file {self.outputname}.")
+        except Exception as err:
+            print_error(f"unable to save behaviours file {self.outputname}: {err}.")
             return False
 
         if not os.path.isfile(self.outputname):
@@ -212,23 +288,33 @@ class BehaviourComposer(object):
             return False
 
         try:
-            with open(self.outputname, "r") as f:
+            with open(self.outputname, "r", encoding="utf-8") as f:
                 content = f.read()
             content = content.replace("_new_line_", "  \\n")
             if self.asset_url:
                 content = content.replace("{BASE_URL}", self.asset_url)
-            with open(self.outputname, "w") as f:
+            with open(self.outputname, "w", encoding="utf-8") as f:
                 f.write(content)
-        except:
+        except Exception as err:
             print_error(
-                f"unable to update asset url in behaviours file {self.outputname}."
+                f"unable to update asset url in behaviours file {self.outputname}: {err}."
             )
             return False
 
         print(f"saved all validated behaviours into {self.outputname}.")
         return True
 
-    def validUserInput(self, input, default_yes=True):
+    def valid_user_input(self, input, default_yes=True):
+        """
+        Validates user input for yes/no questions.
+
+        Args:
+            input (str): The user's input.
+            default_yes (bool): If True, an empty input is considered 'yes'.
+
+        Returns:
+            bool: True if the input is considered 'yes', False otherwise.
+        """
         if input == "y" or input == "Y":
             return True
         elif input == "":
@@ -236,7 +322,13 @@ class BehaviourComposer(object):
         else:
             return False
 
-    def sendToHost(self, uploadImage=False):
+    def send_to_host(self, upload_image=False):
+        """
+        Placeholder for sending data to a host, potentially with image upload.
+
+        Args:
+            uploadImage (bool): If True, indicates that images should be uploaded.
+        """
         pass
 
 
@@ -274,21 +366,19 @@ if __name__ == "__main__":
         bcObj.set_output_name(args.behaviour_output[0])
 
     if args.asset_url:
-        bcObj.set_asset_uRL(args.asset_url[0])
+        bcObj.set_asset_url(args.asset_url[0])
 
     if bcObj.load_data_from_directory(args.datadir):
         if args.syntax_check:
-            if bcObj.validUserInput(
+            if bcObj.valid_user_input(
                 input(
-                    "All behaviour files under {} has been validated successfully.\nDo you want to generate the master file? [y/N] ".format(
-                        args.datadir
-                    )
+                    f"All behaviour files under {args.datadir} has been validated successfully.\nDo you want to generate the master file? [y/N] "
                 ),
                 False,
             ):
-                bcObj.saveMasterData()
+                bcObj.save_master_data()
         else:
-            bcObj.saveMasterData()
+            bcObj.save_master_data()
         exit(0)
     else:
         exit(1)
