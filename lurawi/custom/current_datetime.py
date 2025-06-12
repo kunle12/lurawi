@@ -1,16 +1,23 @@
-from lurawi.custom_behaviour import CustomBehaviour
+"""Custom behaviour to get and format the current datetime."""
+
 from datetime import datetime
+from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 
 
 class current_datetime(CustomBehaviour):
-    """!@brief get the current date time string: morning, afternoon or evening.
-    and save the string under knowledge['CURRENT_DAYTIME']
+    """!@brief Get the current datetime string and save it under a specified knowledge key.
+
+    This custom behaviour retrieves the current datetime, formats it based on the
+    'format' argument (or uses a default format), and saves the resulting string
+    to the knowledge base under the key specified by the 'output' argument (or
+    'CURRENT_DATETIME' by default).
+
     Example:
     ["custom", { "name": "current_datetime",
                  "args": {
-                        "format": "datetime string format",
-                        "output": "output time string"
+                        "format": "%Y-%m-%d %H:%M:%S",
+                        "output": "MY_CUSTOM_DATETIME_KEY"
                     }
                 }
     ]

@@ -1,3 +1,7 @@
+"""
+This module defines the SystemOperationsHandler for managing system-level
+operations via a webhook.
+"""
 import os
 from typing import Dict
 from pydantic import BaseModel
@@ -5,13 +9,37 @@ from lurawi.webhook_handler import WebhookHandler
 
 
 class SystemOperationPayload(BaseModel):
+    """
+    Represents the payload structure for system operation requests.
+
+    Attributes:
+        admin_key (str): The administrative access key for authorization.
+        command (str): The command to be executed (e.g., "load").
+        value (str | Dict, optional): An optional value associated with the command,
+                                       which can be a string or a dictionary.
+    """
+
     admin_key: str
     command: str
     value: str | Dict = None
 
 
 class SystemOperationsHandler(WebhookHandler):
+    """
+    Handles system-level operations via a webhook endpoint.
+
+    This handler provides an interface for administrative commands, such as
+    loading pending behaviors, protected by an admin key. It is disabled
+    by default unless explicitly enabled via environment variables.
+    """
+
     def __init__(self, server):
+        """
+        Initializes the SystemOperationsHandler.
+
+        Args:
+            server: The server instance to which this handler is attached.
+        """
         super(SystemOperationsHandler, self).__init__(server)
         self.route = "/backend_operation"
         self.is_disabled = (
@@ -22,10 +50,18 @@ class SystemOperationsHandler(WebhookHandler):
     async def process_callback(
         self, payload: SystemOperationPayload
     ):  # pylint: disable=unused-argument
-        """Process incoming data is expected to have the following format:
-        {
-            "admin_key": "fjeoijoefvjae", # admin access key
-        }
+        """
+        Processes incoming system operation requests.
+
+        This method validates the admin key and executes the specified command.
+        Currently supports the "load" command to load pending behaviors.
+
+        Args:
+            payload (SystemOperationPayload): The incoming request payload
+                                              containing the admin key, command, and value.
+
+        Returns:
+            HTTP response indicating success or failure with a message.
         """
         if "SystemAdminKey" not in os.environ:
             return self.write_http_response(

@@ -1,26 +1,71 @@
+"""
+Custom behaviour for constructing prompts for GPT-style models.
+
+This module defines the `build_gpt_prompt` class, which facilitates the
+creation of structured prompts by combining system instructions, user queries,
+conversation history, and relevant documents, while managing token limits.
+"""
+
 from lurawi.utils import cut_string, calc_token_size, logger
 from lurawi.custom_behaviour import CustomBehaviour
 
 
 class build_gpt_prompt(CustomBehaviour):
-    """!@brief build custom GPT prompt
+    """!@brief Builds a custom prompt for GPT-style models.
+
+    This custom behaviour constructs a prompt for large language models by
+    integrating a system prompt, a user prompt (which can include a query
+    and documents), conversation history, and managing the total token size
+    to stay within specified limits.
+
+    Args:
+        system_prompt (str, optional): The initial system-level instructions
+                                       for the LLM. Defaults to an empty string.
+        user_prompt (str, optional): The user's query or prompt template.
+                                     Can contain placeholders like `{query}`
+                                     and `{docs}`. Defaults to an empty string.
+        query (str, optional): The actual user query text to be inserted into
+                               the `user_prompt` (replaces `{query}`).
+                               Defaults to an empty string.
+        history (list, optional): A list of dictionaries representing past
+                                  conversation turns (e.g., `[{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]`).
+                                  Defaults to an empty list.
+        documents (str, optional): Relevant search results or documents to be
+                                   inserted into the `user_prompt` (replaces `{docs}`).
+                                   Defaults to an empty string.
+        max_tokens (int, optional): The maximum allowed token size for the
+                                    entire constructed prompt. If exceeded,
+                                    history and documents will be truncated.
+                                    Defaults to -1 (no limit).
+        output (str, optional): The knowledge base key under which the final
+                                constructed prompt (as a list of message dictionaries)
+                                will be stored. Defaults to "BUILD_GPT_PROMPT_OUTPUT".
+
     Example:
     ["custom", { "name": "build_gpt_prompt",
                  "args": {
-                            "system_prompt": "system prompt text",
-                            "user_prompt": "user prompt text",
-                            "query": "token for the user_prompt",
+                            "system_prompt": "You are a helpful assistant.",
+                            "user_prompt": "Based on these documents: {docs}, answer the question: {query}",
+                            "query": "What is the capital of France?",
                             "history": [],
-                            "documents": "search text",
+                            "documents": "France is a country in Europe. Its capital is Paris.",
                             "max_tokens": 5000,
-                            "output": "final text output"
+                            "output": "FINAL_LLM_PROMPT"
                           }
                 }
     ]
-    @note only limited parameters are supported in this call
     """
 
     async def run(self):
+        """
+        Executes the prompt building logic.
+
+        This method retrieves and validates all input arguments, constructs
+        the prompt by combining system, user, history, and document content,
+        and then manages the prompt's token size by truncating history or
+        documents if `max_tokens` is specified and exceeded. The final prompt
+        is stored in the knowledge base.
+        """
         system_prompt = self.parse_simple_input(
             key="system_prompt", check_for_type="str"
         )

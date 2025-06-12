@@ -1,34 +1,87 @@
-import os
-import simplejson as json
-import time
+"""
+Custom behaviour for invoking Large Language Models (LLMs) via an OpenAI-compatible API.
 
-from lurawi.custom_behaviour import CustomBehaviour
+This module defines the `invoke_llm` class, which allows the system to send
+prompts to an LLM, manage streaming responses, and store the LLM's output
+in the knowledge base.
+"""
+
+import os
+import time
+import simplejson as json
+
 from openai import AsyncOpenAI
+from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import is_indev, logger, DataStreamHandler, set_dev_stream_handler
 
 
 class invoke_llm(CustomBehaviour):
-    """!@brief invoke a Agent via OpenAI style
+    """!@brief Invokes a Large Language Model (LLM) using an OpenAI-compatible API.
+
+    This custom behaviour facilitates interaction with LLMs by constructing
+    and sending prompts, handling both synchronous and streaming responses,
+    and storing the LLM's generated content in the knowledge base.
+
+    Args:
+        base_url (str): The base URL of the OpenAI-compatible API endpoint.
+                        Can be a direct string or a knowledge base key.
+        api_key (str): The API key for authentication with the LLM service.
+                       Can be a direct string or a knowledge base key.
+        model (str): The name of the LLM model to use (e.g., "gpt-3.5-turbo").
+                     Can be a direct string or a knowledge base key.
+        prompt (str or list): The input prompt for the LLM.
+                              - If a string, it's the direct prompt text.
+                              - If a list, it can be:
+                                - `["template {}", ["key1", "key2"]]`: A template string
+                                  with placeholders `{}` and a list of knowledge base
+                                  keys whose values will replace the placeholders.
+                                - `[{"role": "user", "content": "..."}]`: A list of
+                                  message dictionaries in OpenAI chat format.
+                                  Placeholders within content can also be resolved.
+        temperature (float, optional): Controls the randomness of the output.
+                                       Higher values mean more random. Defaults to 0.6.
+        max_tokens (int, optional): The maximum number of tokens to generate in
+                                    the LLM's response. Defaults to 512.
+        stream (bool, optional): If `True`, the LLM response will be streamed.
+                                 If `False`, the full response is awaited.
+                                 Defaults to `False`.
+        response (str, optional): The knowledge base key under which the LLM's
+                                  text response will be stored. If the key
+                                  already exists and its value is a list, the
+                                  response will be appended. Defaults to "LLM_RESPONSE".
+        success_action (list, optional): An action to execute if the LLM invocation
+                                         is successful (e.g., `["play_behaviour", "2"]`).
+        failed_action (list, optional): An action to execute if the LLM invocation
+                                        fails (e.g., `["play_behaviour", "next"]`).
+
     Example:
     ["custom", { "name": "invoke_llm",
                  "args": {
-                            "base_url": "https://localhost:8000",
-                            "api_key": "token for the project",
-                            "model": "gpt35",
-                            "prompt": ["text prompt"],
-                            "temperature": 0.9,
-                            "max_tokens": 500,
+                            "base_url": "https://api.openai.com/v1",
+                            "api_key": "OPENAI_API_KEY",
+                            "model": "gpt-3.5-turbo",
+                            "prompt": [{"role": "user", "content": "Tell me a story about {}."}],
+                            "temperature": 0.7,
+                            "max_tokens": 200,
                             "stream": False,
-                            "response": "save text response from the llm",
+                            "response": "MY_LLM_STORY",
                             "success_action": ["play_behaviour", "2"],
                             "failed_action": ["play_behaviour", "next"]
                           }
                 }
     ]
-    @note only limited parameters are supported in this call
     """
 
     async def run(self):
+        """
+        Executes the LLM invocation logic.
+
+        This method retrieves and validates all LLM configuration parameters
+        (base URL, API key, model, prompt, temperature, max tokens, stream).
+        It constructs the prompt, makes the asynchronous call to the LLM,
+        and handles the response, either streaming it or storing the full
+        content in the knowledge base. Error handling for API calls is included.
+        """
         invoke_time = time.time()
 
         base_url = self.parse_simple_input(key="base_url", check_for_type="str")
@@ -57,16 +110,20 @@ class invoke_llm(CustomBehaviour):
             await self.failed()
             return
 
+        # Resolve model from KB if it's a key
         model = self.details["model"]
         if isinstance(model, str) and model in self.kb:
             model = self.kb[model]
 
         prompt = self.details["prompt"]
+        # Resolve prompt from KB if it's a key
         if isinstance(prompt, str) and prompt in self.kb:
             prompt = self.kb[prompt]
 
+        # Handle different prompt formats
         if isinstance(prompt, list):
             if len(prompt) == 2 and isinstance(prompt[1], list):
+                # Format: ["template {}", ["key1", "key2"]]
                 keys = prompt[1]
                 content = prompt[0]
                 for key in keys:
@@ -77,6 +134,7 @@ class invoke_llm(CustomBehaviour):
                         content = content.replace("{}", _key, 1)
                 prompt = content
             else:
+                # Format: [{"role": "user", "content": "..."}] with potential nested placeholders
                 resolved_prompts = []
                 for item in prompt:
                     if not isinstance(item, dict):
@@ -85,13 +143,14 @@ class invoke_llm(CustomBehaviour):
                         )
                         await self.failed()
                         return
-                    item_payload = json.loads(json.dumps(item))
+                    item_payload = json.loads(json.dumps(item)) # Deep copy
                     for k, v in item_payload.items():
                         if (
                             isinstance(v, list)
                             and len(v) == 2
                             and isinstance(v[1], list)
                         ):
+                            # Nested template: ["content {}", ["key"]]
                             content, keys = v
                             for key in keys:
                                 if key in self.kb:
@@ -103,8 +162,10 @@ class invoke_llm(CustomBehaviour):
                                     content = content.replace("{}", _key, 1)
                             item_payload[k] = content
                         elif isinstance(v, str) and v in self.kb:
+                            # Value is a KB key
                             value = self.kb[v]
                             if isinstance(value, list) and len(value) > 1:
+                                # KB value is a template: ["content {}", ["key"]]
                                 keys = value[1]
                                 if not isinstance(keys, list):
                                     logger.error(
@@ -160,7 +221,7 @@ class invoke_llm(CustomBehaviour):
             logger.error("invoke_llm: failed to call Agent %s: %s", model, err)
             self.kb["ERROR_MESSAGE"] = str(err)
             await self.failed()
-            self.kb["ERROR_MESSAGE"] = ""
+            self.kb["ERROR_MESSAGE"] = "" # Clear error message after handling
             return
 
         if stream:
