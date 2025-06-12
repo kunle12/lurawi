@@ -1,3 +1,8 @@
+"""
+This script provides a command-line interface (CLI) for managing the Lurawi application.
+It supports various commands such as running the service, starting a development environment,
+managing custom functions, creating new projects, and checking the application version.
+"""
 #!/usr/bin/env python3
 
 import argparse
@@ -182,21 +187,21 @@ if __name__ == "__main__":
                 for name in files:
                     if name == script_name:
                         print(f"custom function {function_name} already exists")
-                        exit(-1)
+                        sys.exit(-1)
             destination_path = f"{base_path}/lurawi/custom/{script_name}"
             try:
                 if script_path.startswith("/opt/defaultsite"):
                     if not os.path.isdir("/home/lurawi/custom"):
                         os.mkdir("/home/lurawi/custom")
                     local_path = f"/home/lurawi/custom/{script_name}"
-                    with open(local_path, "w") as f:
+                    with open(local_path, "w", encoding='utf-8') as f:
                         output = CUSTOM_FUNCTION_TEMPLATE.replace(
                             "{{function_template}}", function_name
                         )
                         f.write(output)
                     os.symlink(src=local_path, dst=destination_path)
                 else:
-                    with open(destination_path, "w") as f:
+                    with open(destination_path, "w", encoding='utf-8') as f:
                         output = CUSTOM_FUNCTION_TEMPLATE.replace(
                             "{{function_template}}", function_name
                         )

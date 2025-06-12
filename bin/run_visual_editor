@@ -5,6 +5,7 @@ import ast
 import http.server
 import socketserver
 import os
+import sys
 import webbrowser
 import shutil
 
@@ -224,13 +225,13 @@ if __name__ == "__main__":
 
     if not os.path.exists(custom_dir) or not os.path.isdir(custom_dir):
         print(f"Visual Editor invalid custom path {custom_dir}")
-        exit(-1)
+        sys.exit(-1)
 
     if not update_editor_custom_definitions(
         custom_dir=custom_dir, editor_dir=editor_dir
     ):
         print("Visual Editor is not found")
-        exit(-1)
+        sys.exit(-1)
 
     update_documentation(editor_dir=editor_dir)
 

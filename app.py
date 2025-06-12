@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import os
-import uvicorn
+import sys
 import argparse
-import lurawi.utils as utils
+import uvicorn
+from lurawi import utils
 
 from lurawi.workflow_service import WorkflowService
 
@@ -27,7 +28,7 @@ if __name__ == "__main__":
     utils.in_dev = not args.dev
 
     if not utils.get_project_settings():
-        exit(-1)
+        sys.exit(-1)
 
     behaviour_script = (
         DEFAULT_BEHAVIOUR_SCRIPT
@@ -39,7 +40,7 @@ if __name__ == "__main__":
 
     try:
         uvicorn.run(
-            app, host=os.getenv("HOST", "localhost"), port=int(os.getenv("PORT", 8081))
+            app, host=os.getenv("HOST", "localhost"), port=int(os.getenv("PORT", "8081"))
         )
     except KeyboardInterrupt:
         pass
