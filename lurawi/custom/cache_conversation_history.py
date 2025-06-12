@@ -1,3 +1,11 @@
+"""
+Custom behaviour for caching user-bot conversation history.
+
+This module defines the `cache_conversation_history` class, which is used
+to store and manage the dialogue turns between a user and a bot,
+optionally enforcing a maximum token limit by purging older entries.
+"""
+
 import re
 import simplejson as json
 
@@ -6,21 +14,46 @@ from lurawi.utils import calc_token_size, logger
 
 
 class cache_conversation_history(CustomBehaviour):
-    """!@brief cache user bot conversation history
+    """!@brief Caches user-bot conversation history.
+
+    This custom behaviour appends new user input and LLM output to a
+    conversation history list. It can also manage the history size by
+    truncating older entries if a `max_tokens` limit is specified.
+
+    Args:
+        user_input (str): The user's message to be added to the history.
+                          If a knowledge base key, its value is used.
+        llm_output (str): The LLM's response to be added to the history.
+                          If a knowledge base key, its value is used.
+        history (list, optional): The existing conversation history list.
+                                  If a knowledge base key, its value is used.
+                                  Defaults to an empty list if not provided
+                                  or if `LLM_CACHED_HISTORY` is not in KB.
+        max_tokens (int, optional): The maximum allowed token size for the
+                                    entire conversation history. If exceeded,
+                                    older entries will be purged. Defaults to -1 (no limit).
+
     Example:
     ["custom", { "name": "cache_conversation_history",
                  "args": {
-                            "user_input": "system prompt text",
-                            "llm_output": "user prompt text",
-                            "history": [],
-                            "max_tokens": 5000,
+                            "user_input": "USER_MESSAGE",
+                            "llm_output": "LLM_RESPONSE",
+                            "history": ["CONVERSATION_HISTORY_LIST"],
+                            "max_tokens": 4000
                           }
                 }
     ]
-    @note only limited parameters are supported in this call
     """
 
     async def run(self):
+        """
+        Executes the conversation history caching logic.
+
+        This method retrieves user input, LLM output, and existing history,
+        then appends the new conversation turn. If a `max_tokens` limit is
+        set, it prunes older history entries to stay within the limit.
+        The updated history is stored in the knowledge base.
+        """
         user_input = self.parse_simple_input(key="user_input", check_for_type="str")
 
         if user_input is None:
@@ -75,7 +108,7 @@ class cache_conversation_history(CustomBehaviour):
                 mesg_str = json.dumps(history)
                 mesg_token_size = calc_token_size(mesg_str)
 
-        logger.debug(f"cache_conversation_history: final history list {history}")
+        logger.debug("cache_conversation_history: final history list %s", {history})
 
         if "history" in self.details and isinstance(self.details["history"], str):
             self.kb[self.details["history"]] = history

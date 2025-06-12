@@ -1,3 +1,12 @@
+"""
+This script runs the Lurawi Agent Visual Programming Editor.
+
+It provides functionalities to:
+- Parse custom Python scripts to extract custom function definitions.
+- Update the visual editor's HTML with these custom definitions.
+- Convert Markdown documentation files to HTML.
+- Serve the visual editor and its documentation via a local HTTP server.
+"""
 #!/usr/bin/env python3
 
 import argparse
@@ -5,6 +14,7 @@ import ast
 import http.server
 import socketserver
 import os
+import sys
 import webbrowser
 import shutil
 
@@ -23,6 +33,15 @@ img { max-width: 100%; }
 
 
 def parse_custom_scripts(fdir: str):
+    """
+    Parses custom Python scripts in the specified directory to extract custom script information.
+
+    Args:
+        fdir (str): The directory containing the custom scripts.
+
+    Returns:
+        str: An XML-formatted string containing the extracted custom script definitions.
+    """
     content = ""
     dumbhead_str = f"dumb|{fdir}"  # keep snyk happy
     for root, _, files in os.walk(dumbhead_str.split("|")[1], topdown=False):
@@ -34,10 +53,21 @@ def parse_custom_scripts(fdir: str):
 
 
 def extract_example_info(fname: str):
+    """
+    Extracts example information from a Python file's docstrings, specifically looking for
+    classes with a '"custom"' tag and associated arguments.
+
+    Args:
+        fname (str): The path to the Python file.
+
+    Returns:
+        str: An XML-formatted string representing the custom script and its arguments,
+             or an empty string if no relevant information is found or parsing fails.
+    """
     content = ""
     if not os.path.isfile(fname):
         return content
-    with open(fname, "r") as f:
+    with open(fname, "r", encoding='utf-8') as f:
         tree = ast.parse(f.read())
 
         modef = tuple({ast.ClassDef: "Class"})
@@ -101,9 +131,26 @@ def extract_example_info(fname: str):
 
 
 def update_documentation(editor_dir: str):
+    """
+    Updates the documentation by converting Markdown files to HTML and copying assets.
+
+    Args:
+        editor_dir (str): The directory where the visual editor is located.
+    """
+
     def markdown_to_html(in_file_path: str, out_file_path: str) -> bool:
+        """
+        Converts a Markdown file to an HTML file, applying custom CSS and syntax highlighting.
+
+        Args:
+            in_file_path (str): The path to the input Markdown file.
+            out_file_path (str): The path to the output HTML file.
+
+        Returns:
+            bool: True if the conversion was successful, False otherwise.
+        """
         try:
-            with open(in_file_path, "r") as ifile, open(out_file_path, "w") as ofile:
+            with open(in_file_path, "r", encoding='utf-8') as ifile, open(out_file_path, "w", encoding='utf-8') as ofile:
                 text = ifile.read()
                 html_text = mark_down_it_obj.render(text)
                 # pretty CSS
@@ -157,6 +204,18 @@ def update_documentation(editor_dir: str):
 
 
 def update_editor_custom_definitions(custom_dir: str, editor_dir: str) -> bool:
+    """
+    Updates the visual editor's index.html with custom function definitions extracted from
+    Python scripts.
+
+    Args:
+        custom_dir (str): The directory containing custom Python scripts.
+        editor_dir (str): The directory where the visual editor's files are located.
+
+    Returns:
+        bool: True if the update was successful or not needed, False if the index file
+              is not found or an error occurs during update.
+    """
     index_file = f"{editor_dir}/index.html"
     if not os.path.exists(index_file):
         return False
@@ -165,7 +224,7 @@ def update_editor_custom_definitions(custom_dir: str, editor_dir: str) -> bool:
     if content:
         index_content = ""
         try:
-            with open(index_file, "r") as f:
+            with open(index_file, "r", encoding='utf-8') as f:
                 reached_comment = False
                 for line in f.readlines():
                     if reached_comment:
@@ -173,7 +232,7 @@ def update_editor_custom_definitions(custom_dir: str, editor_dir: str) -> bool:
                     else:
                         index_content += line
                         reached_comment = "DO NOT DELETE THIS LINE" in line
-            with open(index_file, "w") as f:
+            with open(index_file, "w", encoding='utf-8') as f:
                 f.write(index_content)
                 f.write(
                     '  <xml xmlns="http://www.w3.org/1999/xhtml" id="scriptlib" style="display: none;">\n'
@@ -191,7 +250,21 @@ def update_editor_custom_definitions(custom_dir: str, editor_dir: str) -> bool:
 
 
 def handler_from(directory):
+    """
+    Creates a custom HTTP request handler that serves files from a specified directory.
+
+    Args:
+        directory (str): The directory to serve files from.
+
+    Returns:
+        type: A new class inheriting from http.server.SimpleHTTPRequestHandler,
+              configured to serve from the given directory.
+    """
+
     def _init(self, *args, **kwargs):
+        """
+        Initializes the SimpleHTTPRequestHandler with the specified directory.
+        """
         return http.server.SimpleHTTPRequestHandler.__init__(
             self, *args, directory=self.directory, **kwargs
         )
@@ -224,13 +297,13 @@ if __name__ == "__main__":
 
     if not os.path.exists(custom_dir) or not os.path.isdir(custom_dir):
         print(f"Visual Editor invalid custom path {custom_dir}")
-        exit(-1)
+        sys.exit(-1)
 
     if not update_editor_custom_definitions(
         custom_dir=custom_dir, editor_dir=editor_dir
     ):
         print("Visual Editor is not found")
-        exit(-1)
+        sys.exit(-1)
 
     update_documentation(editor_dir=editor_dir)
 

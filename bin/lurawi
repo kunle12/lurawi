@@ -1,3 +1,8 @@
+"""
+This script provides a command-line interface (CLI) for managing the Lurawi application.
+It supports various commands such as running the service, starting a development environment,
+managing custom functions, creating new projects, and checking the application version.
+"""
 #!/usr/bin/env python3
 
 import argparse
@@ -35,8 +40,7 @@ class {{function_template}}(CustomBehaviour):
     """
 
     def __init__(self, kb, details):
-        super({{function_template}}, self).__init__(kb)
-        self.details = details
+        super().__init__(kb, details)
 
     async def run(self):
         data_list = self.parse_simple_input(key="list", check_for_type="list")
@@ -61,37 +65,37 @@ class {{function_template}}(CustomBehaviour):
 
 def _create_activate_working_environment(path: str) -> Dict:
     venv_dir = f"{path}/.venv"
-    venv_env = os.environ.copy()
+    new_venv_env = os.environ.copy()
     if os.path.isdir(venv_dir):
         print("activating working environment...")
-        venv_env["VIRTUAL_ENV"] = venv_dir
-        venv_env["PATH"] = f"{venv_dir}/bin:{venv_env['PATH']}"
+        new_venv_env["VIRTUAL_ENV"] = venv_dir
+        new_venv_env["PATH"] = f"{venv_dir}/bin:{new_venv_env['PATH']}"
     else:  # create working environment
         print("create working environment...")
         env_builder = EnvBuilder(
             with_pip=True, system_site_packages=True, symlinks=True
         )
         env_builder.create(venv_dir)
-        venv_env["VIRTUAL_ENV"] = venv_dir
-        venv_env["PATH"] = f"{venv_dir}/bin:{venv_env['PATH']}"
+        new_venv_env["VIRTUAL_ENV"] = venv_dir
+        new_venv_env["PATH"] = f"{venv_dir}/bin:{new_venv_env['PATH']}"
         try:
             subprocess.run(
-                "pip install -r requirements.txt", env=venv_env, check=True, shell=True
+                "pip install -r requirements.txt", env=new_venv_env, check=True, shell=True
             )
         except Exception as err:
             print(f"failed to install dependencies in the environment: {err}")
-    return venv_env
+    return new_venv_env
 
 
 def _check_custom_links(path: str):
     # make sure all local customs have been properly linked
     if path.startswith("/opt/defaultsite") and os.path.exists("/home/lurawi/custom"):
-        for root, _, files in os.walk("/home/lurawi/custom", topdown=False):
-            for name in files:
-                if name.endswith(".py"):
-                    destination_path = f"/opt/defaultsite/lurawi/custom{name}"
+        for custom_root, _, scripts in os.walk("/home/lurawi/custom", topdown=False):
+            for custom_name in scripts:
+                if custom_name.endswith(".py"):
+                    destination_path = f"/opt/defaultsite/lurawi/custom/{custom_name}"
                     if not os.path.exists(destination_path):
-                        os.symlink(f"{root}/{name}", dst=destination_path)
+                        os.symlink(f"{custom_root}/{custom_name}", dst=destination_path)
 
 
 if __name__ == "__main__":
@@ -168,39 +172,39 @@ if __name__ == "__main__":
             for root, _, files in os.walk(f"{base_path}/lurawi/custom", topdown=False):
                 for name in files:
                     if name.endswith(".py") and name != "__init__.py":
-                        file_path = f"{root}/{name}"
+                        FILE_PATH = f"{root}/{name}"
                         print(
-                            f"{name[:-3]:30} {'official' if not os.path.islink(file_path) else ''}"
+                            f"{name[:-3]:30} {'official' if not os.path.islink(FILE_PATH) else ''}"
                         )
         elif subcommand == "new":
             if len(args.subcommand) != 2:
                 print("missing new custom function name")
                 sys.exit(-1)
             function_name = args.subcommand[1].lower()
-            script_name = f"{function_name}.py"
+            SCRIPT_NAME = f"{function_name}.py"
             for root, _, files in os.walk(f"{base_path}/lurawi/custom", topdown=False):
                 for name in files:
-                    if name == script_name:
+                    if name == SCRIPT_NAME:
                         print(f"custom function {function_name} already exists")
-                        exit(-1)
-            destination_path = f"{base_path}/lurawi/custom/{script_name}"
+                        sys.exit(-1)
+            DESTINATION_PATH = f"{base_path}/lurawi/custom/{SCRIPT_NAME}"
             try:
                 if script_path.startswith("/opt/defaultsite"):
                     if not os.path.isdir("/home/lurawi/custom"):
                         os.mkdir("/home/lurawi/custom")
-                    local_path = f"/home/lurawi/custom/{script_name}"
-                    with open(local_path, "w") as f:
-                        output = CUSTOM_FUNCTION_TEMPLATE.replace(
+                    LOCAL_PATH = f"/home/lurawi/custom/{SCRIPT_NAME}"
+                    with open(LOCAL_PATH, "w", encoding='utf-8') as f:
+                        OUTPUT = CUSTOM_FUNCTION_TEMPLATE.replace(
                             "{{function_template}}", function_name
                         )
-                        f.write(output)
-                    os.symlink(src=local_path, dst=destination_path)
+                        f.write(OUTPUT)
+                    os.symlink(src=LOCAL_PATH, dst=DESTINATION_PATH)
                 else:
-                    with open(destination_path, "w") as f:
-                        output = CUSTOM_FUNCTION_TEMPLATE.replace(
+                    with open(DESTINATION_PATH, "w", encoding='utf-8') as f:
+                        OUTPUT = CUSTOM_FUNCTION_TEMPLATE.replace(
                             "{{function_template}}", function_name
                         )
-                        f.write(output)
+                        f.write(OUTPUT)
             except Exception as err:
                 print(
                     f"Internal error: unable to create custom function {function_name}: {err}"
@@ -214,23 +218,23 @@ if __name__ == "__main__":
         project_name = args.project.lower()
         try:
             if script_path.startswith("/opt/defaultsite"):
-                local_path = f"/home/lurawi/{project_name}.xml"
-                if os.path.isfile(local_path):
+                LOCAL_PATH = f"/home/lurawi/{project_name}.xml"
+                if os.path.isfile(LOCAL_PATH):
                     print(
                         f"Unable to create project: project {project_name} already exists"
                     )
                     sys.exit(-1)
                 shutil.copyfile(
-                    src="/opt/defaultsite/lurawi_example.xml", dst=local_path
+                    src="/opt/defaultsite/lurawi_example.xml", dst=LOCAL_PATH
                 )
-                docker_file = "/home/lurawi/Dockerfile"
-                if not os.path.exists(docker_file):
+                DOCKER_FILE = "/home/lurawi/Dockerfile"
+                if not os.path.exists(DOCKER_FILE):
                     shutil.copyfile(
-                        src="/opt/defaultsite/Dockerfile.new", dst=docker_file
+                        src="/opt/defaultsite/Dockerfile.new", dst=DOCKER_FILE
                     )
             else:
-                local_path = f"{base_path}/{project_name}.xml"
-                shutil.copyfile(src=f"{base_path}/lurawi_example.xml", dst=local_path)
+                LOCAL_PATH = f"{base_path}/{project_name}.xml"
+                shutil.copyfile(src=f"{base_path}/lurawi_example.xml", dst=LOCAL_PATH)
         except Exception as err:
             print(f"Internal error: unable to create new project {project_name}: {err}")
             sys.exit(-1)
