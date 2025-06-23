@@ -66,7 +66,7 @@ A standard Python class `__init__` def should be followed as shown above. You ma
             return
 ```
 
-async `run` method is the key method that every custom action primitive need to implement. Because the flexibility of the JSON code allows any arbitrary (type of) input to be fed into the custom code. `run` method must perform the necessary checks on the input data. In this case, we must check whether `size` input is a positive integer. To accomodate the possiblity that input might a variable (name) in the knowledgebase, check against the knowledgebase and extract the actual data when it is indeed the case.
+async `run` method is the key method that every custom action primitive need to implement. Because the flexibility of the JSON code allows any arbitrary (type of) input to be fed into the custom code. `run` method must perform the necessary checks on the input data. In this case, we must check whether `size` input is a positive integer. To accommodate the possiblity that input might a variable (name) in the knowledgebase, check against the knowledgebase and extract the actual data when it is indeed the case.
 
 If input validation failed, we immediately call `await self.failed()` and `return`, this corresponds to throwing an exception in other programming languages. We also log the error in the system.
 

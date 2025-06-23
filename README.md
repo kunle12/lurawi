@@ -30,7 +30,7 @@ Lurawi is a NoCode/LowCode development environment designed for building sophist
 *   **Cloud-Ready Deployment:** Easily deploy workflows as Docker containers in environments like AWS.
 *   **Lurawi-in-a-Box:** A self-contained Docker image providing a fully functional Lurawi system for local execution, requiring only Docker Desktop.
 
-The following sections provide detailed instructions on how to experiment with Lurawi using the pre-built Docker image.
+The following sections provide detailed instructions on how to experiment with Lurawi using the prebuilt Docker image.
 
 ## Quick Start
 
@@ -189,7 +189,7 @@ The Lurawi agent workflow visual editor is built upon [Google Blockly](https://d
 
 Once comfortable with block-based programming, delve into:
 *   [Lurawi Specific Block Concepts](./docs/LurawiConcepts.md) for an understanding of core Lurawi block principles.
-*   [Lurawi Prebuilt Custom Blocks](./docs/LurawiGenAiCustoms.md) for detailed descriptions of pre-built custom function blocks.
+*   [Lurawi Prebuilt Custom Blocks](./docs/LurawiGenAiCustoms.md) for detailed descriptions of prebuilt custom function blocks.
 *   [Advanced: RAG Reference Implementation in Lurawi](./docs/RAGReferenceImplementation.md) for a concrete example of a Retrieval-Augmented Generation (RAG) implementation.
 
 Lurawi's capabilities are extensible via a plug-in mechanism, allowing integration with third-party systems. Explore [Advanced: How to Create Lurawi Custom Action Primitives](./docs/LurawiGenAiCustoms.md) to learn more.
