@@ -1,6 +1,6 @@
 # Advanced Setup: Running Lurawi in a VS Code Dev Container
 
-This document outlines the process for advanced customizations of Lurawi by utilizing the pre-built Lurawi Docker image within a [Visual Studio Code Dev Container](https://code.visualstudio.com/docs/devcontainers/containers).
+This document outlines the process for advanced customizations of Lurawi by utilizing the prebuilt Lurawi Docker image within a [Visual Studio Code Dev Container](https://code.visualstudio.com/docs/devcontainers/containers).
 
 *   Visual Studio Code (version 1.5 or newer).
 *   The Dev Containers extension for Visual Studio Code.

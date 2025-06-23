@@ -29,7 +29,7 @@ class SystemOperationsHandler(WebhookHandler):
     Handles system-level operations via a webhook endpoint.
 
     This handler provides an interface for administrative commands, such as
-    loading pending behaviors, protected by an admin key. It is disabled
+    loading pending behaviours, protected by an admin key. It is disabled
     by default unless explicitly enabled via environment variables.
     """
 
@@ -54,7 +54,7 @@ class SystemOperationsHandler(WebhookHandler):
         Processes incoming system operation requests.
 
         This method validates the admin key and executes the specified command.
-        Currently supports the "load" command to load pending behaviors.
+        Currently supports the "load" command to load pending behaviours.
 
         Args:
             payload (SystemOperationPayload): The incoming request payload

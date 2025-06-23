@@ -3,14 +3,14 @@
 This module implements the core workflow engine that powers the Lurawi system.
 It provides functionality for:
 - Managing user conversations and activities
-- Loading and executing behaviors from configuration files
+- Loading and executing behaviours from configuration files
 - Handling events from various sources (Discord, API calls)
-- Managing knowledge bases for behaviors
+- Managing knowledge bases for behaviours
 - Dynamically loading and managing remote services
 - Supporting timer-based operations
 
 The WorkflowEngine class serves as the central coordinator for all these
-activities, maintaining conversation state, loading behaviors and knowledge,
+activities, maintaining conversation state, loading behaviours and knowledge,
 and routing events to appropriate handlers.
 """
 
@@ -81,7 +81,7 @@ class BehaviourCodePayload(BaseModel):
 
 
 class WorkflowEngine(TimerClient):
-    """Workflow engine that manages user interactions, behaviors, and remote services.
+    """Workflow engine that manages user interactions, behaviours, and remote services.
 
     This class is the core engine that handles workflow execution, user activity management,
     behaviour loading, and integration with remote services. It inherits from TimerClient
@@ -189,9 +189,9 @@ class WorkflowEngine(TimerClient):
         return True
 
     def load_behaviours(self, behaviour=""):
-        """Load behaviors from a JSON file.
+        """Load behaviours from a JSON file.
 
-        Attempts to load behaviors from various sources in the following order:
+        Attempts to load behaviours from various sources in the following order:
         1. Azure Blob Storage (if AzureWebJobsStorage is configured)
         2. AWS S3 (if AWS credentials are configured)
         3. Local file system at various paths
@@ -200,7 +200,7 @@ class WorkflowEngine(TimerClient):
             behaviour: Base name of the behaviour file (without extension)
 
         Returns:
-            dict: Dictionary containing loaded behaviors, or empty dict if loading failed
+            dict: Dictionary containing loaded behaviours, or empty dict if loading failed
         """
         loaded_behaviours = {}
         if not behaviour:
@@ -265,11 +265,11 @@ class WorkflowEngine(TimerClient):
         return loaded_behaviours
 
     def load_pending_behaviours(self, behaviour):
-        """Load behaviors into a pending state for gradual adoption.
+        """Load behaviours into a pending state for gradual adoption.
 
-        Loads behaviors into a pending state and notifies conversation members
+        Loads behaviours into a pending state and notifies conversation members
         to prepare for the behaviour change. When all members have acknowledged,
-        the pending behaviors become active.
+        the pending behaviours become active.
 
         Args:
             behaviour: Base name of the behaviour file to load
@@ -389,7 +389,7 @@ class WorkflowEngine(TimerClient):
         """Update behaviour code dynamically.
 
         Updates the behaviour code with the provided JSON code, purging all
-        existing users to ensure clean adoption of the new behaviors.
+        existing users to ensure clean adoption of the new behaviours.
 
         Args:
             payload: Behaviour code payload containing JSON and XML code
@@ -481,8 +481,8 @@ class WorkflowEngine(TimerClient):
     async def on_pending_load_complete(self):
         """Handle completion of pending behaviour loading.
 
-        Called when a conversation member completes loading pending behaviors.
-        When all members have completed loading, the pending behaviors become active.
+        Called when a conversation member completes loading pending behaviours.
+        When all members have completed loading, the pending behaviours become active.
         """
         if self.pending_behaviours_load_cnt == 0:
             return

@@ -1,18 +1,18 @@
 """
 Custom Behaviour Module for the Lurawi System.
 
-This module provides the base class for implementing custom behaviors in the Lurawi system.
+This module provides the base class for implementing custom behaviours in the Lurawi system.
 It defines the CustomBehaviour class which serves as a foundation for creating specific
 behaviour implementations that can respond to user messages and remote callbacks.
 
-The module enables behaviors to:
+The module enables behaviours to:
 - Register for and receive user message updates
 - Register for and receive remote callback message updates
 - Handle suspension and restoration states
 - Log results and manage success/failure callbacks
 - Clean up resources when no longer needed
 
-Custom behaviors should inherit from the CustomBehaviour class and override
+Custom behaviours should inherit from the CustomBehaviour class and override
 the run() method to implement their specific logic.
 """
 
@@ -26,7 +26,7 @@ from lurawi.utils import logger, check_type
 
 class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
     """
-    Base class for implementing custom behaviors in the Lurawi system.
+    Base class for implementing custom behaviours in the Lurawi system.
     
     This class provides functionality for handling user messages and remote callback messages,
     managing suspension states, and handling success/failure callbacks.

@@ -23,7 +23,7 @@ This asynchronous method encapsulates the primary logic of your custom action pr
 
 ### `fini(self)` Method (Optional)
 
-This method is executed when the behavior is finalized, typically used for releasing resources or performing any necessary cleanup operations.
+This method is executed when the behaviour is finalized, typically used for releasing resources or performing any necessary cleanup operations.
 
 ## Example: Fibonacci Sequence Generator
 

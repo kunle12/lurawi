@@ -21,15 +21,15 @@ from .utils import write_http_response, DataStreamHandler, logger
 
 class ActivityManager:
     """
-    Manages activities, behaviors, and actions for the Lurawi system.
+    Manages activities, behaviours, and actions for the Lurawi system.
     
-    This class is responsible for loading behaviors, executing actions, managing user interactions,
+    This class is responsible for loading behaviours, executing actions, managing user interactions,
     and maintaining the knowledge state. It handles the flow of activities, including queuing,
     suspending, and resuming actions.
     """
     def __init__(self, uid, name, behaviour, knowledge):
         """
-        Initialize the ActivityManager with user information and behaviors.
+        Initialize the ActivityManager with user information and behaviours.
         
         Args:
             uid: User identifier
@@ -174,7 +174,7 @@ class ActivityManager:
         """
         Start user engagement with the given context.
         
-        Clears running actions, loads any pending behaviors, and plays the engagement action.
+        Clears running actions, loads any pending behaviours, and plays the engagement action.
         
         Args:
             context: The context for the user engagement
@@ -212,16 +212,16 @@ class ActivityManager:
 
     async def load_pending_behaviour_if_exists(self):
         """
-        Load pending behaviors if they exist.
+        Load pending behaviours if they exist.
         
-        Updates knowledge with pending knowledge, loads pending behaviors,
+        Updates knowledge with pending knowledge, loads pending behaviours,
         plays the next activity, and calls the completion callback.
         
         Note: self.on_pending_complete is expected to be a callable that may or may not be awaitable.
         The method will attempt to await it, so it should be compatible with the await syntax.
         
         Returns:
-            bool: True if pending behaviors were loaded, False otherwise
+            bool: True if pending behaviours were loaded, False otherwise
         """
         if not self.pending_behaviours or not self.on_pending_complete:
             return False
@@ -312,12 +312,12 @@ class ActivityManager:
 
     def set_pending_behaviours(self, behaviours, knowledge, on_complete):
         """
-        Set pending behaviors to be loaded later.
+        Set pending behaviours to be loaded later.
         
         Args:
             behaviours: Dictionary containing behaviour definitions
             knowledge: Dictionary containing knowledge to be merged
-            on_complete: Callback function to be called when behaviors are loaded
+            on_complete: Callback function to be called when behaviours are loaded
         """
         if not behaviours or not callable(on_complete):
             logger.error("invalid pending behaviour call")
@@ -328,16 +328,16 @@ class ActivityManager:
 
     def load_behaviours(self, behaviour, force=False):
         """
-        Load behaviors from the provided behaviour definition.
+        Load behaviours from the provided behaviour definition.
         
         Finds the default behaviour and sets it as the active behaviour.
         
         Args:
             behaviour: Dictionary containing behaviour definitions
-            force: If True, clear running actions before loading behaviors
+            force: If True, clear running actions before loading behaviours
             
         Returns:
-            bool: True if behaviors were loaded successfully, False otherwise
+            bool: True if behaviours were loaded successfully, False otherwise
         """
         if not behaviour:
             logger.error("No new behaviour available")
@@ -1293,9 +1293,9 @@ class ActivityManager:
 
     def clear_running_actions(self):
         """
-        Clear all running actions, custom behaviors, and related state.
+        Clear all running actions, custom behaviours, and related state.
         
-        Finalizes all custom behaviors and resets action-related state.
+        Finalizes all custom behaviours and resets action-related state.
         """
         for beh in self.custom_behaviours.values():
             beh.fini()

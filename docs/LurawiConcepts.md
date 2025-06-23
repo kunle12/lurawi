@@ -15,7 +15,7 @@ Figure 1: Lurawi Agent Workflow Visual Programming Editor
 
 The visual editor features two primary tabs: **Blocks** and **Code**.
 
-*   **Blocks Tab**: This is the main design area where users drag and drop blocks to compose graphical agent workflows. The left pane categorizes Lurawi-specific blocks into groups such as **Behavior** and **Action Primitives**. Detailed explanations of these blocks are provided in the "Workflow Metaprogramming Language" section.
+*   **Blocks Tab**: This is the main design area where users drag and drop blocks to compose graphical agent workflows. The left pane categorizes Lurawi-specific blocks into groups such as **Behaviour** and **Action Primitives**. Detailed explanations of these blocks are provided in the "Workflow Metaprogramming Language" section.
 
 *   **Code Tab**: This tab displays the real-time JSON translation of the block program constructed in the **Blocks** workspace. This JSON-formatted code is the ultimate representation executed by the Lurawi agent workflow engine.
 
@@ -114,11 +114,11 @@ An **Action** is a list of **ActionLets**. **ActionLets** within an **Action** a
     <figcaption>Fig. 4 An Action that contains two ActionLets.</figcaption>
 </figure>
 
-**Note**: When an **Action** is completed, it does not automatically proceed to the next **Action**. You must append an additional `["play_behavior", "next"]` **ActionLet** within the **Action** to move to the next **Action**. In the visual editor, simply select the *continue* option.
+**Note**: When an **Action** is completed, it does not automatically proceed to the next **Action**. You must append an additional `["play_behaviour", "next"]` **ActionLet** within the **Action** to move to the next **Action**. In the visual editor, simply select the *continue* option.
 
-### Behavior
+### Behaviour
 
-A **Behavior** is the highest-level construct in the action family hierarchy. It is a dictionary with a name and a list of **Actions**. A valid workflow must have all **Actions** enclosed within **Behavior** blocks. Multiple Behaviors can be defined in a single behavior file. Exactly one default behavior, indicated by a ticked `default` checkbox, must be specified in a behavior file. The default behavior is the first behavior that is loaded and executed, equivalent to the `main` function in C/C++.
+A **Behaviour** is the highest-level construct in the action family hierarchy. It is a dictionary with a name and a list of **Actions**. A valid workflow must have all **Actions** enclosed within **Behaviour** blocks. Multiple Behaviours can be defined in a single behaviour file. Exactly one default behaviour, indicated by a ticked `default` checkbox, must be specified in a behaviour file. The default behaviour is the first behaviour that is loaded and executed, equivalent to the `main` function in C/C++.
 
 <figure>
     <img src="images/behaviourblock1.png"
@@ -127,7 +127,7 @@ A **Behavior** is the highest-level construct in the action family hierarchy. It
     <figcaption>Fig. 5 A valid behaviour block with actions.</figcaption>
 </figure>
 
-Furthermore, control flow blocks such as `if`, `while`, etc., must be enclosed directly under a Behavior block, as shown below:
+Furthermore, control flow blocks such as `if`, `while`, etc., must be enclosed directly under a Behaviour block, as shown below:
 
 <figure>
     <img src="images/behaviourblock2.png"
@@ -137,21 +137,21 @@ Furthermore, control flow blocks such as `if`, `while`, etc., must be enclosed d
 </figure>
 
 ### Appendix: Notes
-[1] `play_behavior` acts as a **goto** statement, executed after all **ActionLets** within the **Action** have completed. It can be used to jump to any specific **Action** defined in a **Behavior**.
+[1] `play_behaviour` acts as a **goto** statement, executed after all **ActionLets** within the **Action** have completed. It can be used to jump to any specific **Action** defined in a **Behaviour**.
 
 [2] ActionLets in an Action are actually executed in sequence. Since all ActionLets are non-blocking (apart from ```delay``` primitive), their executions appear to be simultaneous.
 
-### A Complete Behavior JSON Code Example
+### A Complete Behaviour JSON Code Example
 ```JSON
 {
   "default": "__init__",
-  "behaviors": [
+  "behaviours": [
     {
       "name": "__init__",
       "actions": [
         [
           [ "knowledge", { "COUNTNUM": "", "CNT": "" } ],
-          [ "play_behavior", "test1" ]
+          [ "play_behaviour", "test1" ]
         ]
       ]
     },
@@ -160,7 +160,7 @@ Furthermore, control flow blocks such as `if`, `while`, etc., must be enclosed d
       "actions": [
         [
           [ "workflow_interaction", {
-              "engagement": ["play_behavior", "engage:0"]
+              "engagement": ["play_behaviour", "engage:0"]
             }
           ]
         ]
@@ -171,7 +171,7 @@ Furthermore, control flow blocks such as `if`, `while`, etc., must be enclosed d
       "actions": [
         [
           [ "text", "hello there" ],
-          [ "play_behavior", "next" ]
+          [ "play_behaviour", "next" ]
         ],
         [
           [ "custom", {
@@ -185,20 +185,20 @@ Furthermore, control flow blocks such as `if`, `while`, etc., must be enclosed d
               }
             }
           ],
-          [ "play_behavior", "next" ]
+          [ "play_behaviour", "next" ]
         ],
         [
           [ "text", [ "I will start to count to {}", ["COUNTNUM"]] ],
           [ "knowledge", { "CNT": 1 } ],
-          [ "play_behavior", "next" ]
+          [ "play_behaviour", "next" ]
         ],
         [
           [ "compare", {
               "operand1": "CNT",
               "operand2": "COUNTNUM",
               "comparison_operator": "<=",
-              "true_action": [ "play_behavior", "next" ],
-              "false_action": [ "play_behavior", "6" ]
+              "true_action": [ "play_behaviour", "next" ],
+              "false_action": [ "play_behaviour", "6" ]
             }
           ]
         ],
@@ -206,24 +206,24 @@ Furthermore, control flow blocks such as `if`, `while`, etc., must be enclosed d
           [ "text", ["count {}",["CNT"]] ],
           [ "calculate",[ "CNT", "CNT + 1"] ],
           [ "delay", 2 ],
-          [ "play_behavior", "next" ]
+          [ "play_behaviour", "next" ]
         ],
         [
           [ "compare", {
               "operand1": "CNT",
               "operand2": "COUNTNUM",
               "comparison_operator": "<=",
-              "true_action": [ "play_behavior", "4" ],
-              "false_action": [ "play_behavior", "next" ]
+              "true_action": [ "play_behaviour", "4" ],
+              "false_action": [ "play_behaviour", "next" ]
             }
           ]
         ],
         [
           [ "text", "done" ],
-          [ "play_behavior", "next" ]
+          [ "play_behaviour", "next" ]
         ],
         [
-          [ "play_behavior", "engage:1" ]
+          [ "play_behaviour", "engage:1" ]
         ]
       ]
     }
@@ -232,7 +232,7 @@ Furthermore, control flow blocks such as `if`, `while`, etc., must be enclosed d
 ```
 
 ## Workflow Knowledge File
-Every agent workflow (behavior) file can have an optional knowledge data file. This file stores workflow configuration settings and preloaded data as a JSON dictionary. Keys within this dictionary are always in UPPERCASE and can be directly referenced as variable names within the workflow. For example, when the Lurawi runtime loads the JSON code in `lurawi_example.json`, it will attempt to load `lurawi_example_knowledge.json` if it exists. Behaviors in `lurawi_example.json` can then reference a key in the knowledge dictionary as a predefined variable in its code.
+Every agent workflow (behaviour) file can have an optional knowledge data file. This file stores workflow configuration settings and preloaded data as a JSON dictionary. Keys within this dictionary are always in UPPERCASE and can be directly referenced as variable names within the workflow. For example, when the Lurawi runtime loads the JSON code in `lurawi_example.json`, it will attempt to load `lurawi_example_knowledge.json` if it exists. Behaviours in `lurawi_example.json` can then reference a key in the knowledge dictionary as a predefined variable in its code.
 
 
 ### Lurawi Environment Variables
