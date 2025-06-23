@@ -8,8 +8,8 @@ Lurawi is a powerful workflow construction and orchestration engine designed to 
 
 The Lurawi visual programming editor provides a graphical interface for designing and managing workflows.
 
-Figure 1: Lurawi Agent Workflow Visual Programming Editor
 ![Lurawi Visual Programming Editor](images/editor.png)
+Figure 1: Lurawi Agent Workflow Visual Programming Editor
 
 ### Workspace Overview
 
@@ -45,22 +45,27 @@ The Lurawi platform utilizes a specialized metaprogramming language for developi
 ### Action Primitives
 
 An **Action Primitive** represents the smallest and simplest action unit that can be performed within Lurawi. It consists of a set of predefined keywords. **Note**: Some Action Primitives do not have direct graphical block representations and are not intended for direct user interaction in block programming. Usable Action Primitive blocks are illustrated in Figure 2 within the visual editor.
-Figure 2: Action Primitives in the visual editor.
-![Action primitives](images/action_primitives.png)
+
+<figure>
+    <img src="images/action_primitives.png"
+         alt="Action primitives" width="300px"
+         style="display: block; margin: 0 auto"/>
+    <figcaption>Fig. 2. Action Primitives in the visual editor.</figcaption>
+</figure>
 
 |Name|Descriptions|
 |----|------------|
-| `text` <img src="https://user-images.githubusercontent.com/6646691/100294205-31cfa580-2fda-11eb-8aca-c949faa1e64a.png"/> | Returns a simple (formatted) text message to a client. |
-| `delay` <img src="https://user-images.githubusercontent.com/6646691/100294372-b7ebec00-2fda-11eb-9f42-7a8317cdf958.png"/> | Specifies a time delay in seconds between action units. It should not be used under normal circumstances [1]. |
-| `knowledge` | Updates the agent's internal knowledge database with key-value pairs as a dictionary. |
-| `workflow_interaction` <img src="images/interaction_primitives.png"/> | Triggers an action when a user starts a conversation with the agent. |
-| `play_behavior` <img src="https://user-images.githubusercontent.com/6646691/100294603-642dd280-2fdb-11eb-8184-eb3d950432fa.png"/> | Executes a specified behavior [1]. |
-| `select_behavior` <img src="https://user-images.githubusercontent.com/6646691/100294677-9d664280-2fdb-11eb-8309-1fd1e99076b8.png"/> | Selects a specified behavior to be played next. |
-| `custom` <img src="https://user-images.githubusercontent.com/6646691/100294749-d0a8d180-2fdb-11eb-8682-0030148230ed.png"/> | Executes a custom-defined pluggable Python script module. |
-| `compare` | Compares two variables and simulates generic if-flow control. |
-| `calculate` | Performs a simple generic calculation operation. |
-| `random` | Generates a pseudo-random number. |
-| `comment` | A no-operation (no-op) comment section. |
+|```text``` <img src="https://user-images.githubusercontent.com/6646691/100294205-31cfa580-2fda-11eb-8aca-c949faa1e64a.png" width="60" style="vertical-align:middle;"/>| Return a simple (formatted) text message to a client.|
+|```delay``` <img src="https://user-images.githubusercontent.com/6646691/100294372-b7ebec00-2fda-11eb-9f42-7a8317cdf958.png" width="110" style="vertical-align:middle;"/>| Specify a time delay in seconds between action units. It should not be used under normal circumstances [1].|
+|```knowledge```| Update agent internal knowledge database with key-value pairs as a dict.|
+|```workflow_interaction```<img src="images/interaction_primitives.png" width="180" style="vertical-align:middle;"/>| Trigger action when a user start conversation with Agent|
+|```play_behaviour```<img src="https://user-images.githubusercontent.com/6646691/100294603-642dd280-2fdb-11eb-8184-eb3d950432fa.png" width="140" style="vertical-align:middle;"/>| Execute a specified behaviour[1].|
+|```select_behaviour```<img src="https://user-images.githubusercontent.com/6646691/100294677-9d664280-2fdb-11eb-8309-1fd1e99076b8.png" width="140" style="vertical-align:middle;"/>| Select a specified behaviour to be played next.|
+|```custom``` <img src="https://user-images.githubusercontent.com/6646691/100294749-d0a8d180-2fdb-11eb-8682-0030148230ed.png" width="110" style="vertical-align:middle;"/>| Execute a custom defined plugin Python script module.
+|```compare```| Compare two variables and simulate generic if flow control.|
+|```calculate```| Simple generic calculation operation|
+|```random```| Generate a pseudo random number|
+|```comment```| A no-op comment section|
 
 Table 1: A partial list of Action Primitives supported on Lurawi.
 
@@ -88,16 +93,26 @@ An **ActionLet** is a two-element list where the first element is the keyword of
 ```JSON
 ["text", "hello there"]
 ```
+
 The corresponding visual representation in the visual editor:
 
-Figure 3: A "say" ActionLet.
-![Dispatch Workflow to runtime engine](images/actionlet.png)
+<figure>
+    <img src="images/actionlet.png"
+         alt="Dispatch Workflow to runtime engine" width="200px"
+         />
+    <figcaption>Fig. 3 A say ActionLet.</figcaption>
+</figure>
 
 ### Action
 
 An **Action** is a list of **ActionLets**. **ActionLets** within an **Action** appear to be executed "simultaneously" [2]. An **Action** is useful when you want to start several action units at the same time, for example, executing a text-sending action along with incrementing a counter variable. An **Action** is not finished until every **ActionLet** inside of the **Action** is completed.
-Figure 4: An Action that contains two ActionLets.
-![Action with two actionlets](images/actionblock.png)
+
+<figure>
+    <img src="images/actionblock.png"
+         alt="Action with two actionlets" width="320px"
+         />
+    <figcaption>Fig. 4 An Action that contains two ActionLets.</figcaption>
+</figure>
 
 **Note**: When an **Action** is completed, it does not automatically proceed to the next **Action**. You must append an additional `["play_behavior", "next"]` **ActionLet** within the **Action** to move to the next **Action**. In the visual editor, simply select the *continue* option.
 
@@ -105,13 +120,21 @@ Figure 4: An Action that contains two ActionLets.
 
 A **Behavior** is the highest-level construct in the action family hierarchy. It is a dictionary with a name and a list of **Actions**. A valid workflow must have all **Actions** enclosed within **Behavior** blocks. Multiple Behaviors can be defined in a single behavior file. Exactly one default behavior, indicated by a ticked `default` checkbox, must be specified in a behavior file. The default behavior is the first behavior that is loaded and executed, equivalent to the `main` function in C/C++.
 
-Figure 5: A valid behavior block with actions.
-![a behaviour with actions](images/behaviourblock1.png)
+<figure>
+    <img src="images/behaviourblock1.png"
+         alt="a behaviour with actions" width="320px"
+         />
+    <figcaption>Fig. 5 A valid behaviour block with actions.</figcaption>
+</figure>
 
 Furthermore, control flow blocks such as `if`, `while`, etc., must be enclosed directly under a Behavior block, as shown below:
 
-Figure 6: A valid if block under a behavior block.
-![If block under behaviour block](images/behaviourblock2.png)
+<figure>
+    <img src="images/behaviourblock2.png"
+         alt="If block under behaviour block" width="320px"
+         />
+    <figcaption>Fig. 6 A valid if block under a behaviour block.</figcaption>
+</figure>
 
 ### Appendix: Notes
 [1] `play_behavior` acts as a **goto** statement, executed after all **ActionLets** within the **Action** have completed. It can be used to jump to any specific **Action** defined in a **Behavior**.
