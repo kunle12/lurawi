@@ -142,7 +142,7 @@ class CrossTabCopyPaste {
             !Blockly.selected.isInMutator;
         },
         callback: function(workspace, e) {
-          // Prevent the default copy behavior,
+          // Prevent the default copy behaviour,
           // which may beep or otherwise indicate
           // an error due to the lack of a selection.
           e.preventDefault();
@@ -186,7 +186,7 @@ class CrossTabCopyPaste {
             !Blockly.selected.workspace.isFlyout;
         },
         callback: function(workspace, e) {
-          // Prevent the default copy behavior,
+          // Prevent the default copy behaviour,
           // which may beep or otherwise indicate
           // an error due to the lack of a selection.
           e.preventDefault();
@@ -234,7 +234,7 @@ class CrossTabCopyPaste {
           return true;
         },
         callback: function(workspace, e) {
-          // Prevent the default copy behavior,
+          // Prevent the default copy behaviour,
           // which may beep or otherwise indicate
           // an error due to the lack of a selection.
           e.preventDefault();

@@ -3,7 +3,7 @@ Custom Behaviour Module for the Lurawi System.
 
 This module provides the base class for implementing custom behaviors in the Lurawi system.
 It defines the CustomBehaviour class which serves as a foundation for creating specific
-behavior implementations that can respond to user messages and remote callbacks.
+behaviour implementations that can respond to user messages and remote callbacks.
 
 The module enables behaviors to:
 - Register for and receive user message updates
@@ -41,7 +41,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
         
         Args:
             kb (dict): Knowledge base dictionary containing system modules and functions
-            details (dict): Configuration details for this behavior
+            details (dict): Configuration details for this behaviour
         """
         self.kb = kb
         self.details = details or {}
@@ -61,10 +61,10 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     async def run(self):
         """
-        Main execution method for the behavior.
+        Main execution method for the behaviour.
         
         This method should be overridden by subclasses to implement
-        the specific behavior logic.
+        the specific behaviour logic.
         
         Returns:
             None
@@ -106,10 +106,10 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     def register_for_user_message_updates(self, interests: List[str] = []): # pylint: disable=dangerous-default-value
         """
-        Register this behavior to receive user message updates.
+        Register this behaviour to receive user message updates.
         
         Args:
-            interests (List[str], optional): List of message types this behavior is interested in
+            interests (List[str], optional): List of message types this behaviour is interested in
             
         Returns:
             None
@@ -132,7 +132,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
         """
         Cancel registration for user message updates.
         
-        Deregisters this behavior from receiving user message updates if it was previously
+        Deregisters this behaviour from receiving user message updates if it was previously
         registered.
         
         Returns:
@@ -146,10 +146,10 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     def register_for_callback_message_updates(self, interests: List[str] = []): # pylint: disable=dangerous-default-value
         """
-        Register this behavior to receive remote callback message updates.
+        Register this behaviour to receive remote callback message updates.
         
         Args:
-            interests (List[str], optional): List of callback types this behavior is interested in
+            interests (List[str], optional): List of callback types this behaviour is interested in
             
         Returns:
             None
@@ -174,7 +174,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
         """
         Cancel registration for remote callback message updates.
         
-        Deregisters this behavior from receiving remote callback message updates
+        Deregisters this behaviour from receiving remote callback message updates
         if it was previously registered.
         
         Returns:
@@ -188,7 +188,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     async def succeeded(self, action=None):
         """
-        Signal that this behavior has succeeded.
+        Signal that this behaviour has succeeded.
         
         Calls the on_success callback if it exists.
         
@@ -207,7 +207,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     async def failed(self, action=None):
         """
-        Signal that this behavior has failed.
+        Signal that this behaviour has failed.
         
         Calls the on_failure callback if it exists.
         
@@ -257,19 +257,19 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     def is_suspendable(self):
         """
-        Check if this behavior can be suspended.
+        Check if this behaviour can be suspended.
         
         Returns:
-            bool: True if this behavior can be suspended, False otherwise
+            bool: True if this behaviour can be suspended, False otherwise
         """
         return self._is_suspendable
 
     def can_suspend(self, isyes):
         """
-        Set whether this behavior can be suspended.
+        Set whether this behaviour can be suspended.
         
         Args:
-            isyes (bool): True if this behavior can be suspended, False otherwise
+            isyes (bool): True if this behaviour can be suspended, False otherwise
             
         Returns:
             None
@@ -278,16 +278,16 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     def is_suspended(self):
         """
-        Check if this behavior is currently suspended.
+        Check if this behaviour is currently suspended.
         
         Returns:
-            bool: True if this behavior is suspended, False otherwise
+            bool: True if this behaviour is suspended, False otherwise
         """
         return self._is_suspended
 
     def goto_suspension(self, data=None):
         """
-        Attempt to suspend this behavior.
+        Attempt to suspend this behaviour.
         
         Args:
             data (Any, optional): Data to pass to the on_suspension handler
@@ -296,7 +296,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
             bool: True if suspension was successful, False otherwise
             
         Raises:
-            None, but logs an error if the behavior is not suspendable or already suspended
+            None, but logs an error if the behaviour is not suspendable or already suspended
         """
         if not self._is_suspendable:
             logger.error("%s is not suspendable", self.__class__.__name__)
@@ -311,7 +311,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     def restore_from_suspension(self, data=None):
         """
-        Attempt to restore this behavior from suspension.
+        Attempt to restore this behaviour from suspension.
         
         Args:
             data (Any, optional): Data to pass to the on_restoration handler
@@ -320,7 +320,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
             bool: True if restoration was successful, False otherwise
             
         Raises:
-            None, but logs an error if the behavior is not suspended
+            None, but logs an error if the behaviour is not suspended
         """
         if not self._is_suspended:
             logger.error("%s is not in suspension", self.__class__.__name__)
@@ -330,7 +330,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     def on_suspension(self, data):
         """
-        Handler called when the behavior is being suspended.
+        Handler called when the behaviour is being suspended.
         
         This method should be overridden by subclasses that need to perform
         actions when being suspended.
@@ -345,7 +345,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     def on_restoration(self, data):
         """
-        Handler called when the behavior is being restored from suspension.
+        Handler called when the behaviour is being restored from suspension.
         
         This method should be overridden by subclasses that need to perform
         actions when being restored.
@@ -360,10 +360,10 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
     def fini(self):
         """
-        Finalize this behavior.
+        Finalize this behaviour.
         
         Cancels all message update registrations to clean up resources.
-        This method should be called when the behavior is no longer needed.
+        This method should be called when the behaviour is no longer needed.
         
         Returns:
             None
