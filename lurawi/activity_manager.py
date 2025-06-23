@@ -21,20 +21,20 @@ from .utils import write_http_response, DataStreamHandler, logger
 
 class ActivityManager:
     """
-    Manages activities, behaviors, and actions for the Lurawi system.
+    Manages activities, behaviours, and actions for the Lurawi system.
     
-    This class is responsible for loading behaviors, executing actions, managing user interactions,
+    This class is responsible for loading behaviours, executing actions, managing user interactions,
     and maintaining the knowledge state. It handles the flow of activities, including queuing,
     suspending, and resuming actions.
     """
     def __init__(self, uid, name, behaviour, knowledge):
         """
-        Initialize the ActivityManager with user information and behaviors.
+        Initialize the ActivityManager with user information and behaviours.
         
         Args:
             uid: User identifier
             name: User name
-            behaviour: Dictionary containing behavior definitions
+            behaviour: Dictionary containing behaviour definitions
             knowledge: Dictionary containing knowledge base information
         """
         super(ActivityManager, self).__init__()
@@ -174,7 +174,7 @@ class ActivityManager:
         """
         Start user engagement with the given context.
         
-        Clears running actions, loads any pending behaviors, and plays the engagement action.
+        Clears running actions, loads any pending behaviours, and plays the engagement action.
         
         Args:
             context: The context for the user engagement
@@ -212,16 +212,16 @@ class ActivityManager:
 
     async def load_pending_behaviour_if_exists(self):
         """
-        Load pending behaviors if they exist.
+        Load pending behaviours if they exist.
         
-        Updates knowledge with pending knowledge, loads pending behaviors,
+        Updates knowledge with pending knowledge, loads pending behaviours,
         plays the next activity, and calls the completion callback.
         
         Note: self.on_pending_complete is expected to be a callable that may or may not be awaitable.
         The method will attempt to await it, so it should be compatible with the await syntax.
         
         Returns:
-            bool: True if pending behaviors were loaded, False otherwise
+            bool: True if pending behaviours were loaded, False otherwise
         """
         if not self.pending_behaviours or not self.on_pending_complete:
             return False
@@ -312,12 +312,12 @@ class ActivityManager:
 
     def set_pending_behaviours(self, behaviours, knowledge, on_complete):
         """
-        Set pending behaviors to be loaded later.
+        Set pending behaviours to be loaded later.
         
         Args:
-            behaviours: Dictionary containing behavior definitions
+            behaviours: Dictionary containing behaviour definitions
             knowledge: Dictionary containing knowledge to be merged
-            on_complete: Callback function to be called when behaviors are loaded
+            on_complete: Callback function to be called when behaviours are loaded
         """
         if not behaviours or not callable(on_complete):
             logger.error("invalid pending behaviour call")
@@ -328,16 +328,16 @@ class ActivityManager:
 
     def load_behaviours(self, behaviour, force=False):
         """
-        Load behaviors from the provided behavior definition.
+        Load behaviours from the provided behaviour definition.
         
-        Finds the default behavior and sets it as the active behavior.
+        Finds the default behaviour and sets it as the active behaviour.
         
         Args:
-            behaviour: Dictionary containing behavior definitions
-            force: If True, clear running actions before loading behaviors
+            behaviour: Dictionary containing behaviour definitions
+            force: If True, clear running actions before loading behaviours
             
         Returns:
-            bool: True if behaviors were loaded successfully, False otherwise
+            bool: True if behaviours were loaded successfully, False otherwise
         """
         if not behaviour:
             logger.error("No new behaviour available")
@@ -385,7 +385,7 @@ class ActivityManager:
         - "previous": Go back to the previous activity
         - Knowledge key: Use the value from knowledge as the activity
         - Numeric: Select activity by index
-        - "behaviour:index": Select activity from a specific behavior
+        - "behaviour:index": Select activity from a specific behaviour
         
         Args:
             active_section: Specification for which activity to select
@@ -424,15 +424,15 @@ class ActivityManager:
 
     def set_active_behaviour(self, name):
         """
-        Set the active behavior by name.
+        Set the active behaviour by name.
         
-        Finds the behavior with the given name and sets it as active.
+        Finds the behaviour with the given name and sets it as active.
         
         Args:
-            name: Name of the behavior to set as active
+            name: Name of the behaviour to set as active
             
         Returns:
-            bool: True if behavior was set successfully, False otherwise
+            bool: True if behaviour was set successfully, False otherwise
         """
         # if self.is_busy():
         #     return False
@@ -510,11 +510,11 @@ class ActivityManager:
 
     def get_behaviour_action_at(self, behaviour, action_index):
         """
-        Get the action at the specified index in the specified behavior.
+        Get the action at the specified index in the specified behaviour.
         
         Args:
-            behaviour: Name of the behavior
-            action_index: Index of the action within the behavior
+            behaviour: Name of the behaviour
+            action_index: Index of the action within the behaviour
             
         Returns:
             The action at the specified index, or None if not found
@@ -592,7 +592,7 @@ class ActivityManager:
         """
         Route to the next activity.
         
-        Checks if at the end of the active behavior and calls the completion callback if so.
+        Checks if at the end of the active behaviour and calls the completion callback if so.
         Otherwise, sets continue_playing to True and plays the next activity.
         
         Args:
@@ -651,7 +651,7 @@ class ActivityManager:
 
     async def play_next_activity(self, action_id="play_next", complete_cb=None):
         """
-        Play the next activity in the active behavior.
+        Play the next activity in the active behaviour.
         
         Increments the activity index and plays the action at that index.
         
@@ -866,17 +866,17 @@ class ActivityManager:
         - compare: Compare values
         - random: Select a random value
         - delay: Wait for a specified time
-        - custom: Execute a custom behavior
+        - custom: Execute a custom behaviour
         - workflow_interaction: Set up workflow interaction actions
-        - select_behaviour: Select a behavior
-        - play_behaviour: Play a behavior
+        - select_behaviour: Select a behaviour
+        - play_behaviour: Play a behaviour
         
         Args:
             alet: Action element to execute
             ignore_moves: List of action types to ignore
             
         Note:
-            For custom actions, module_arg can be None, which is handled by the custom behavior class.
+            For custom actions, module_arg can be None, which is handled by the custom behaviour class.
         """
         if len(alet) < 2:
             logger.error("Invalid alet %s", alet)
@@ -1293,9 +1293,9 @@ class ActivityManager:
 
     def clear_running_actions(self):
         """
-        Clear all running actions, custom behaviors, and related state.
+        Clear all running actions, custom behaviours, and related state.
         
-        Finalizes all custom behaviors and resets action-related state.
+        Finalizes all custom behaviours and resets action-related state.
         """
         for beh in self.custom_behaviours.values():
             beh.fini()
@@ -1525,12 +1525,12 @@ class ActivityManager:
 
     async def execute_behaviour(self, behaviour, knowledge={}):
         """
-        Execute a behavior with the given knowledge.
+        Execute a behaviour with the given knowledge.
         
-        Updates the knowledge base and plays or queues the behavior.
+        Updates the knowledge base and plays or queues the behaviour.
         
         Args:
-            behaviour: Behavior to execute
+            behaviour: Behaviour to execute
             knowledge: Dictionary containing knowledge to update
         """
         self.knowledge.update(knowledge)

@@ -35,7 +35,7 @@ class UserMessageListener:
         Handles incoming user message updates.
         
         This method is invoked when a user message is received. Subclasses should
-        override this method to implement custom behavior for processing the message.
+        override this method to implement custom behaviour for processing the message.
         
         Args:
             context (Dict): A dictionary containing the user message data and context.

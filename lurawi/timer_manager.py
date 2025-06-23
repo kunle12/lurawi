@@ -40,7 +40,7 @@ class TimerClient:
         """
         Callback method invoked when a timer fires.
 
-        Subclasses should override this method to define custom behavior
+        Subclasses should override this method to define custom behaviour
         that executes each time the associated timer's interval elapses.
 
         Args:
@@ -53,7 +53,7 @@ class TimerClient:
         """
         Callback method invoked when a timer has completed all its repetitions.
 
-        Subclasses should override this method to define custom behavior
+        Subclasses should override this method to define custom behaviour
         that executes once the associated timer has finished its lifecycle.
 
         Args:
@@ -207,7 +207,7 @@ class TimerManager:
 
 class BotTimer:
     """
-    Represents an individual timer instance with configurable firing behavior.
+    Represents an individual timer instance with configurable firing behaviour.
 
     Each `BotTimer` is designed to fire repeatedly at specified intervals and
     is associated with a `TimerClient` that receives notifications when the

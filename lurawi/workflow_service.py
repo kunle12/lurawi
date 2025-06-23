@@ -112,7 +112,7 @@ class WorkflowService:
             if callable(default_sigint_handler):
                 default_sigint_handler(signum, frame)
             else:
-                # If not callable, use the default behavior (exit)
+                # If not callable, use the default behaviour (exit)
                 os._exit(1)  # Force exit
 
         signal.signal(signal.SIGINT, terminate_now)

@@ -1,18 +1,14 @@
 # Advanced: End-to-end Lurawi Development
 
-Once you are familiarised with the following topics:
-* [Advanced: Running Lurawi as a Dev Container in VS Code](LurawiDevContainer.md). 
+Before proceeding, ensure you are familiar with the following topics:
+* [Advanced: Running Lurawi as a Dev Container in VS Code](LurawiDevContainer.md).
 * [Advanced: How to Create Lurawi Custom Action Primitives](LurawiCreateCustom.md).
 
-We can now connect all steps together to create an end-to-end development process. In this document, we start an example project ```lurawi_example``` from scratch[1][2], build the workflow and package everything in a docker image that can be deployed in a cloud service.
+This document outlines the end-to-end development process for Lurawi, demonstrating how to create an example project (`lurawi_example`) from scratch, build its workflow, and package it into a Docker image for cloud deployment. The instructions assume a macOS local development environment; Windows with WSL should provide a similar experience.
 
-**NOTE**
+## 1. Create Project
 
-[1] We use MacOS as the local development environment, Windows with WSL should have a similar development experience.
-
-## Step 1. Create project
-
-Start a terminal, create a new directory ```lurawi_example``` under user home directory. Create a ```.devcontainer.json``` file under the ```lurawi_example``` with the following content
+Start a terminal and create a new directory `lurawi_example` under your user home directory. Within `lurawi_example`, create a `.devcontainer.json` file with the following content:
 
 ```json
 {
@@ -34,24 +30,24 @@ Start a terminal, create a new directory ```lurawi_example``` under user home di
 }
 ```
 
-If you will create new custom function scripts, create a ```custom``` subdirectory under the project directory.
+If custom function scripts are required, create a `custom` subdirectory within the project directory.
 
-## Step 2. Create dev container and run development environment
+## 2. Create Dev Container and Run Development Environment
 
-Start Visual Studio Code app and open folder ```lurawi_example```. Reopen in container as prompted by VS code. (NOTE: If VS code is taking very long to open dev container, you can close the window and try it again to open the folder in a new VS code window).
+Open the `lurawi_example` folder in Visual Studio Code. When prompted, reopen the folder in the development container. (If the dev container takes an extended period to open, close the window and try again.)
 
-Open a new terminal under VS code dev container: set environment variables ```PROJECT_NAME``` and ```PROJECT_ACCESS_KEY``` and run ```lurawi dev```.
+Within the VS Code dev container, open a new terminal. Set the `PROJECT_NAME` and `PROJECT_ACCESS_KEY` environment variables, then execute `lurawi dev`.
 
-Open browser to localhost:3031 as prompted by VS code. You should have two following windows opened on your desktop:
+Access `localhost:3031` in your browser, as prompted by VS Code. You should observe two windows open on your desktop:
 
 <figure>
     <img src="images/run_service.png"
-         alt="run development environment" width="600px"
+         alt="Running Development Environment" width="600px"
          style="display: block; margin: 0 auto"/>
-    <figcaption>Fig. 1 Running develop environment.</figcaption>
+    <figcaption>Figure 1: Running the Development Environment.</figcaption>
 </figure>
 
-Start building the workflow in the visual editor. We have prepared the workflow [lurawi_example.xml](./lurawi_example.xml) so you can load into the visual editor, replacing the model ```qwen3``` in invoke_llm ActionLet with a working LLM model assigned to the project. Dispatch the workflow to the server, test the workflow by sending the following payload to ```http://localhost:8081/lurawi_example/message``` from a REST API test app.
+Begin constructing your workflow in the visual editor. A pre-configured workflow, `lurawi_example.xml`, is provided for loading into the editor. Ensure you replace the `qwen3` model in the `invoke_llm` ActionLet with an operational LLM model assigned to your project. Dispatch the workflow to the server, then test it by sending the following payload to `http://localhost:8081/lurawi_example/message` using a REST API client:
 
 ```json
 {
@@ -62,50 +58,50 @@ Start building the workflow in the visual editor. We have prepared the workflow 
 }
 ```
 
-## Step 3. Package workflow in a Docker container image
+## 3. Package Workflow in a Docker Container Image
 
-Now, download the JSON code from **Code** tab and save it as ```lurawi_example.json```. (Unfortunately), you have to manually copy the file from the download directory to your project directory.
+Download the JSON code from the **Code** tab and save it as `lurawi_example.json`. This file must be manually copied from your download directory to your project directory.
 
-Create a Dockerfile with the following content
+Create a `Dockerfile` with the following content:
 
 ```Docker
 FROM kunle12/lurawi:latest
-# update the next line with your project name
+# Update the following line with your project name
 ENV PROJECT_NAME lurawi_example
 COPY lurawi_example.json /opt/defaultsite
-#If you have knowledge file, uncomment the next line
-#COPY lurawi_example_knowledge.json /opt/defaultsite
-#if you create additional custom function script for your project, uncomment the next line
-#COPY custom /opt/defaultsite/lurawi/custom
-# remove "--skip-auth" and "--no-ssl-verify" for production deployment
+# If you have a knowledge file, uncomment the next line:
+# COPY lurawi_example_knowledge.json /opt/defaultsite
+# If you create additional custom function scripts for your project, uncomment the next line:
+# COPY custom /opt/defaultsite/lurawi/custom
+# Remove "--skip-auth" and "--no-ssl-verify" for production deployment.
 ENTRYPOINT ["python", "app.py", "--skip-auth", "--no-ssl-verify" ]
 ```
 
-Now you can build a docker image with
+Build the Docker image using the following command:
 
 ```bash
 docker build . -t lurawi_example:latest
 ```
 
-## Step 4. (optional) Create new custom function
-As you may have noticed, the existing workflow calling ```query_knowledgebase``` multiple times in order to extract values for different keys from a dictionary (name defined in ```knowledge_key```). It is possible to create a new custom function to do everything in one go. I leave this as a take-home challenge. Spend some effort working out an appropriate function input interface that a block may present graphically.
+## 4. (Optional) Create New Custom Function
+The existing workflow calls `query_knowledgebase` multiple times to extract values for different keys from a dictionary (defined by `knowledge_key`). Consider creating a new custom function to consolidate these operations into a single step. This is presented as a challenge to design an appropriate function input interface that can be graphically represented as a block.
 
-### Notes on creating custom function scripts
-All custom functions must be in the ```lurawi/custom``` directory in the dev container for development and testing. You can create a new custom function by running ```lurawi custom new function_name``` then modify the file. Don’t forget to uncomment line 12 in your ```Dockerfile```.
+### Notes on Custom Function Script Creation
+For development and testing, all custom functions must reside in the `lurawi/custom` directory within the dev container. To create a new custom function, execute `lurawi custom new function_name` and then modify the generated file. Remember to uncomment line 12 in your `Dockerfile` to include custom functions in your Docker image.
 
-### Final project structure
+### Final Project Structure
 
-You shall have the following file structure in your project directory (as a complete system)
+Upon completion, your project directory should have the following structure:
 
 ```
 lurawi_example
-├── custom                      # your project specific custom function scripts
-├── lurawi_example.xml              # Block workflow code in XML
-├── lurawi_example.json             # JSON workflow code
-├── lurawi_example_knowledge.json   # associated JSON knowledge dictionary
-├── .devcontainer.json          # Dev container configuration
-├── Dockerfile                  # Docker file for building final docker image
-└── README.md                   # Add a readme file
+├── custom                      # Project-specific custom function scripts
+├── lurawi_example.xml          # Block workflow code in XML format
+├── lurawi_example.json         # JSON workflow code
+├── lurawi_example_knowledge.json # Associated JSON knowledge dictionary
+├── .devcontainer.json          # Development container configuration
+├── Dockerfile                  # Dockerfile for building the final Docker image
+└── README.md                   # Project README file
  ```
 
-Finally, [lurawi_example_skeleton.zip](./lurawi_example_skeleton.zip) provides a codebase for this example.
+A codebase skeleton for this example is available at [lurawi_example_skeleton.zip](./lurawi_example_skeleton.zip).

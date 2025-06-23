@@ -1,21 +1,47 @@
-# Lurawi Custom Action Primitives
+# Creating Custom Action Primitives in Lurawi
 
-## Prerequisite
-Follow the instruction [here](LurawiDevContainer.md) to run Lurawi as a dev docker container.
+This document provides comprehensive instructions on how to create custom action primitives in Lurawi using Python. These custom functions enable advanced functionalities such as data processing, integration with external services, and the implementation of complex business logic within Lurawi workflows. A practical example of a Fibonacci sequence generator is used to illustrate the development process.
 
-The ```/opt/default/lurawi/custom``` directory contains a set of prebuilt custom action primitives that can be used as parts of Agent based orchestration workflows. Each custom primitive achieves a specific task with a set of custom defined inputs. This document provides step-by-step instructions on how to create a simple custom action primitive.
+## Custom Action Primitive Architecture
 
-## A custom that generates a Fibonacci Sequence
-To illustrate the steps required to create a custom action primitive, we are going to create a simple custom that generates a Fibonacci sequence (with an input size) as a concrete example.
+A custom action primitive is implemented as a Python class that inherits from the `CustomBehaviour` class, defined in [`lurawi/custom_behaviour.py`](lurawi/custom_behaviour.py). Each custom class must implement an `__init__` method and an `async run` method. An optional `fini` method can also be included for resource cleanup.
 
-### Step 1. Create a custom class
-Run the following command to create a skeleton custom function file ```fibonacci_seq.py``` in ```/home/lurawi/custom``` directory and link it to the Lurawi internal custom directory.
+### `CustomBehaviour` Class
+
+This is the foundational class for all custom action primitives in Lurawi, providing the necessary base functionality.
+
+### `__init__(self, kb, details)` Method
+
+The constructor for your custom action primitive.
+
+*   `kb` (`dict`): A reference to the workflow's knowledge base, a dictionary used for storing and retrieving data.
+*   `details` (`dict`): A dictionary containing the configuration details and input parameters for the specific custom action primitive instance.
+
+### `async run(self)` Method
+
+This asynchronous method encapsulates the primary logic of your custom action primitive. It is invoked when the action primitive is executed within a Lurawi workflow. The method must handle input validation and manage the flow of control based on success or failure.
+
+### `fini(self)` Method (Optional)
+
+This method is executed when the behaviour is finalized, typically used for releasing resources or performing any necessary cleanup operations.
+
+## Example: Fibonacci Sequence Generator
+
+This example demonstrates how to create a custom action primitive that generates a Fibonacci sequence up to a specified number, illustrating the use of the `kb` and `details` parameters, and handling success/failure states.
+
+### Step 1: Create the Custom Function File
+
+Execute the following command in your terminal to create a skeleton custom function file named [`fibonacci_seq.py`](lurawi/custom/fibonacci_seq.py) within the `lurawi/custom/` directory. This command also establishes the necessary internal links for Lurawi to recognize the new custom function.
+
 ```bash
 lurawi custom new fibonacci_seq
 ```
-Open the file and modify ```fibonacci_seq``` class with the code below
 
-```Python
+### Step 2: Implement the `fibonacci_seq` Class
+
+Open the newly created [`fibonacci_seq.py`](lurawi/custom/fibonacci_seq.py) file and modify its content with the following Python code:
+
+```python
 from ..utils import logger
 from ..custom_behaviour import CustomBehaviour
 
@@ -37,18 +63,7 @@ class fibonacci_seq(CustomBehaviour):
     def __init__(self, kb, details):
         super(fibonacci_seq, self).__init__(kb)
         self.details = details
-```
 
-In the code above, we import the custom base class `CustomBehaviour` and create a new custom class called `fibonacci_seq`.
-
-#### The class DocString
-The docstring defines a JSON code example of how `fibonacci_seq` should be called. It is essential that this docstring is created and maintained in correspondence to the acutal custom implementation. The example JSON code (with dummy data input) must presented so that visual programming editor runner can keep the editor up-to-date.
-
-#### Class initialisation
-A stardard Python class `__init__` def should be followed as shown above. You may place additional variables in the `__init__` method.
-
-### Step 2. Implement **`run`** method
-```Python
     async def run(self):
         if 'size' not in self.details:
             logger.error("fibonacci_seq: missing input 'size'.")
@@ -62,13 +77,7 @@ A stardard Python class `__init__` def should be followed as shown above. You ma
             logger.error("fibonacci_seq: invalid input 'size', must be a +ve integer.")
             await self.failed()
             return
-```
 
-async `run` method is the key method that every custom action primitive need to implement. Because the flexibility of the JSON code allows any abitrary (type of) input to be fed into the custom code. `run` method must perform the necessary checks on the input data. In this case, we must check whether `size` input is a positive integer. To accomodate the possiblity that input might a variable (name) in the knowledgebase, check against the knowledgebase and extract the actual data when it is indeed the case.
-
-If input validation failed, we immediately call `await self.failed()` and `return`, this corresponds to throwing an exception in other programming languages. We also log the error in the system.
-
-```Python
         if input_size > 1:
             # first two terms
             n1, n2 = 0, 1
@@ -96,23 +105,45 @@ If input validation failed, we immediately call `await self.failed()` and `retur
                 await self.failed(actions=self.details['failed_action'])
             else:
                 await self.failed()
-```
-Now we generate a list of Fibonacci numbers and save them in a knowledgebase variable specified in the `output`. If `output` is not given, we save the result under a generic name  `FIBONACCI_SEQ`.
 
-If the follow on `success_action` is defined, we call the action, whereas in *failed* case, we call the `failed_action` when it is provided. Note that, we deliberately treating `input_size == 1` as the fail case in this custom to illustrate how a custom may handle its failed cases. 
-
-**This is all you need to implement for most custom action primitives!!**
-
-### (Optional) Step 3. Cleanup
-
-```Python
     def fini(self):
         # do cleaning up here
         pass
 ```
-You can implement a `fini` method for cleaning up any additional resources after the cusom finishes its execution.
+
+#### Class Docstring
+
+The docstring within the `fibonacci_seq` class defines a JSON code example illustrating how the `fibonacci_seq` custom action primitive should be invoked. It is crucial to maintain this docstring in direct correspondence with the actual implementation, as the example JSON code (with dummy data input) is used by the visual programming editor to keep its interface up-to-date.
+
+#### Class Initialization
+
+The `__init__` method follows standard Python class initialization conventions. You can define additional instance variables within this method as needed.
+
+#### Implementing the `async run` Method
+
+The `async run` method is the core of every custom action primitive. Due to the flexible nature of JSON code, which allows arbitrary input types to be fed into custom code, the `run` method must perform necessary checks on the input data. In this example, it validates that the `size` input is a positive integer. To accommodate scenarios where the input might be a variable name stored in the knowledge base, the method also checks the knowledge base and extracts the actual data if applicable.
+
+If input validation fails, `await self.failed()` is immediately called, and the method returns. This mechanism is analogous to throwing an exception in other programming languages, and the error is also logged in the system.
+
+The method then generates a list of Fibonacci numbers and stores them in a knowledge base variable specified by the `output` parameter in `self.details`. If `output` is not provided, the result is saved under the generic name `FIBONACCI_SEQ`.
+
+If a `success_action` is defined in `self.details`, that action is invoked upon successful execution. Conversely, in a simulated failure case (e.g., `input_size == 1` in this example), if a `failed_action` is provided, it is called. This illustrates how a custom action primitive can manage its success and failure states.
+
+**This implementation covers the essential requirements for most custom action primitives.**
+
+### (Optional) Step 3: Cleanup (`fini` method)
+
+```python
+    def fini(self):
+        # do cleaning up here
+        pass
+```
+You can implement the `fini` method to perform any necessary cleanup operations after the custom action primitive completes its execution.
 
 ## Usage
-To use a newly created custom function, simply rerun ```lurawi dev```. **NOTE**: you need download/save your workflow xml file before you restart the lurawi service because the visual editor will be automagically updated with latest custom definitions.
 
-For any code changes made to an existing custom, no lurawi service restart required. New code will be hot-loaded when you run/call the workflow. 
+To utilize a newly created custom function, simply restart the Lurawi development environment by running `lurawi dev`.
+
+**NOTE**: It is essential to download and save your workflow XML file before restarting the Lurawi service, as the visual editor will automatically update with the latest custom definitions.
+
+For any code changes made to an existing custom function, a Lurawi service restart is generally not required. New code will be hot-loaded when you run or call the workflow, allowing for rapid iteration during development.

@@ -48,11 +48,11 @@ In the code above, we import the custom base class `CustomBehaviour` and create 
 
 #### The class DocString
 
-The docstring defines a JSON code example of how `fibonacci_seq` should be called. It is essential that this docstring is created and maintained in correspondence to the acutal custom implementation. The example JSON code (with dummy data input) must presented so that visual programming editor runner can keep the editor up-to-date.
+The docstring defines a JSON code example of how `fibonacci_seq` should be called. It is essential that this docstring is created and maintained in correspondence to the actual custom implementation. The example JSON code (with dummy data input) must presented so that visual programming editor runner can keep the editor up-to-date.
 
 #### Class initialisation
 
-A stardard Python class `__init__` def should be followed as shown above. You may place additional variables in the `__init__` method.
+A standard Python class `__init__` def should be followed as shown above. You may place additional variables in the `__init__` method.
 
 ### Step 2. Implement **`run`** method
 
@@ -66,7 +66,7 @@ A stardard Python class `__init__` def should be followed as shown above. You ma
             return
 ```
 
-async `run` method is the key method that every custom action primitive need to implement. Because the flexibility of the JSON code allows any abitrary (type of) input to be fed into the custom code. `run` method must perform the necessary checks on the input data. In this case, we must check whether `size` input is a positive integer. To accomodate the possiblity that input might a variable (name) in the knowledgebase, check against the knowledgebase and extract the actual data when it is indeed the case.
+async `run` method is the key method that every custom action primitive need to implement. Because the flexibility of the JSON code allows any arbitrary (type of) input to be fed into the custom code. `run` method must perform the necessary checks on the input data. In this case, we must check whether `size` input is a positive integer. To accommodate the possiblity that input might a variable (name) in the knowledgebase, check against the knowledgebase and extract the actual data when it is indeed the case.
 
 If input validation failed, we immediately call `await self.failed()` and `return`, this corresponds to throwing an exception in other programming languages. We also log the error in the system.
 
@@ -108,7 +108,7 @@ If the follow on `success_action` is defined, we call the action, whereas in *fa
         pass
 ```
 
-You can implement a `fini` method for cleaning up any additional resources after the cusom finishes its execution.
+You can implement a `fini` method for cleaning up any additional resources after the custom finishes its execution.
 
 ## Usage
 
