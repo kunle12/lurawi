@@ -1,104 +1,161 @@
-# Lurawi - a Agent Workflow Orchestration Engine
+# Lurawi - An Agent Workflow Orchestration Engine
 
-# Introduction
-Lurawi is a NoCode/LowCode development environment for building agent based workflow. A ML/GenAI engineer can design, experiment and implement a workflow interactively with minimum effort. The end result is a XML/JSON based data file that can be deployed and executed on the Lurawi runtime engine within a container image. The container image can be deployed in a Cloud environment such as AWS.
+## Table of Contents
+- [Introduction](#introduction)
+- [Key Features](#key-features)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Pulling the Lurawi Docker Image](#pulling-the-lurawi-docker-image)
+  - [Launching the Lurawi Docker Container](#launching-the-lurawi-docker-container)
+- [Working with the Lurawi Agent Workflow Visual Editor](#working-with-the-lurawi-agent-workflow-visual-editor)
+  - [Loading an Example Workflow](#loading-an-example-workflow)
+  - [Dispatching the Workflow](#dispatching-the-workflow)
+  - [Viewing Generated Code](#viewing-generated-code)
+- [Testing the Workflow](#testing-the-workflow)
+- [Saving the Workflow](#saving-the-workflow)
+- [Next Steps](#next-steps)
+- [Notes](#notes)
 
-# Key Features
-* Visual design of workflows. A workflow can be composed visually via drag-n-drop Blocks onto a canvas.
-* Minimum coding. Workflows are constructed visually and no need to program in code.
-* Modular and extensible design. Functionalities are captured in modularised custom function classes. Additional Custom functions can be introduced to extend the overall system capabilities. 
-* A unified REST API specification out of box. See [API Specifications](./docs/APISpecifications.md).
-* Readily deployment as a Docker container in AWS.
-* Integration with Group API gateway for client authentication and access.
-* Lurawi-in-a-box: A docker image that contains a live lurawi system that can be executed on a local computer system that has Docker Desktop installed.
+## Introduction
 
-The following sections will give a detailed instructions on how to experiment with Lurawi using pre-built Lurawi docker image.
+Lurawi is a NoCode/LowCode development environment designed for building sophisticated agent-based workflows. It empowers Machine Learning (ML) and Generative AI (GenAI) engineers to interactively design, experiment with, and implement complex workflows with minimal effort. The output of this process is an XML/JSON-based data file, ready for deployment and execution on the Lurawi runtime engine within a container image. This containerized solution can be seamlessly deployed in cloud environments such as AWS.
 
-# Installation
-NOTE: Check out advanced [Lurawi setup as VS Code Dev Container](./docs/LurawiDevContainer.md).
+## Key Features
 
-## Prerequisites
-We assume that you have a modern workstation/machine that supports virtualisation and has
-* Docker Desktop installed
+*   **Visual Workflow Design:** Compose workflows intuitively using a drag-and-drop interface on a canvas.
+*   **Minimal Coding:** Leverage visual construction to build workflows, significantly reducing the need for traditional programming.
+*   **Modular and Extensible Architecture:** Extend system capabilities by encapsulating functionalities within modular custom function classes.
+*   **Unified REST API Specification:** Access a comprehensive, out-of-the-box REST API. Refer to the [API Specifications](./docs/APISpecifications.md) for details.
+*   **Cloud-Ready Deployment:** Easily deploy workflows as Docker containers in environments like AWS.
+*   **Lurawi-in-a-Box:** A self-contained Docker image providing a fully functional Lurawi system for local execution, requiring only Docker Desktop.
 
-Simply do
+The following sections provide detailed instructions on how to experiment with Lurawi using the pre-built Docker image.
+
+## Quick Start
+
+For a rapid setup and initial exploration, execute the following Docker command. Ensure you replace `{YOUR_PROJECT_NAME}` and `{YOUR_ACCESS_KEY}` with your registered project details.
+
+```bash
+docker run -d \
+  -p 3031:3031 \
+  -p 8081:8081 \
+  -e PROJECT_NAME={YOUR_PROJECT_NAME} \
+  -e PROJECT_ACCESS_KEY={YOUR_ACCESS_KEY} \
+  kunle12/lurawi:latest
+```
+
+## Installation
+
+**NOTE:** For advanced setup, including a VS Code Development Container configuration, please refer to [Lurawi setup as VS Code Dev Container](./docs/LurawiDevContainer.md).
+
+### Prerequisites
+
+Ensure your workstation supports virtualization and has [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed.
+
+### Pulling the Lurawi Docker Image
+
+To obtain the latest Lurawi Docker image, execute the following command:
+
 ```bash
 docker pull kunle12/lurawi:latest
 ```
 
-At the end of download, you should have the following docker image in your Docker Desktop
+Upon successful download, the `kunle12/lurawi:latest` image will be available in your Docker Desktop environment.
+
 <figure>
     <img src="docs/images/lurawi_in_docker_1.png"
          alt="Lurawi image in docker">
-    <figcaption>Fig. 1 Downloaded Lurawi docker image under Docker Desktop.</figcaption>
+    <figcaption>Fig. 1 Downloaded Lurawi Docker image under Docker Desktop.</figcaption>
 </figure>
 
+### Launching the Lurawi Docker Container
 
-# Launch Lurawi docker
-Click the Play button under Actions
-<figure>
-    <img src="docs/images/lurawi_in_docker_2.png"
-         alt="Launch Lurawi in docker" width="250px"
-         style="display: block; margin: 0 auto"/>
-    <figcaption>Fig. 2 Launch Lurawi Docker container: bind port 3031 and 8081 to local machine.</figcaption>
-</figure>
+To launch the Lurawi container, you can use the Docker Desktop UI by clicking the "Play" button under "Actions" for the `kunle12/lurawi:latest` image.
 
-You need to bind your local machine port 3031 and 8081 to the container, set ```PROJECT_NAME``` and ```PROJECT_ACCESS_KEY``` to your registered project name and access key respectively.
+Alternatively, for more control and reproducibility, use the following command in your terminal:
 
-You should have container logs shown in the Docker Desktop similar to the following after the launch
+```bash
+docker run -d \
+  -p 3031:3031 \
+  -p 8081:8081 \
+  -e PROJECT_NAME={YOUR_PROJECT_NAME} \
+  -e PROJECT_ACCESS_KEY={YOUR_ACCESS_KEY} \
+  kunle12/lurawi:latest
+```
+
+**Important:**
+*   Bind your local machine ports `3031` and `8081` to the container's respective ports.
+*   Set the `PROJECT_NAME` and `PROJECT_ACCESS_KEY` environment variables to your registered project name and access key.
+
+After launching, you should observe container logs in Docker Desktop similar to the example below, indicating a successful startup:
+
 <figure>
     <img src="docs/images/lurawi_in_docker_3.png"
          alt="Launched Lurawi container in docker" width="500px"
          style="display: block; margin: 0 auto"/>
-    <figcaption>Fig. 3 Launch of Lurawi Docker container.</figcaption>
+    <figcaption>Fig. 2 Launch of Lurawi Docker container.</figcaption>
 </figure>
 
-# Work with Lurawi agent workflow visual editor
-Open a tab in your favourite browser to http://localhost:3031, you will have Lurawi Agent workflow visual editor opened:
+## Working with the Lurawi Agent Workflow Visual Editor
+
+Open your preferred web browser and navigate to `http://localhost:3031` to access the Lurawi Agent Workflow Visual Editor:
+
 <figure>
     <img src="docs/images/lurawi_desktop.png"
          alt="Lurawi Visual Editor" width="600px"
          style="display: block; margin: 0 auto"/>
-    <figcaption>Fig. 4 Lurawi agent workflow visual editor</figcaption>
+    <figcaption>Fig. 3 Lurawi agent workflow visual editor.</figcaption>
 </figure>
 
-Download this [lurawi_example.xml](./lurawi_example.xml), click 
-<img src="https://user-images.githubusercontent.com/6646691/100293076-9e48a580-2fd6-11eb-8423-44074da2b4e6.png" width="20" style="vertical-align:middle;"/> button to load this file and you will have the following. Update the model name (red circled) to a model that has been assigned to your project.
+### Loading an Example Workflow
+
+Download the example workflow file: [lurawi_example.xml](./lurawi_example.xml).
+
+In the visual editor, click the <img src="https://user-images.githubusercontent.com/6646691/100293076-9e48a580-2fd6-11eb-8423-44074da2b4e6.png" width="20" style="vertical-align:middle;"/> button to load this file. The editor will then display the example workflow. Remember to update the model name (highlighted in red in Fig. 4) to a model assigned to your project.
+
 <figure>
     <img src="docs/images/lurawi_load_file.png"
          alt="Workflow in Lurawi Visual Editor" width="600px"
          style="display: block; margin: 0 auto"/>
-    <figcaption>Fig. 5 Loaded example workflow.</figcaption>
+    <figcaption>Fig. 4 Loaded example workflow.</figcaption>
 </figure>
 
-Click <img src="docs/images/dispatch_icon.png" width="22" style="vertical-align:middle;"/>
-button to dispatch the current workflow to the test lurawi runtime server running in the docker container to start testing the workflow:
+### Dispatching the Workflow
+
+To dispatch the current workflow to the Lurawi runtime server (running in the Docker container) for testing, click the <img src="docs/images/dispatch_icon.png" width="22" style="vertical-align:middle;"/> button.
+
 <figure>
     <img src="docs/images/lurawi_upload.png"
          alt="Dispatch Workflow to runtime engine" width="600px"
          style="display: block; margin: 0 auto"/>
-    <figcaption>Fig. 6 Successfully uploaded the workflow to the Lurawi runtime engine.</figcaption>
+    <figcaption>Fig. 5 Successfully uploaded the workflow to the Lurawi runtime engine.</figcaption>
 </figure>
 
-You can click **Code** tab (Fig. 7) to view the JSON based code dynamically generated from the visual blocks shown in the **Blocks** tab (consider visual blocks are the source code; JSON code is the compiled code for execution) Note, if the visual block program contains errors, **Code** tab will display errors instead of valid JSON code. In such scenarios, switch to **Blocks** tab to fix the code and back to **Code** for validation.
+### Viewing Generated Code
+
+Navigate to the **Code** tab (Fig. 6) to view the JSON-based code dynamically generated from the visual blocks in the **Blocks** tab. The visual blocks serve as the source code, while the JSON code represents the compiled, executable program. If the visual block program contains errors, the **Code** tab will display error messages instead of valid JSON. In such cases, switch back to the **Blocks** tab to rectify the errors, then return to the **Code** tab for validation.
+
 <figure>
     <img src="docs/images/lurawi_code_json.png"
-         alt="Dispatch Workflow to runtime engine" width="600px"
+         alt="Code tab showing JSON output" width="600px"
          style="display: block; margin: 0 auto"/>
-    <figcaption>Fig. 7 Code tab (circled in red) shows the JSON code generated from the visual program blocks.</figcaption>
+    <figcaption>Fig. 6 Code tab (circled in red) showing the JSON code generated from the visual program blocks.</figcaption>
 </figure>
 
-# Test Workflow
-Click <img src="docs/images/console_icon.png" width="20" style="vertical-align:middle;"/> button to open a new tab to a Lurawi test console (Fig. 8) and start typing your question/message
+## Testing the Workflow
+
+Click the <img src="docs/images/console_icon.png" width="20" style="vertical-align:middle;"/> button to open a new tab to the Lurawi test console (Fig. 7) and begin interacting with your workflow by typing questions or messages.
 
 <figure>
     <img src="docs/images/lurawi_test_console.png"
-         alt="Dispatch Workflow to runtime engine" width="600px"
+         alt="Lurawi Test Console" width="600px"
          style="display: block; margin: 0 auto"/>
-    <figcaption>Fig. 8 Lurawi Test Console.</figcaption>
+    <figcaption>Fig. 7 Lurawi Test Console.</figcaption>
 </figure>
 
-NOTE: This test console works only for the following input payload specification:
+**Note on Test Console Payload:**  
+This test console is specifically designed for the following input payload structure:
 
 ```json
 {
@@ -106,35 +163,39 @@ NOTE: This test console works only for the following input payload specification
   "name": "client name",
   "session_id": "optional client provided session id",
   "data" : {
-    "message": "a text prompt message",
+    "message": "a text prompt message"
   }
 }
 ```
 
-Yellow box in Fig. 5 parses dictionary payload under data key. If you change the data payload structure in your workflow, the test console may no longer work. Use CURL command or other REST API test tool to call the endpoint at ```http://localhost:8081/projects/{your_project_name}/message```.
+If you modify the `data` payload structure within your workflow, the test console may no longer function as expected. For workflows with custom data structures, use `curl` or other REST API testing tools to call the endpoint at `http://localhost:8081/projects/{your_project_name}/message`.
 
-# Saving Workflow
-Click <img src="https://user-images.githubusercontent.com/6646691/100292760-8886b080-2fd5-11eb-919a-1e2aad62ee17.png" width="20" style="vertical-align:middle;"/> button to download the finalised workflow from the visual editor. There are two files to download from **Blocks** tab and **Code** tab respectively: xml file from **Blocks** tab contains the visual block code, whereas JSON program code from **Code** tab is used in Lurawi for execution.
+## Saving the Workflow
+
+Click the <img src="https://user-images.githubusercontent.com/6646691/100292760-8886b080-2fd5-11eb-919a-1e2aad62ee17.png" width="20" style="vertical-align:middle;"/> button to download the finalized workflow from the visual editor. You can download two files: an XML file from the **Blocks** tab (containing the visual block code) and a JSON program code file from the **Code** tab (used by Lurawi for execution).
 
 <figure>
     <img src="docs/images/lurawi_saving_workflow.png"
-         alt="Dispatch Workflow to runtime engine" width="600px"
+         alt="Saving Workflow" width="600px"
          style="display: block; margin: 0 auto"/>
-    <figcaption>Fig. 9 Saving visual block code in Blocks tab.</figcaption>
+    <figcaption>Fig. 8 Saving visual block code in Blocks tab.</figcaption>
 </figure>
- 
-Both files should be saved in a GitHub repo. With a properly configured git action a custom docker image can be built and deployed in production.
 
-# Next Steps
+It is recommended to save both files in a version-controlled repository, such as GitHub. With a properly configured CI/CD pipeline (e.g., GitHub Actions), a custom Docker image can be automatically built and deployed to production environments.
 
-Lurawi agent workflow visual editor is based off [Google Blockly](https://developers.google.com/blockly) visual programming editor. It is strongly recommended to get familiarisation with block-based coding mechanics from the tutorials provided by [Scratch](https://scratch.mit.edu/), especially if you do not have prior programming experiences.
+## Next Steps
 
-Once you are familiar with block based programming, read [Lurawi specific block concepts](./docs/LurawiConcepts.md) and [Lurawi prebuilt custom blocks](./docs/LurawiGenAiCustoms.md) will give you detailed descriptions of prebuit Lurawi custom function blocks. See [Advanced: RAG Reference Implementation in Lurawi](./docs/RAGReferenceImplementation.md) for a concrete example.
+The Lurawi agent workflow visual editor is built upon [Google Blockly](https://developers.google.com/blockly). If you are new to block-based coding, it is highly recommended to familiarize yourself with its mechanics through tutorials, such as those provided by [Scratch](https://scratch.mit.edu/).
 
-Lurawi uses a plug-in mechanism to extend its capabilities and integrate with any third party systems. Check out [Advanced: How to Create Lurawi Custom Action Primitives](./docs/LurawiGenAiCustoms.md).
+Once comfortable with block-based programming, delve into:
+*   [Lurawi Specific Block Concepts](./docs/LurawiConcepts.md) for an understanding of core Lurawi block principles.
+*   [Lurawi Prebuilt Custom Blocks](./docs/LurawiGenAiCustoms.md) for detailed descriptions of pre-built custom function blocks.
+*   [Advanced: RAG Reference Implementation in Lurawi](./docs/RAGReferenceImplementation.md) for a concrete example of a Retrieval-Augmented Generation (RAG) implementation.
 
-To conclude, checkout [Advanced: End-to-end Lurawi Development](./docs/LurawiDevCycle.md) example.
+Lurawi's capabilities are extensible via a plug-in mechanism, allowing integration with third-party systems. Explore [Advanced: How to Create Lurawi Custom Action Primitives](./docs/LurawiGenAiCustoms.md) to learn more.
 
-# Notes
+Finally, review the [Advanced: End-to-end Lurawi Development](./docs/LurawiDevCycle.md) example for a comprehensive development cycle overview.
 
-1. Lurawi code repository: https://github.com/kunle12/lurawi
+### Notes
+
+1.  **Lurawi Code Repository:** [https://github.com/kunle12/lurawi](https://github.com/kunle12/lurawi)
