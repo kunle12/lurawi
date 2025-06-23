@@ -67,7 +67,7 @@ var Code = {
     TABS_ : ['blocks', 'lurawi'],
     existingBehaviours : {},
     nextBehaviourId : 0,
-    existingPlayBehaviorActionLets : [],
+    existingPlayBehaviourActionLets : [],
     customScripts: {},
     defaultMotions: [],
 
@@ -288,7 +288,7 @@ var Code = {
                 else {
                     Code.existingBehaviours[name] = block;
                 }
-                for (var pba of Code.existingPlayBehaviorActionLets) {
+                for (var pba of Code.existingPlayBehaviourActionLets) {
                     let fvalue = [];
                     for (var v of be_names) {
                         fvalue.push([v, v]);
@@ -356,7 +356,7 @@ var Code = {
                         Code.existingBehaviours[event.newValue] = block;
                         let be_names = Object.keys(Code.existingBehaviours);
 
-                        for (var pba of Code.existingPlayBehaviorActionLets) {
+                        for (var pba of Code.existingPlayBehaviourActionLets) {
                             let fvalue = [['','']];
                             for (var v of be_names) {
                                 fvalue.push([v, v]);
@@ -473,15 +473,15 @@ var Code = {
             for (var dId of event.ids) {
                 let found = -1;
                 // update play action let cache first
-                let all = Code.existingPlayBehaviorActionLets.length;
+                let all = Code.existingPlayBehaviourActionLets.length;
                 for (let i = 0; i < all; i++) {
-                    if (Code.existingPlayBehaviorActionLets[i].id == dId) {
+                    if (Code.existingPlayBehaviourActionLets[i].id == dId) {
                         found = i;
                         break;
                     }
                 }
                 if (found != -1) {
-                    Code.existingPlayBehaviorActionLets.splice(found,1);
+                    Code.existingPlayBehaviourActionLets.splice(found,1);
                 }
             }
 
@@ -497,7 +497,7 @@ var Code = {
                 if (found) {
                     delete Code.existingBehaviours[found];
                     be_names = Object.keys(Code.existingBehaviours);
-                    for (var pba of Code.existingPlayBehaviorActionLets) {
+                    for (var pba of Code.existingPlayBehaviourActionLets) {
                         let fvalue = [['','']];
                         for (var v of be_names) {
                             fvalue.push([v, v]);

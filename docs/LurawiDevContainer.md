@@ -1,15 +1,17 @@
-# Advanced: Running Lurawi as a Dev Container in VS Code
+# Advanced Setup: Running Lurawi in a VS Code Dev Container
 
-Advanced customisations of Lurawi can be achieved through mounting the prebuilt Lurawi docker image as a [Dev Container under Visual Studio Code](https://code.visualstudio.com/docs/devcontainers/containers). To do this, you need:
+This document outlines the process for advanced customizations of Lurawi by utilizing the prebuilt Lurawi Docker image within a [Visual Studio Code Dev Container](https://code.visualstudio.com/docs/devcontainers/containers).
 
-* A recent version of Visual Studio Code (1.5+) installed.
-* Dev Container extension module is installed in VS code.
-* A recent Docker Desktop installed and running.
+*   Visual Studio Code (version 1.5 or newer).
+*   The Dev Containers extension for Visual Studio Code.
+*   Docker Desktop, installed and running.
 
-## Two Steps
+## Setup Steps
 
-1. create a new project directory, e.g. ```lurawi```, under your home directory. On MacOS: ```/Users/{user_name}/lurawi```
-2. Download [devcontainer.json](../.devcontainer.json) and save it in a newly created ```lurawi``` folder as ```.devcontainer.json```. Open the folder in VS code, you will be prompted to reopen as a Dev Container (Fig. 1).
+1.  **Create a Project Directory:** Create a new directory for your project. For example, on macOS, you might create `/Users/{user_name}/lurawi`.
+2.  **Configure Dev Container:**
+    *   Copy the [`devcontainer.json`](../.devcontainer.json) file from the root of the Lurawi repository into your newly created project directory, naming it `.devcontainer.json`.
+    *   Open this new project directory in Visual Studio Code. You will be prompted to "Reopen in Container" (see Fig. 1).
 
 <figure>
     <img src="images/devcontainer1.png"
@@ -18,7 +20,7 @@ Advanced customisations of Lurawi can be achieved through mounting the prebuilt 
     <figcaption>Fig. 1 Open Lurawi as a Dev Container.</figcaption>
 </figure>
 
-It usually takes a while to download Lurawi docker image and open it in a running container. Once the process is completed, you shall see the entire source code working directory:
+The initial setup involves downloading the Lurawi Docker image and launching it within a running container, which may take some time. Once completed, the entire Lurawi source code working directory will be accessible within the Dev Container (see Fig. 2).
 
 <figure>
     <img src="images/devcontainer2.png"
@@ -27,21 +29,26 @@ It usually takes a while to download Lurawi docker image and open it in a runnin
     <figcaption>Fig. 2 Lurawi in Dev Container.</figcaption>
 </figure>
 
-In terminal, set the minimum environment variables for your agent project:
+## Initial Configuration and Execution
+
+Within the Dev Container's terminal, set the essential environment variables for your agent project:
 ```bash
 export PROJECT_NAME=project_name
 export PROJECT_ACCESS_KEY=project_access_key_provided
 ```
-finally, run
+After setting the variables, execute the following command to start Lurawi:
 ```bash
 lurawi dev
 ```
 
 You will be prompted to open a local browser window to http://localhost:3031. You can proceed with building a workflow.
 
-## Install Additional Python libraries
+## Installing Additional Python Libraries
+
+To install additional Python libraries within the Dev Container, use the following command:
+
 ```bash
 pip install ${library_name}
 ```
 
-**NOTE**: put additional library dependencies in a ```requirements.txt``` file.
+**Note:** For managing multiple dependencies, it is recommended to list all additional library requirements in a `requirements.txt` file.

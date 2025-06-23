@@ -3,14 +3,14 @@
 This module implements the core workflow engine that powers the Lurawi system.
 It provides functionality for:
 - Managing user conversations and activities
-- Loading and executing behaviors from configuration files
+- Loading and executing behaviours from configuration files
 - Handling events from various sources (Discord, API calls)
-- Managing knowledge bases for behaviors
+- Managing knowledge bases for behaviours
 - Dynamically loading and managing remote services
 - Supporting timer-based operations
 
 The WorkflowEngine class serves as the central coordinator for all these
-activities, maintaining conversation state, loading behaviors and knowledge,
+activities, maintaining conversation state, loading behaviours and knowledge,
 and routing events to appropriate handlers.
 """
 
@@ -69,22 +69,22 @@ class WorkflowInputPayload(BaseModel, extra=Extra.allow):
 
 
 class BehaviourCodePayload(BaseModel):
-    """Payload model for behavior code updates.
+    """Payload model for behaviour code updates.
 
-    This model defines the structure for updating behavior code in the system,
+    This model defines the structure for updating behaviour code in the system,
     supporting both JSON and XML formats.
     """
 
-    jsonCode: str  # JSON representation of the behavior code
-    xmlCode: str = ""  # Optional XML representation of the behavior code
+    jsonCode: str  # JSON representation of the behaviour code
+    xmlCode: str = ""  # Optional XML representation of the behaviour code
     toSave: bool = False  # Flag indicating whether to save the code
 
 
 class WorkflowEngine(TimerClient):
-    """Workflow engine that manages user interactions, behaviors, and remote services.
+    """Workflow engine that manages user interactions, behaviours, and remote services.
 
     This class is the core engine that handles workflow execution, user activity management,
-    behavior loading, and integration with remote services. It inherits from TimerClient
+    behaviour loading, and integration with remote services. It inherits from TimerClient
     to support scheduled operations.
     """
 
@@ -189,18 +189,18 @@ class WorkflowEngine(TimerClient):
         return True
 
     def load_behaviours(self, behaviour=""):
-        """Load behaviors from a JSON file.
+        """Load behaviours from a JSON file.
 
-        Attempts to load behaviors from various sources in the following order:
+        Attempts to load behaviours from various sources in the following order:
         1. Azure Blob Storage (if AzureWebJobsStorage is configured)
         2. AWS S3 (if AWS credentials are configured)
         3. Local file system at various paths
 
         Args:
-            behaviour: Base name of the behavior file (without extension)
+            behaviour: Base name of the behaviour file (without extension)
 
         Returns:
-            dict: Dictionary containing loaded behaviors, or empty dict if loading failed
+            dict: Dictionary containing loaded behaviours, or empty dict if loading failed
         """
         loaded_behaviours = {}
         if not behaviour:
@@ -265,14 +265,14 @@ class WorkflowEngine(TimerClient):
         return loaded_behaviours
 
     def load_pending_behaviours(self, behaviour):
-        """Load behaviors into a pending state for gradual adoption.
+        """Load behaviours into a pending state for gradual adoption.
 
-        Loads behaviors into a pending state and notifies conversation members
-        to prepare for the behavior change. When all members have acknowledged,
-        the pending behaviors become active.
+        Loads behaviours into a pending state and notifies conversation members
+        to prepare for the behaviour change. When all members have acknowledged,
+        the pending behaviours become active.
 
         Args:
-            behaviour: Base name of the behavior file to load
+            behaviour: Base name of the behaviour file to load
 
         Returns:
             str: Status message indicating success or failure
@@ -386,13 +386,13 @@ class WorkflowEngine(TimerClient):
             )
 
     async def on_code_update(self, payload: BehaviourCodePayload):
-        """Update behavior code dynamically.
+        """Update behaviour code dynamically.
 
-        Updates the behavior code with the provided JSON code, purging all
-        existing users to ensure clean adoption of the new behaviors.
+        Updates the behaviour code with the provided JSON code, purging all
+        existing users to ensure clean adoption of the new behaviours.
 
         Args:
-            payload: Behavior code payload containing JSON and XML code
+            payload: Behaviour code payload containing JSON and XML code
 
         Returns:
             HTTP response indicating success or failure
@@ -438,15 +438,15 @@ class WorkflowEngine(TimerClient):
     async def on_executing_behaviour_for_uid(
         self, uid: str, behaviour: str, knowledge: Dict = {}
     ) -> bool:
-        """Execute a specific behavior for a given user.
+        """Execute a specific behaviour for a given user.
 
         Args:
-            uid: User ID to execute the behavior for
-            behaviour: Name of the behavior to execute
-            knowledge: Additional knowledge to provide to the behavior
+            uid: User ID to execute the behaviour for
+            behaviour: Name of the behaviour to execute
+            knowledge: Additional knowledge to provide to the behaviour
 
         Returns:
-            bool: True if behavior was executed successfully, False otherwise
+            bool: True if behaviour was executed successfully, False otherwise
         """
         if uid in self.conversation_members:
             activity_manager = self.conversation_members[uid]
@@ -479,10 +479,10 @@ class WorkflowEngine(TimerClient):
         self.stop_remote_services()
 
     async def on_pending_load_complete(self):
-        """Handle completion of pending behavior loading.
+        """Handle completion of pending behaviour loading.
 
-        Called when a conversation member completes loading pending behaviors.
-        When all members have completed loading, the pending behaviors become active.
+        Called when a conversation member completes loading pending behaviours.
+        When all members have completed loading, the pending behaviours become active.
         """
         if self.pending_behaviours_load_cnt == 0:
             return

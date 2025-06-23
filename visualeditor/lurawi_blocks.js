@@ -269,7 +269,7 @@ var PLAY_BEHAVIOUR_PRIMITIVE_MUTATOR_MINXIN = {
             fin.removeField('BEHAVIOURS');
             fin.insertFieldAt(1, new Blockly.FieldDropdown(fvalue), 'BEHAVIOURS');
         }
-        Code.existingPlayBehaviorActionLets.push(this);
+        Code.existingPlayBehaviourActionLets.push(this);
     }
 };
 
@@ -338,7 +338,7 @@ var SELECT_BEHAVIOUR_PRIMITIVE_MUTATOR_MINXIN = {
             fin.removeField('BEHAVIOURS');
             fin.insertFieldAt(1, new Blockly.FieldDropdown(fvalue), 'BEHAVIOURS');
         }
-        Code.existingPlayBehaviorActionLets.push(this);
+        Code.existingPlayBehaviourActionLets.push(this);
     }
 };
 
