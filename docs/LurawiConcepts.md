@@ -274,8 +274,12 @@ The `message` is a JSON payload with the following structure:
 
 In the case of `lurawi_example` code, we extract `message` as shown below:
 
-Figure 7: Extract message data from input data payload.
-![Extract message data from input data payload](./images/proccess_input.png)
+<figure>
+    <img src="./images/proccess_input.png"
+         alt="Extract message data from input data payload" width="400px"
+         />
+    <figcaption>Fig. 7 Extract message data from input data payload.</figcaption>
+</figure>
 
 ### Workflow Response
 A `message` call returns a response similar to the following:
