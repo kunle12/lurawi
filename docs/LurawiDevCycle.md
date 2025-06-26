@@ -1,7 +1,9 @@
 # Advanced: End-to-end Lurawi Development
 
 Before proceeding, ensure you are familiar with the following topics:
+
 * [Advanced: Running Lurawi as a Dev Container in VS Code](LurawiDevContainer.md).
+
 * [Advanced: How to Create Lurawi Custom Action Primitives](LurawiCreateCustom.md).
 
 This document outlines the end-to-end development process for Lurawi, demonstrating how to create an example project (`lurawi_example`) from scratch, build its workflow, and package it into a Docker image for cloud deployment. The instructions assume a macOS local development environment; Windows with WSL should provide a similar experience.
@@ -102,6 +104,6 @@ lurawi_example
 ├── .devcontainer.json          # Development container configuration
 ├── Dockerfile                  # Dockerfile for building the final Docker image
 └── README.md                   # Project README file
- ```
+```
 
 A codebase skeleton for this example is available at [lurawi_example_skeleton.zip](https://github.com/kunle12/lurawi/blob/main/docs/lurawi_example_skeleton.zip).

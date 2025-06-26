@@ -171,10 +171,15 @@ It is recommended to save both files in a version-controlled repository, such as
 The Lurawi agent workflow visual editor is built upon [Google Blockly](https://developers.google.com/blockly). If you are new to block-based coding, it is highly recommended to familiarize yourself with its mechanics through tutorials, such as those provided by [Scratch](https://scratch.mit.edu/).
 
 Once comfortable with block-based programming, delve into:
-[Lurawi Specific Block Concepts](./LurawiConcepts.md) for an understanding of core Lurawi block principles.
-[Lurawi Prebuilt Custom Blocks](./LurawiGenAiCustoms.md) for detailed descriptions of prebuilt custom function blocks.
-[Advanced: RAG Reference Implementation in Lurawi](RAGReferenceImplementation.md) for a concrete example of a Retrieval-Augmented Generation (RAG) implementation.
 
-Lurawi's capabilities are extensible via a plug-in mechanism, allowing integration with third-party systems. Explore [Advanced: How to Create Lurawi Custom Action Primitives](LurawiGenAiCustoms.md) to learn more.
+*  [Lurawi Specific Block Concepts](./LurawiConcepts.md) for an understanding of core Lurawi block principles.
+
+*  [Lurawi Prebuilt Custom Blocks](./LurawiGenAiCustoms.md) for detailed descriptions of prebuilt custom function blocks.
+
+*  [Advanced: RAG Reference Implementation in Lurawi](RAGReferenceImplementation.md) for a concrete example of a Retrieval-Augmented Generation (RAG) implementation.
+
+Lurawi's capabilities are extensible via a plug-in mechanism, allowing integration with third-party systems. Explore
+
+*  [Advanced: How to Create Lurawi Custom Action Primitives](LurawiGenAiCustoms.md) to learn more.
 
 Finally, review the [Advanced: End-to-end Lurawi Development](LurawiDevCycle.md) example for a comprehensive development cycle overview.
