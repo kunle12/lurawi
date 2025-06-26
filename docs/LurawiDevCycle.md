@@ -104,4 +104,4 @@ lurawi_example
 └── README.md                   # Project README file
  ```
 
-A codebase skeleton for this example is available at [lurawi_example_skeleton.zip](./lurawi_example_skeleton.zip).
+A codebase skeleton for this example is available at [lurawi_example_skeleton.zip](https://github.com/kunle12/lurawi/blob/main/docs/lurawi_example_skeleton.zip).

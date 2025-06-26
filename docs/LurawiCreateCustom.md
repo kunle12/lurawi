@@ -4,7 +4,7 @@ This document provides comprehensive instructions on how to create custom action
 
 ## Custom Action Primitive Architecture
 
-A custom action primitive is implemented as a Python class that inherits from the `CustomBehaviour` class, defined in [`lurawi/custom_behaviour.py`](lurawi/custom_behaviour.py). Each custom class must implement an `__init__` method and an `async run` method. An optional `fini` method can also be included for resource cleanup.
+A custom action primitive is implemented as a Python class that inherits from the `CustomBehaviour` class, defined in [`lurawi/custom_behaviour.py`](https://github.com/kunle12/lurawi/blob/main/lurawi/custom_behaviour.py). Each custom class must implement an `__init__` method and an `async run` method. An optional `fini` method can also be included for resource cleanup.
 
 ### `CustomBehaviour` Class
 
@@ -31,7 +31,7 @@ This example demonstrates how to create a custom action primitive that generates
 
 ### Step 1: Create the Custom Function File
 
-Execute the following command in your terminal to create a skeleton custom function file named [`fibonacci_seq.py`](lurawi/custom/fibonacci_seq.py) within the `lurawi/custom/` directory. This command also establishes the necessary internal links for Lurawi to recognize the new custom function.
+Execute the following command in your terminal to create a skeleton custom function file named [`fibonacci_seq.py`](https://github.com/kunle12/lurawi/blob/main/lurawi/custom/fibonacci_seq.py) within the `lurawi/custom/` directory. This command also establishes the necessary internal links for Lurawi to recognize the new custom function.
 
 ```bash
 lurawi custom new fibonacci_seq
@@ -39,7 +39,7 @@ lurawi custom new fibonacci_seq
 
 ### Step 2: Implement the `fibonacci_seq` Class
 
-Open the newly created [`fibonacci_seq.py`](lurawi/custom/fibonacci_seq.py) file and modify its content with the following Python code:
+Open the newly created [`fibonacci_seq.py`](https://github.com/kunle12/lurawi/blob/main/lurawi/custom/fibonacci_seq.py) file and modify its content with the following Python code:
 
 ```python
 from ..utils import logger

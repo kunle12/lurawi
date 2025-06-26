@@ -18,5 +18,5 @@ aiofiles
 html5lib
 bs4
 discord.py
-mkdocs
+mkdocs-material
 build

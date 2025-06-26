@@ -1,0 +1,40 @@
+site_name: Lurawi Agent Workflow Builder
+
+theme:
+  name: material
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - json
+    - python
+  features:
+    - content.code.copy
+    - content.code.select
+    - navigation.path
+    - content.code.annotate
+
+repo_name: GitHub
+repo_url: https://github.com/kunle12/lurawi
+
+nav:
+  - index.md
+  - Advanced Topics: 
+    - LurawiCLI.md
+    - APISpecifications.md
+    - LurawiConcepts.md
+    - LurawiCreateCustom.md
+    - LurawiDevContainer.md
+    - LurawiDevCycle.md
+    - LurawiGenAiCustoms.md
+    - RAGReferenceImplementation.md
+
+use_directory_urls: false
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
