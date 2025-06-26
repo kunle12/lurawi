@@ -223,7 +223,7 @@ var Code = {
         let d = window.open('http://localhost:3031/invokellm.html?smooth=true', 'Lurawi Test Console', 'noopener=yes');
     },
     openDocumatation: function(event) {
-        let d = window.open('http://localhost:3031/doc_html/index.html', 'Lurawi Documetation', 'noopener=yes');
+        let d = window.open('http://localhost:3031/doc_html', 'Lurawi Documetation', 'noopener=yes');
     },
     addBotInteractionArgs: function(block, cscript) {
         block.appendStatementInput("ENGAGEMENT").setCheck(null).setAlign(Blockly.ALIGN_RIGHT).appendField('when engage with a person');
