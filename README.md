@@ -1,5 +1,7 @@
 # Lurawi - An Agent Workflow Orchestration Engine
 
+![Lurawi Logo](visualeditor/assets/images/lurawi_logo_2.png)
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Key Features](#key-features)

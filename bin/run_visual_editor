@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 This script runs the Lurawi Agent Visual Programming Editor.
 
@@ -7,7 +9,6 @@ It provides functionalities to:
 - Convert Markdown documentation files to HTML.
 - Serve the visual editor and its documentation via a local HTTP server.
 """
-#!/usr/bin/env python3
 
 import argparse
 import ast

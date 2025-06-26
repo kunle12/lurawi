@@ -1,9 +1,10 @@
+#!/usr/bin/env python3
+
 """
 This script provides a command-line interface (CLI) for managing the Lurawi application.
 It supports various commands such as running the service, starting a development environment,
 managing custom functions, creating new projects, and checking the application version.
 """
-#!/usr/bin/env python3
 
 import argparse
 import os
