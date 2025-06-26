@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 This script runs the Lurawi Agent Visual Programming Editor.
 
@@ -7,7 +9,6 @@ It provides functionalities to:
 - Convert Markdown documentation files to HTML.
 - Serve the visual editor and its documentation via a local HTTP server.
 """
-#!/usr/bin/env python3
 
 import argparse
 import ast
@@ -16,10 +17,7 @@ import socketserver
 import os
 import sys
 import webbrowser
-import shutil
-
-from markdown_it import MarkdownIt
-from bs4 import BeautifulSoup
+import subprocess
 
 DOC_CSS = """
 body { background-color: #272822; color: #e6edf3; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; position: relative; max-width: 960px; margin: auto; line-height: 1.5; }
@@ -138,70 +136,20 @@ def update_documentation(editor_dir: str):
         editor_dir (str): The directory where the visual editor is located.
     """
 
-    def markdown_to_html(in_file_path: str, out_file_path: str) -> bool:
-        """
-        Converts a Markdown file to an HTML file, applying custom CSS and syntax highlighting.
-
-        Args:
-            in_file_path (str): The path to the input Markdown file.
-            out_file_path (str): The path to the output HTML file.
-
-        Returns:
-            bool: True if the conversion was successful, False otherwise.
-        """
-        try:
-            with open(in_file_path, "r", encoding='utf-8') as ifile, open(out_file_path, "w", encoding='utf-8') as ofile:
-                text = ifile.read()
-                html_text = mark_down_it_obj.render(text)
-                # pretty CSS
-                soup = BeautifulSoup(
-                    html_text, "html5lib"
-                )  # adds <html>, <head>,  <body>
-                soup.select_one("head").append(soup.new_tag("meta"))
-                soup.select_one("meta").attrs["charset"] = "UTF-8"
-
-                # syntax highlighting
-                soup.select_one("head").append(soup.new_tag("link"))
-                soup.select_one("link").attrs["rel"] = "stylesheet"
-                soup.select_one("link").attrs["href"] = "../assets/monokai.min.css"
-
-                soup.select_one("head").append(soup.new_tag("script"))
-                soup.select("script")[0].attrs["src"] = "../assets/highlight.min.js"
-                soup.select_one("head").append(soup.new_tag("script"))
-                soup.select("script")[1].string = "hljs.highlightAll();"
-
-                soup.select_one("head").append(soup.new_tag("style"))
-                soup.select_one("style").string = DOC_CSS
-                outtext = str(soup).replace(".md", ".html")
-                outtext = outtext.replace("docs/", "")
-                ofile.write(outtext)
-        except Exception as err:
-            print(f"Failed to generate html for {in_file_path}: {err}")
-            return False
-        return True
-
     html_doc_path = f"{editor_dir}/doc_html"
-    doc_path = f"{os.path.dirname(editor_dir)}/docs"
     if os.path.exists(html_doc_path):
         return
 
-    os.mkdir(html_doc_path)
-    mark_down_it_obj = MarkdownIt("gfm-like").enable("table").enable("strikethrough")
-    markdown_to_html(
-        in_file_path="README.md", out_file_path=f"{html_doc_path}/index.html"
-    )
-    for file in os.listdir(doc_path):
-        file_path = f"{doc_path}/{file}"
-        if os.path.isdir(file_path):
-            shutil.copytree(src=file_path, dst=f"{html_doc_path}/{file}")
-        elif file.endswith(".md"):
-            markdown_to_html(
-                in_file_path=file_path,
-                out_file_path=f"{html_doc_path}/{file[:-3]}.html",
-            )
-        else:
-            shutil.copy(src=file_path, dst=f"{html_doc_path}/{file}")
-
+    try:
+        venv_env = os.environ.copy()
+        subprocess.run(
+            "mkdocs build",
+            env=venv_env,
+            shell=True,
+            check=False,
+        )
+    except Exception as err:
+        print(f"Unable to generate local document portal: {err}")
 
 def update_editor_custom_definitions(custom_dir: str, editor_dir: str) -> bool:
     """

@@ -10,7 +10,7 @@ This document outlines the process for advanced customizations of Lurawi by util
 
 1.  **Create a Project Directory:** Create a new directory for your project. For example, on macOS, you might create `/Users/{user_name}/lurawi`.
 2.  **Configure Dev Container:**
-    *   Copy the [`devcontainer.json`](../.devcontainer.json) file from the root of the Lurawi repository into your newly created project directory, naming it `.devcontainer.json`.
+    *   Copy the [`devcontainer.json`](https://github.com/kunle12/lurawi/blob/main/.devcontainer.json) file from the root of the Lurawi repository into your newly created project directory, naming it `.devcontainer.json`.
     *   Open this new project directory in Visual Studio Code. You will be prompted to "Reopen in Container" (see Fig. 1).
 
 <figure>

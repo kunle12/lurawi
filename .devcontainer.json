@@ -1,0 +1,17 @@
+{
+  "image": "kunle12/lurawi:latest",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python"]
+    }
+  },
+  "forwardPorts": [3031, 8081],
+  "mounts": [
+      "source=${localWorkspaceFolder},target=/home/lurawi,type=bind,consistency=cached"
+  ],
+  "workspaceFolder": "/home/lurawi",
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/opt/defaultsite/bin",
+    "HOME": "/home/lurawi"
+  }
+}
