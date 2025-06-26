@@ -143,7 +143,7 @@ def update_documentation(editor_dir: str):
     try:
         venv_env = os.environ.copy()
         subprocess.run(
-            "mkdocs build",
+            f"mkdocs build -f {editor_dir}/../mkdocs.yml",
             env=venv_env,
             shell=True,
             check=False,
