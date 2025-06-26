@@ -1,4 +1,6 @@
 site_name: Lurawi Agent Workflow Builder
+site_url: http://localhost:3031/doc_html
+site_dir: visualeditor/doc_html
 
 theme:
   name: material
