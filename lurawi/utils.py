@@ -486,9 +486,10 @@ async def asave_content_to_azure_storage(
             return False
     else:
         try:
-            async with aiof.open(filepath, "wb") as f, aiof.open(
-                content_file, "rb"
-            ) as d:
+            async with (
+                aiof.open(filepath, "wb") as f,
+                aiof.open(content_file, "rb") as d,
+            ):
                 content = await d.read()
                 await f.write(content)
         except Exception as err:

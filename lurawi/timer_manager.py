@@ -27,6 +27,7 @@ class TimerClient:
     `TimerClient` and override the `on_timer` and `on_timer_lapsed` methods
     to implement their specific logic.
     """
+
     def __init__(self):
         """
         Initializes a new TimerClient instance.
@@ -71,6 +72,7 @@ class TimerManager:
     to handle timer events efficiently without blocking the main application flow.
     It provides an interface for adding, managing, and removing `BotTimer` instances.
     """
+
     def __init__(self) -> None:
         """
         Initializes a new TimerManager instance.
@@ -99,7 +101,9 @@ class TimerManager:
         if not self._run_thread:
             return
 
-        for timer in list(self._timers.values()):  # Iterate over a copy to allow modification
+        for timer in list(
+            self._timers.values()
+        ):  # Iterate over a copy to allow modification
             timer.cancel()
 
         self._loop.call_soon_threadsafe(self._loop.stop)
@@ -213,9 +217,15 @@ class BotTimer:
     is associated with a `TimerClient` that receives notifications when the
     timer events occur.
     """
+
     def __init__(
-        self, tid: int, loop: asyncio.AbstractEventLoop, client: TimerClient,
-        init_start: int = 0, interval: int = 1, repeats: int = -1
+        self,
+        tid: int,
+        loop: asyncio.AbstractEventLoop,
+        client: TimerClient,
+        init_start: int = 0,
+        interval: int = 1,
+        repeats: int = -1,
     ):  # pylint: disable=too-many-arguments, too-many-positional-arguments
         """
         Initializes a new BotTimer instance.

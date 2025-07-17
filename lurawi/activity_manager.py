@@ -22,15 +22,16 @@ from .utils import write_http_response, DataStreamHandler, logger
 class ActivityManager:
     """
     Manages activities, behaviours, and actions for the Lurawi system.
-    
+
     This class is responsible for loading behaviours, executing actions, managing user interactions,
     and maintaining the knowledge state. It handles the flow of activities, including queuing,
     suspending, and resuming actions.
     """
+
     def __init__(self, uid, name, behaviour, knowledge):
         """
         Initialize the ActivityManager with user information and behaviours.
-        
+
         Args:
             uid: User identifier
             name: User name
@@ -95,7 +96,7 @@ class ActivityManager:
     def is_initialised(self):
         """
         Check if the ActivityManager has been initialized.
-        
+
         Returns:
             bool: True if initialized, False otherwise
         """
@@ -104,7 +105,7 @@ class ActivityManager:
     async def init(self):
         """
         Initialize the ActivityManager asynchronously.
-        
+
         If already initialized, this method returns immediately.
         Otherwise, it marks the manager as initialized and starts the first activity.
         """
@@ -117,14 +118,14 @@ class ActivityManager:
     async def start_user_workflow(self, session_id: str = "", data: Dict = {}):
         """
         Start a user workflow with the given session ID and data.
-        
+
         Sets up the current turn context and session, then either plays the engagement action
         or continues the workflow directly.
-        
+
         Args:
             session_id: Identifier for the current session
             data: Dictionary containing user data
-            
+
         Returns:
             bool: True if workflow started successfully, False otherwise
         """
@@ -158,7 +159,7 @@ class ActivityManager:
     async def stop_user_workflow(self):
         """
         Stop the current user workflow.
-        
+
         Clears the current turn context and plays the disengagement action if defined.
         """
         self.knowledge["CURRENT_TURN_CONTEXT"] = None
@@ -173,9 +174,9 @@ class ActivityManager:
     async def start_user_engagement(self, context):
         """
         Start user engagement with the given context.
-        
+
         Clears running actions, loads any pending behaviours, and plays the engagement action.
-        
+
         Args:
             context: The context for the user engagement
         """
@@ -195,9 +196,9 @@ class ActivityManager:
     async def stop_user_engagement(self, context):
         """
         Stop user engagement with the given context.
-        
+
         Plays the disengagement action if defined.
-        
+
         Args:
             context: The context for stopping the user engagement
         """
@@ -213,13 +214,13 @@ class ActivityManager:
     async def load_pending_behaviour_if_exists(self):
         """
         Load pending behaviours if they exist.
-        
+
         Updates knowledge with pending knowledge, loads pending behaviours,
         plays the next activity, and calls the completion callback.
-        
+
         Note: self.on_pending_complete is expected to be a callable that may or may not be awaitable.
         The method will attempt to await it, so it should be compatible with the await syntax.
-        
+
         Returns:
             bool: True if pending behaviours were loaded, False otherwise
         """
@@ -243,7 +244,7 @@ class ActivityManager:
     async def engage_complete(self):
         """
         Callback for when engagement is complete.
-        
+
         Sets the in_user_interaction flag to True.
         """
         logger.debug("interaction engagement completed")
@@ -252,7 +253,7 @@ class ActivityManager:
     async def disengage_complete(self):
         """
         Callback for when disengagement is complete.
-        
+
         Sets the in_user_interaction flag to False.
         """
         logger.debug("interaction disengagement completed")
@@ -261,7 +262,7 @@ class ActivityManager:
     async def user_data_complete(self):
         """
         Callback for when user data processing is complete.
-        
+
         Sets the in_user_interaction flag to False.
         """
         logger.debug("interaction user data completed")
@@ -270,13 +271,13 @@ class ActivityManager:
     async def continue_workflow(self, activity_id: str = "", data: Dict = {}):
         """
         Continue the current workflow with the given activity ID and data.
-        
+
         Updates the access time and processes user messages or updates user data.
-        
+
         Args:
             activity_id: Identifier for the activity
             data: Dictionary containing user data
-            
+
         Returns:
             bool: True if workflow continued successfully
         """
@@ -291,9 +292,9 @@ class ActivityManager:
     async def update_turn_context(self, context):
         """
         Update the current turn context.
-        
+
         Sets the current turn context, updates the access time, and processes user messages.
-        
+
         Args:
             context: The new turn context
         """
@@ -304,7 +305,7 @@ class ActivityManager:
     def get_current_session_id(self):
         """
         Get the current session ID.
-        
+
         Returns:
             str: The current turn context, which serves as the session ID
         """
@@ -313,7 +314,7 @@ class ActivityManager:
     def set_pending_behaviours(self, behaviours, knowledge, on_complete):
         """
         Set pending behaviours to be loaded later.
-        
+
         Args:
             behaviours: Dictionary containing behaviour definitions
             knowledge: Dictionary containing knowledge to be merged
@@ -329,13 +330,13 @@ class ActivityManager:
     def load_behaviours(self, behaviour, force=False):
         """
         Load behaviours from the provided behaviour definition.
-        
+
         Finds the default behaviour and sets it as the active behaviour.
-        
+
         Args:
             behaviour: Dictionary containing behaviour definitions
             force: If True, clear running actions before loading behaviours
-            
+
         Returns:
             bool: True if behaviours were loaded successfully, False otherwise
         """
@@ -379,17 +380,17 @@ class ActivityManager:
     def select_activity(self, active_section):
         """
         Select an activity based on the active section.
-        
+
         Handles different formats for specifying activities:
         - "next": Continue with the next activity
         - "previous": Go back to the previous activity
         - Knowledge key: Use the value from knowledge as the activity
         - Numeric: Select activity by index
         - "behaviour:index": Select activity from a specific behaviour
-        
+
         Args:
             active_section: Specification for which activity to select
-            
+
         Returns:
             bool: True if activity was selected successfully, False otherwise
         """
@@ -425,12 +426,12 @@ class ActivityManager:
     def set_active_behaviour(self, name):
         """
         Set the active behaviour by name.
-        
+
         Finds the behaviour with the given name and sets it as active.
-        
+
         Args:
             name: Name of the behaviour to set as active
-            
+
         Returns:
             bool: True if behaviour was set successfully, False otherwise
         """
@@ -453,10 +454,10 @@ class ActivityManager:
     def set_activity_index(self, new_index):
         """
         Set the current activity index.
-        
+
         Args:
             new_index: New index for the current activity
-            
+
         Returns:
             bool: True if index was set successfully, False otherwise
         """
@@ -474,7 +475,7 @@ class ActivityManager:
     def set_engagement_action(self, action):
         """
         Set the engagement action.
-        
+
         Args:
             action: Action to be executed during engagement
         """
@@ -483,7 +484,7 @@ class ActivityManager:
     def set_disengagement_action(self, action):
         """
         Set the disengagement action.
-        
+
         Args:
             action: Action to be executed during disengagement
         """
@@ -492,7 +493,7 @@ class ActivityManager:
     def set_user_data_action(self, action):
         """
         Set the user data action.
-        
+
         Args:
             action: Action to be executed when processing user data
         """
@@ -501,7 +502,7 @@ class ActivityManager:
     def update_knowledge(self, info):
         """
         Update the knowledge base with new information.
-        
+
         Args:
             info: Dictionary containing information to add to the knowledge base
         """
@@ -511,11 +512,11 @@ class ActivityManager:
     def get_behaviour_action_at(self, behaviour, action_index):
         """
         Get the action at the specified index in the specified behaviour.
-        
+
         Args:
             behaviour: Name of the behaviour
             action_index: Index of the action within the behaviour
-            
+
         Returns:
             The action at the specified index, or None if not found
         """
@@ -537,7 +538,7 @@ class ActivityManager:
     def rewind_activity(self):
         """
         Rewind to the previous activity.
-        
+
         Decrements the activity index if not at the beginning and not busy.
         """
         if not self.active_behaviour:
@@ -554,7 +555,7 @@ class ActivityManager:
     def is_busy(self):
         """
         Check if the ActivityManager is currently busy.
-        
+
         Returns:
             bool: True if there are running actions or actions lined up, False otherwise
         """
@@ -563,9 +564,9 @@ class ActivityManager:
     def is_busy_after_suspension(self):
         """
         Check if the ActivityManager is busy after suspending suspendable actions.
-        
+
         Suspends all suspendable custom actions and checks if still busy.
-        
+
         Returns:
             bool: True if still busy after suspension, False otherwise
         """
@@ -591,10 +592,10 @@ class ActivityManager:
     async def play_next_activity_router(self, action_id="play_next"):
         """
         Route to the next activity.
-        
+
         Checks if at the end of the active behaviour and calls the completion callback if so.
         Otherwise, sets continue_playing to True and plays the next activity.
-        
+
         Args:
             action_id: Identifier for the action
         """
@@ -627,7 +628,7 @@ class ActivityManager:
     async def play_next_activity_with_suspension(self, suspend):
         """
         Play the next activity with a suspension time.
-        
+
         Args:
             suspend: Time in seconds to suspend before playing the next activity
         """
@@ -642,7 +643,7 @@ class ActivityManager:
     async def play_next_activity_with_cb(self, cb):
         """
         Play the next activity with a completion callback.
-        
+
         Args:
             cb: Callback function to be called when the activity completes
         """
@@ -652,9 +653,9 @@ class ActivityManager:
     async def play_next_activity(self, action_id="play_next", complete_cb=None):
         """
         Play the next activity in the active behaviour.
-        
+
         Increments the activity index and plays the action at that index.
-        
+
         Args:
             action_id: Identifier for the action
             complete_cb: Callback function to be called when the action completes.
@@ -702,7 +703,7 @@ class ActivityManager:
     ):
         """
         Play a disruptive action that clears any running actions first.
-        
+
         Args:
             action_id: Identifier for the action
             action: Action to be executed
@@ -734,7 +735,7 @@ class ActivityManager:
     ):
         """
         Play or queue a disruptable action.
-        
+
         Args:
             action_id: Identifier for the action
             action: Action to be executed
@@ -762,7 +763,7 @@ class ActivityManager:
     ):
         """
         Play an action immediately or queue it if the system is busy.
-        
+
         Args:
             action_id: Identifier for the action
             action: Action to be executed
@@ -811,9 +812,9 @@ class ActivityManager:
     ):
         """
         Play an action with the given ID and parameters.
-        
+
         Executes each action element (alet) in the action list.
-        
+
         Args:
             action_id: Identifier for the action
             action: List of action elements to execute
@@ -821,7 +822,7 @@ class ActivityManager:
             complete_cb: Callback function to be called when the action completes
             external_notification_cb: Callback function for external notification
             ignore_moves: List of action types to ignore
-            
+
         Returns:
             bool: True if action was played successfully, False otherwise
         """
@@ -856,7 +857,7 @@ class ActivityManager:
     async def play_action_let(self, alet, ignore_moves=[]):
         """
         Play a single action element (alet).
-        
+
         Handles different types of action elements:
         - text: Send a text message
         - http_response: Send an HTTP response
@@ -870,11 +871,11 @@ class ActivityManager:
         - workflow_interaction: Set up workflow interaction actions
         - select_behaviour: Select a behaviour
         - play_behaviour: Play a behaviour
-        
+
         Args:
             alet: Action element to execute
             ignore_moves: List of action types to ignore
-            
+
         Note:
             For custom actions, module_arg can be None, which is handled by the custom behaviour class.
         """
@@ -1198,9 +1199,9 @@ class ActivityManager:
     async def actionHandler(self, action, data=None):
         """
         Handle the completion of an action.
-        
+
         Cleans up the action, executes any chained actions, and calls the completion callback.
-        
+
         Args:
             action: The action that completed
             data: Additional data for chained actions
@@ -1243,9 +1244,9 @@ class ActivityManager:
     async def actionFailHandler(self, action, data=None):
         """
         Handle the failure of an action.
-        
+
         Cleans up the action, purges chained actions, and calls the completion callback.
-        
+
         Args:
             action: The action that failed
             data: Additional data for failure handling
@@ -1286,7 +1287,7 @@ class ActivityManager:
     def reset_running_actions(self):
         """
         Reset all running actions.
-        
+
         Alias for clear_running_actions.
         """
         self.clear_running_actions()
@@ -1294,7 +1295,7 @@ class ActivityManager:
     def clear_running_actions(self):
         """
         Clear all running actions, custom behaviours, and related state.
-        
+
         Finalizes all custom behaviours and resets action-related state.
         """
         for beh in self.custom_behaviours.values():
@@ -1315,15 +1316,15 @@ class ActivityManager:
     async def on_action_completed(self, action_id=""):
         """
         Handle the completion of an action.
-        
+
         Calls external notification callbacks, action completion callbacks,
         processes pending actions, and restores suspended actions.
-        
+
         Note:
             This method handles callbacks that may be regular functions or coroutines.
             The external_notification_cb and action_complete_cb are expected to be
             compatible with the await syntax if they are called.
-            
+
         Args:
             action_id: Identifier for the completed action
         """
@@ -1402,7 +1403,7 @@ class ActivityManager:
     def on_shutdown(self):
         """
         Handle shutdown of the ActivityManager.
-        
+
         Calls fini to clean up resources.
         """
         self.fini()
@@ -1410,9 +1411,9 @@ class ActivityManager:
     async def on_update_user_data(self, activity_id: str, data: Dict = {}):
         """
         Update user data with the given activity ID and data.
-        
+
         Sets the user data in the knowledge base and plays the user data action if defined.
-        
+
         Args:
             activity_id: Identifier for the activity
             data: Dictionary containing user data
@@ -1435,10 +1436,10 @@ class ActivityManager:
     def check_remote_callback_access(self, access_key: str):
         """
         Check if the access key matches the current turn context.
-        
+
         Args:
             access_key: Key to check against the current turn context
-            
+
         Returns:
             bool: True if the access key matches, False otherwise
         """
@@ -1447,9 +1448,9 @@ class ActivityManager:
     async def process_remote_callback_payload(self, method: str, data: Dict):
         """
         Process a remote callback payload.
-        
+
         Delegates to the callback message manager.
-        
+
         Args:
             method: Method name for the callback
             data: Dictionary containing callback data
@@ -1463,12 +1464,12 @@ class ActivityManager:
     ):
         """
         Send a message to the user.
-        
+
         Handles different types of responses:
         - StreamingResponse for DataStreamHandler
         - Discord messages for DiscordMessage context
         - HTTP responses for other contexts
-        
+
         Args:
             status: HTTP status code
             data: Response data or stream handler
@@ -1512,9 +1513,9 @@ class ActivityManager:
     async def send_raw_message(self, status, payload, headers: Dict = {}):
         """
         Send a raw message with the given status and payload.
-        
+
         Adds the activity ID to the payload and writes an HTTP response.
-        
+
         Args:
             status: HTTP status code
             payload: Response payload
@@ -1526,9 +1527,9 @@ class ActivityManager:
     async def execute_behaviour(self, behaviour, knowledge={}):
         """
         Execute a behaviour with the given knowledge.
-        
+
         Updates the knowledge base and plays or queues the behaviour.
-        
+
         Args:
             behaviour: Behaviour to execute
             knowledge: Dictionary containing knowledge to update
@@ -1544,10 +1545,10 @@ class ActivityManager:
     def get_response(self):
         """
         Get the current response.
-        
+
         Resets the in_user_interaction flag and returns the response.
         If no response is available, returns a 406 error.
-        
+
         Returns:
             The current response or a 406 error response
         """
@@ -1570,7 +1571,7 @@ class ActivityManager:
     def idleTime(self):
         """
         Get the idle time of the ActivityManager.
-        
+
         Returns:
             float: Time in seconds since the last access
         """
@@ -1579,7 +1580,7 @@ class ActivityManager:
     def fini(self):
         """
         Finalize the ActivityManager.
-        
+
         Cleans up running actions and finalizes message managers.
         """
         self.clear_running_actions()

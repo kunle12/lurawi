@@ -68,8 +68,8 @@ class user_file_upload(CustomBehaviour):
             details (dict): A dictionary containing the arguments for this behaviour.
         """
         super().__init__(kb, details)
-        self.content_types: list[str] = [] # List of allowed file extensions
-        self.data_key: str | None = None # Key to store the saved file path
+        self.content_types: list[str] = []  # List of allowed file extensions
+        self.data_key: str | None = None  # Key to store the saved file path
 
     async def run(self):
         """
@@ -81,15 +81,22 @@ class user_file_upload(CustomBehaviour):
         """
         prompt = ""
         if "type" not in self.details:
-            logger.error("user_file_upload: 'type' argument is required (e.g., 'json|txt'). Aborting.")
+            logger.error(
+                "user_file_upload: 'type' argument is required (e.g., 'json|txt'). Aborting."
+            )
             await self.failed()
             return
 
         content_types_str = self.details["type"]
         if isinstance(content_types_str, str):
-            self.content_types = [ext.strip().lower() for ext in content_types_str.split("|")]
+            self.content_types = [
+                ext.strip().lower() for ext in content_types_str.split("|")
+            ]
         else:
-            logger.error("user_file_upload: 'type' argument must be a string. Got %s. Aborting.", type(content_types_str))
+            logger.error(
+                "user_file_upload: 'type' argument must be a string. Got %s. Aborting.",
+                type(content_types_str),
+            )
             await self.failed()
             return
 
@@ -104,7 +111,9 @@ class user_file_upload(CustomBehaviour):
         self.data_key = self.parse_simple_input(key="output", check_for_type="str")
 
         if self.data_key is None:
-            logger.error("user_file_upload: missing or invalid 'output' argument (expected a string). Aborting.")
+            logger.error(
+                "user_file_upload: missing or invalid 'output' argument (expected a string). Aborting."
+            )
             await self.failed()
             return
 
@@ -125,20 +134,24 @@ class user_file_upload(CustomBehaviour):
                     sample = ["hello {}, good {}", ["KB_KEY1", "KB_KEY2"]]
                     logger.error(
                         "user_file_upload: Invalid prompt format %s. Expected format: %s",
-                        prompt_arg, sample
+                        prompt_arg,
+                        sample,
                     )
                     prompt = ""
             elif isinstance(prompt_arg, str):
                 prompt = prompt_arg
             else:
-                logger.error("user_file_upload: Invalid prompt type %s. Expected string or list.", type(prompt_arg))
+                logger.error(
+                    "user_file_upload: Invalid prompt type %s. Expected string or list.",
+                    type(prompt_arg),
+                )
                 prompt = ""
 
         if prompt == "":
             prompt = "Please upload your file"
 
-        self.register_for_user_message_updates() # Register to receive the user's file upload
-        await self.message(prompt) # Send the prompt to the user
+        self.register_for_user_message_updates()  # Register to receive the user's file upload
+        await self.message(prompt)  # Send the prompt to the user
 
     async def on_user_message_update(self, context: Dict):
         """
@@ -203,12 +216,16 @@ class user_file_upload(CustomBehaviour):
             response = urllib.request.urlopen(attachment.content_url)
             headers = response.info()
 
-            file_content_type = headers.get('content-type', '').split(';')[0].strip().lower()
-            logger.debug("user_file_upload: Uploaded file content type: %s", file_content_type)
+            file_content_type = (
+                headers.get("content-type", "").split(";")[0].strip().lower()
+            )
+            logger.debug(
+                "user_file_upload: Uploaded file content type: %s", file_content_type
+            )
 
             # Determine file extension from attachment name or content type
             fn, ext = os.path.splitext(attachment.name)
-            actual_ext = ext[1:].lower() if ext else ''
+            actual_ext = ext[1:].lower() if ext else ""
 
             # Special handling for JSON content type if it's a buffer
             data = None
@@ -221,12 +238,21 @@ class user_file_upload(CustomBehaviour):
                 try:
                     # Assuming JSON content might be a buffer representation
                     json_data = json.load(response)
-                    if isinstance(json_data, dict) and "type" in json_data and json_data["type"] == "Buffer" and "data" in json_data:
+                    if (
+                        isinstance(json_data, dict)
+                        and "type" in json_data
+                        and json_data["type"] == "Buffer"
+                        and "data" in json_data
+                    ):
                         data = bytes(json_data["data"])
                     else:
-                        data = json.dumps(json_data).encode('utf-8') # Re-encode if it's just JSON content
+                        data = json.dumps(json_data).encode(
+                            "utf-8"
+                        )  # Re-encode if it's just JSON content
                 except Exception as e:
-                    logger.error("user_file_upload: Failed to parse JSON attachment: %s", e)
+                    logger.error(
+                        "user_file_upload: Failed to parse JSON attachment: %s", e
+                    )
                     await self.message(f"Error parsing JSON file {attachment.name}.")
                     return False
             else:
@@ -236,7 +262,10 @@ class user_file_upload(CustomBehaviour):
                         f"Uploaded file '{attachment.name}' has an unsupported extension '.{actual_ext}'. Expected types: {', '.join(self.content_types)}."
                     )
                     return False
-                elif not actual_ext and file_content_type.split('/')[-1] not in self.content_types:
+                elif (
+                    not actual_ext
+                    and file_content_type.split("/")[-1] not in self.content_types
+                ):
                     # Fallback check if no extension but content type matches
                     await self.message(
                         f"Uploaded file '{attachment.name}' has an unsupported content type '{file_content_type}'. Expected types: {', '.join(self.content_types)}."
@@ -245,15 +274,25 @@ class user_file_upload(CustomBehaviour):
                 data = response.read()
 
             if data is None:
-                await self.message(f"Could not read data from uploaded file {attachment.name}.")
+                await self.message(
+                    f"Could not read data from uploaded file {attachment.name}."
+                )
                 return False
 
         except urllib.error.URLError as url_err:
-            logger.error("user_file_upload: URL Error receiving file %s: %s", attachment.name, url_err)
+            logger.error(
+                "user_file_upload: URL Error receiving file %s: %s",
+                attachment.name,
+                url_err,
+            )
             await self.message(f"Error receiving file {attachment.name}: {url_err}")
             return False
         except Exception as exception:
-            logger.error("user_file_upload: Unexpected error receiving file %s: %s", attachment.name, exception)
+            logger.error(
+                "user_file_upload: Unexpected error receiving file %s: %s",
+                attachment.name,
+                exception,
+            )
             await self.message(f"Error receiving file {attachment.name}: {exception}")
             return False
 
@@ -268,18 +307,21 @@ class user_file_upload(CustomBehaviour):
                     "image/png": ".png",
                     "image/jpeg": ".jpeg",
                     "application/pdf": ".pdf",
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx"
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
                 }
-                file_extension = mime_to_ext.get(file_content_type, '')
+                file_extension = mime_to_ext.get(file_content_type, "")
                 if not file_extension:
-                    logger.warning("user_file_upload: Could not infer file extension from content type '%s'.", file_content_type)
+                    logger.warning(
+                        "user_file_upload: Could not infer file extension from content type '%s'.",
+                        file_content_type,
+                    )
 
             local_filename = f"{base_filename}{file_extension}"
             i = 1
 
             if "AzureWebJobsStorage" in os.environ:
                 connect_string = os.environ["AzureWebJobsStorage"]
-                container_name = "botuploads" # Standard container for uploads
+                container_name = "botuploads"  # Standard container for uploads
                 blob_name = local_filename
 
                 blob = BlobClient.from_connection_string(
@@ -296,12 +338,16 @@ class user_file_upload(CustomBehaviour):
                         blob_name=blob_name,
                     )
                     i += 1
-                blob.upload_blob(data, overwrite=True) # Overwrite if it's the same name after conflict resolution
+                blob.upload_blob(
+                    data, overwrite=True
+                )  # Overwrite if it's the same name after conflict resolution
                 saved_path = f"azureblob://{container_name}/{blob_name}"
             else:
                 # Save locally
-                upload_dir = os.path.join(os.getcwd(), "uploads") # Create an 'uploads' directory
-                os.makedirs(upload_dir, exist_ok=True) # Ensure directory exists
+                upload_dir = os.path.join(
+                    os.getcwd(), "uploads"
+                )  # Create an 'uploads' directory
+                os.makedirs(upload_dir, exist_ok=True)  # Ensure directory exists
 
                 local_file_path = os.path.join(upload_dir, local_filename)
                 while os.path.exists(local_file_path):
@@ -315,7 +361,9 @@ class user_file_upload(CustomBehaviour):
 
         except Exception as e:
             logger.error(
-                "user_file_upload: Unable to save uploaded file %s: %s", attachment.name, e
+                "user_file_upload: Unable to save uploaded file %s: %s",
+                attachment.name,
+                e,
             )
             await self.message(
                 f"Unable to save uploaded file {attachment.name}, error={e}"

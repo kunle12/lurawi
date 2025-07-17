@@ -126,7 +126,7 @@ if __name__ == "__main__":
     content = parse_custom_scripts(args.datadir)
     if content != "":
         try:
-            with open(outputname, "w", encoding='utf-8') as file:
+            with open(outputname, "w", encoding="utf-8") as file:
                 file.write(
                     '<xml xmlns="http://www.w3.org/1999/xhtml" id="scriptlib" style="display: none;">\n'
                 )

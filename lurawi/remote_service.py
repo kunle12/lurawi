@@ -16,22 +16,23 @@ from lurawi.utils import logger
 class RemoteService(TimerClient):
     """
     Base class for remote services in the Lurawi system.
-    
+
     This class provides common functionality for services that need to:
     - Be initialized and finalized
     - Be started and stopped
     - Register for and receive timer events
-    
+
     Inherits from:
         TimerClient: For receiving timer events
     """
+
     def __init__(self, owner):
         """
         Initialize a new RemoteService.
-        
+
         Args:
             owner: The owner object that contains the knowledge base
-            
+
         Note:
             This initializes the service but does not start it.
             Call init() to initialize and start() to start the service.
@@ -46,10 +47,10 @@ class RemoteService(TimerClient):
     def init(self):
         """
         Initialize the service.
-        
+
         This method should be overridden by subclasses to perform
         service-specific initialization.
-        
+
         Returns:
             bool: True if the service is initialized, False otherwise
         """
@@ -58,9 +59,9 @@ class RemoteService(TimerClient):
     def start(self):
         """
         Start the service.
-        
+
         The service will only start if it has been successfully initialized.
-        
+
         Returns:
             None
         """
@@ -70,10 +71,10 @@ class RemoteService(TimerClient):
     def stop(self):
         """
         Stop the service.
-        
+
         This stops the service from running but does not finalize it.
         The service can be restarted by calling start() again.
-        
+
         Returns:
             None
         """
@@ -83,7 +84,7 @@ class RemoteService(TimerClient):
     def is_initialised(self):
         """
         Check if the service is initialized.
-        
+
         Returns:
             bool: True if the service is initialized, False otherwise
         """
@@ -93,7 +94,7 @@ class RemoteService(TimerClient):
     def is_running(self):
         """
         Check if the service is currently running.
-        
+
         Returns:
             bool: True if the service is running, False otherwise
         """
@@ -102,13 +103,13 @@ class RemoteService(TimerClient):
     def register_for_timer(self, interval: int):
         """
         Register for timer events at the specified interval.
-        
+
         Args:
             interval (int): The interval in seconds between timer events
-            
+
         Returns:
             int: The timer ID if successful, None if the interval is invalid
-            
+
         Note:
             The timer ID can be used to cancel the timer later using cancel_timer()
         """
@@ -123,13 +124,13 @@ class RemoteService(TimerClient):
     async def on_timer_lapsed(self, tid):
         """
         Handle timer lapsed events.
-        
+
         This method is called when a timer has completed all its repetitions.
         It removes the timer ID from the list of active timers.
-        
+
         Args:
             tid (int): The ID of the timer that lapsed
-            
+
         Returns:
             None
         """
@@ -139,10 +140,10 @@ class RemoteService(TimerClient):
     def cancel_timer(self, tid):
         """
         Cancel a specific timer.
-        
+
         Args:
             tid (int): The ID of the timer to cancel
-            
+
         Returns:
             None
         """
@@ -153,7 +154,7 @@ class RemoteService(TimerClient):
     def cancel_timers(self):
         """
         Cancel all timers registered by this service.
-        
+
         Returns:
             None
         """
@@ -164,14 +165,14 @@ class RemoteService(TimerClient):
     def fini(self):
         """
         Finalize the service.
-        
+
         This method:
         1. Stops the service if it's running
         2. Cancels all timers
         3. Marks the service as not initialized
-        
+
         This method should be called when the service is no longer needed.
-        
+
         Returns:
             None
         """

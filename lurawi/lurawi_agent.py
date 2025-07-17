@@ -83,8 +83,7 @@ class LurawiAgent(object):
                 return True
         except Exception as err:
             logger.error(
-                "load_knowledge: unable to load knowledge file '%s':%s",
-                kbase_path, err
+                "load_knowledge: unable to load knowledge file '%s':%s", kbase_path, err
             )
             return False
 
@@ -111,7 +110,7 @@ class LurawiAgent(object):
             else:
                 logger.error(
                     "load_behaviours: no custom behaviour file %s is provided.",
-                    behaviour_file
+                    behaviour_file,
                 )
                 return loaded_behaviours
         except Exception as err:

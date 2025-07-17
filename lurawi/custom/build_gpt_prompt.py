@@ -133,7 +133,8 @@ class build_gpt_prompt(CustomBehaviour):
                     doc_token_size -= mesg_token_size - max_tokens
                     logger.warning(
                         "build_gpt_prompt: total prompt token size %d exceeds max allowed token size %d, clipping the search doc.",
-                        mesg_token_size, max_tokens
+                        mesg_token_size,
+                        max_tokens,
                     )
                     clipped_docs = cut_string(s=documents, n_tokens=doc_token_size - 10)
                     user_content = [
@@ -148,7 +149,8 @@ class build_gpt_prompt(CustomBehaviour):
                 else:  # it seems our user prompt is also too big
                     logger.error(
                         "build_gpt_prompt: total prompt token size %d exceeds max allowed token size %d, trim down system and user prompt.",
-                        mesg_token_size, max_tokens
+                        mesg_token_size,
+                        max_tokens,
                     )
                     await self.failed()
                     return

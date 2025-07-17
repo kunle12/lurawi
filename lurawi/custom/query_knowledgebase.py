@@ -87,7 +87,7 @@ class query_knowledgebase(CustomBehaviour):
             if knowledge_key not in self.kb:
                 logger.error(
                     "query_knowledgebase: cannot find %s key in the knowledge base. Aborting.",
-                    self.details['knowledge_key']
+                    self.details["knowledge_key"],
                 )
                 await self.failed()
                 return
@@ -102,14 +102,15 @@ class query_knowledgebase(CustomBehaviour):
                     except json.JSONDecodeError:
                         logger.error(
                             "query_knowledgebase: knowledge[%s] is a string but not valid JSON. Aborting.",
-                            knowledge_key
+                            knowledge_key,
                         )
                         await self.failed()
                         return
                 elif not isinstance(knowledge_variable, dict):
                     logger.error(
                         "query_knowledgebase: knowledge[%s] is not a dictionary. Got %s. Aborting.",
-                        knowledge_key, type(knowledge_variable)
+                        knowledge_key,
+                        type(knowledge_variable),
                     )
                     await self.failed()
                     return
@@ -135,11 +136,14 @@ class query_knowledgebase(CustomBehaviour):
                                 await self.failed()
                                 return
                             else:
-                                input_arg = input_arg[0] # Take the first item if it's a list
+                                input_arg = input_arg[
+                                    0
+                                ]  # Take the first item if it's a list
                     else:
                         logger.error(
                             "query_knowledgebase: query_arg dict '%s' does not contain query key '%s'. Aborting.",
-                            self.details.get('query_arg'), self.details.get('query_key')
+                            self.details.get("query_arg"),
+                            self.details.get("query_key"),
                         )
                         await self.failed()
                         return
@@ -148,21 +152,29 @@ class query_knowledgebase(CustomBehaviour):
 
                 if "phrase_match" in self.details and self.details["phrase_match"]:
                     # Perform phrase matching
-                    for t, act in knowledge_variable.items(): # Use .items() for Python 3
+                    for (
+                        t,
+                        act,
+                    ) in knowledge_variable.items():  # Use .items() for Python 3
                         if "phrases" in act and isinstance(act["phrases"], list):
-                            if input_arg.lower() in [p.lower() for p in act["phrases"]]:  # force to lower cases.
+                            if input_arg.lower() in [
+                                p.lower() for p in act["phrases"]
+                            ]:  # force to lower cases.
                                 found = act
                                 if "phrase_match_key" in self.details and isinstance(
                                     self.details["phrase_match_key"], str
                                 ):
                                     self.kb[self.details["phrase_match_key"]] = t
                                 else:
-                                    self.kb["PHRASE_MATCH_KEY"] = t # Default key for phrase match
+                                    self.kb["PHRASE_MATCH_KEY"] = (
+                                        t  # Default key for phrase match
+                                    )
                                 break
                         else:
                             logger.warning(
                                 "query_knowledgebase: no 'phrases' list found in kb['%s']['%s'] for phrase matching.",
-                                knowledge_key, t
+                                knowledge_key,
+                                t,
                             )
                 else:
                     # Direct key lookup
@@ -175,7 +187,10 @@ class query_knowledgebase(CustomBehaviour):
 
             if found is None:
                 self.kb["UNKNOWN_QUERY"] = input_arg
-                logger.info("query_knowledgebase: No match found for query '%s'. Storing in UNKNOWN_QUERY.", input_arg)
+                logger.info(
+                    "query_knowledgebase: No match found for query '%s'. Storing in UNKNOWN_QUERY.",
+                    input_arg,
+                )
                 await self.failed()
             else:
                 self.kb["KNOWN_QUERY"] = input_arg
@@ -184,9 +199,11 @@ class query_knowledgebase(CustomBehaviour):
                 ):
                     self.kb[self.details["query_output"]] = found
                 else:
-                    self.kb["QUERY_OUTPUT"] = found # Default output key
+                    self.kb["QUERY_OUTPUT"] = found  # Default output key
                 logger.debug("query_knowledgebase: Query successful. Result: %s", found)
                 await self.succeeded()
         else:
-            logger.error("query_knowledgebase: 'knowledge_key' argument is required. Aborting.")
+            logger.error(
+                "query_knowledgebase: 'knowledge_key' argument is required. Aborting."
+            )
             await self.failed()

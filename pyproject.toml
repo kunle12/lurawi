@@ -13,10 +13,10 @@ readme = "README.md"
 requires-python = ">=3.10"
 
 dependencies = [
-  "requests", "simplejson", "pandas", "langchain", "openai",
+  "requests", "simplejson", "pandas", "chromadb", "openai",
   "fastapi", "boto3", "azure-storage-blob", "tiktoken",
   "pyjwt", "aiofiles", "pycryptodome", "autogen-agentchat",
-  "multi-agent-orchestrator"
+  "multi-agent-orchestrator", "llama-cpp-python"
 ]
 
 classifiers = [

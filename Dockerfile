@@ -1,5 +1,10 @@
 FROM python:3.12-slim-bookworm
 
+RUN apt-get update && apt-get install -y \
+    cmake \
+    g++ \
+    gcc
+
 ARG USERNAME=lurawi
 ARG USER_UID=1000
 ARG USER_GID=${USER_UID}

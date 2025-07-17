@@ -2,6 +2,7 @@
 This module defines the GetConversationStream handler for retrieving real-time
 conversation data in development mode.
 """
+
 from fastapi.responses import StreamingResponse
 from lurawi.webhook_handler import WebhookHandler
 from lurawi.utils import is_indev, get_dev_stream_handler, set_dev_stream_handler

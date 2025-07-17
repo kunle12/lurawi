@@ -70,24 +70,30 @@ class send_data_to_service_bus(CustomBehaviour):
             connect_str = os.environ["ServiceBusConnStr"]
 
         if connect_str is None:
-            logger.error("send_data_to_service_bus: missing or invalid connect_str (not found in args or environment variable 'ServiceBusConnStr'). Aborting.")
+            logger.error(
+                "send_data_to_service_bus: missing or invalid connect_str (not found in args or environment variable 'ServiceBusConnStr'). Aborting."
+            )
             await self.failed()
             return
 
-        if connect_str in self.kb: # Resolve connect_str from KB if it's a key
+        if connect_str in self.kb:  # Resolve connect_str from KB if it's a key
             connect_str = self.kb[connect_str]
 
         queue = self.parse_simple_input(key="queue", check_for_type="str")
 
         if queue is None:
-            logger.error("send_data_to_service_bus: missing or invalid 'queue' argument (expected a string). Aborting.")
+            logger.error(
+                "send_data_to_service_bus: missing or invalid 'queue' argument (expected a string). Aborting."
+            )
             await self.failed()
             return
 
         payload = self.parse_simple_input(key="payload", check_for_type="dict")
 
         if payload is None:
-            logger.error("send_data_to_service_bus: missing or invalid 'payload' argument (expected a dictionary). Aborting.")
+            logger.error(
+                "send_data_to_service_bus: missing or invalid 'payload' argument (expected a dictionary). Aborting."
+            )
             await self.failed()
             return
 
@@ -101,7 +107,8 @@ class send_data_to_service_bus(CustomBehaviour):
                     keys = value[1]
                     if not isinstance(keys, list):
                         logger.error(
-                            "send_data_to_service_bus: invalid payload: invalid composite value format for key '%s'", k
+                            "send_data_to_service_bus: invalid payload: invalid composite value format for key '%s'",
+                            k,
                         )
                         await self.failed()
                         return
@@ -127,10 +134,16 @@ class send_data_to_service_bus(CustomBehaviour):
                     # Send one message
                     message = ServiceBusMessage(json.dumps(payload_resolved))
                     await sender.send_messages(message)
-                    logger.info("send_data_to_service_bus: Message sent successfully to queue '%s'.", queue)
+                    logger.info(
+                        "send_data_to_service_bus: Message sent successfully to queue '%s'.",
+                        queue,
+                    )
                     await self.succeeded()
         except Exception as err:
-            logger.error("send_data_to_service_bus: Failed to send message to Service Bus: %s", err)
-            self.kb["ERROR_MESSAGE"] = str(err) # Store error message in KB
+            logger.error(
+                "send_data_to_service_bus: Failed to send message to Service Bus: %s",
+                err,
+            )
+            self.kb["ERROR_MESSAGE"] = str(err)  # Store error message in KB
             await self.failed()
-            self.kb["ERROR_MESSAGE"] = "" # Clear error message after handling
+            self.kb["ERROR_MESSAGE"] = ""  # Clear error message after handling

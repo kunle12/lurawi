@@ -25,8 +25,8 @@ from version import VERSION
 REQUIRED_ENVIRONMENT_VARIABLES = ["PROJECT_NAME", "PROJECT_ACCESS_KEY"]
 
 CUSTOM_FUNCTION_TEMPLATE = '''
-from ..custom_behaviour import CustomBehaviour
-from ..utils import logger
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 class {{function_template}}(CustomBehaviour):
     """!@brief a function template that takes in a list of items and output a string.
@@ -47,14 +47,15 @@ class {{function_template}}(CustomBehaviour):
         data_list = self.parse_simple_input(key="list", check_for_type="list")
 
         if data_list is None or len(data_list) == 0:
-            logger.error(f"{{function_template}}: 'list' expected to be a non-empty list or a list variable. Got {self.details}. Aborting")
+            logger.error(f"{{function_template}}: 'list' expected to be a non-empty list or a list variable. Got %s. Aborting",
+                self.details)
             await self.failed()
             return
 
         output = self.parse_simple_input(key="output", check_for_type="str")
 
         if output is None:
-            logger.error(f"{{function_template}}: 'output' (str) must be a variable name Got {self.details}. Aborting")
+            logger.error(f"{{function_template}}: 'output' (str) must be a variable name Got %s. Aborting", self.details)
             await self.failed()
             return
         

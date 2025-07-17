@@ -71,7 +71,9 @@ class send_data_to_url(CustomBehaviour):
         url = self.parse_simple_input(key="url", check_for_type="str")
 
         if url is None:
-            logger.error("send_data_to_url: missing or invalid 'url' argument (expected a string). Aborting.")
+            logger.error(
+                "send_data_to_url: missing or invalid 'url' argument (expected a string). Aborting."
+            )
             await self.failed()
             return
 
@@ -80,7 +82,9 @@ class send_data_to_url(CustomBehaviour):
         payload = self.parse_simple_input(key="payload", check_for_type="dict")
 
         if payload is None:
-            logger.error("send_data_to_url: missing or invalid 'payload' argument (expected a dictionary). Aborting.")
+            logger.error(
+                "send_data_to_url: missing or invalid 'payload' argument (expected a dictionary). Aborting."
+            )
             await self.failed()
             return
 
@@ -94,7 +98,8 @@ class send_data_to_url(CustomBehaviour):
                     keys = value[1]
                     if not isinstance(keys, list):
                         logger.error(
-                            "send_data_to_url: invalid payload: invalid composite value format for key '%s'", k
+                            "send_data_to_url: invalid payload: invalid composite value format for key '%s'",
+                            k,
                         )
                         await self.failed()
                         return
@@ -112,14 +117,16 @@ class send_data_to_url(CustomBehaviour):
 
         logger.debug("final payload to send %s", payload_resolved)
 
-        headers = {"Content-Type": "application/json"} # Default headers
+        headers = {"Content-Type": "application/json"}  # Default headers
         if "headers" in self.details:
             input_headers = self.details["headers"]
             if isinstance(input_headers, str) and input_headers in self.kb:
                 input_headers = self.kb[input_headers]
 
             if not isinstance(input_headers, dict):
-                logger.error("send_data_to_url: invalid 'headers' argument (expected a dictionary). Aborting.")
+                logger.error(
+                    "send_data_to_url: invalid 'headers' argument (expected a dictionary). Aborting."
+                )
                 await self.failed()
                 return
 
@@ -131,7 +138,9 @@ class send_data_to_url(CustomBehaviour):
                     headers[k] = v
 
             if "Content-Type" not in headers:
-                headers["Content-Type"] = "application/json" # Ensure default content type if not overridden
+                headers["Content-Type"] = (
+                    "application/json"  # Ensure default content type if not overridden
+                )
 
         use_put = self.parse_simple_input(key="use_put", check_for_type="bool")
 
@@ -157,9 +166,13 @@ class send_data_to_url(CustomBehaviour):
                     self.kb["ERROR_MESSAGE"] = data
                 elif isinstance(data, dict) and "message" in data:
                     self.kb["ERROR_MESSAGE"] = data["message"]
-            logger.error("send_data_to_url: Failed to send data. Status: %s, Data: %s", status, data)
+            logger.error(
+                "send_data_to_url: Failed to send data. Status: %s, Data: %s",
+                status,
+                data,
+            )
             await self.failed()
-            self.kb["ERROR_MESSAGE"] = "" # Clear error message after handling
+            self.kb["ERROR_MESSAGE"] = ""  # Clear error message after handling
         else:
             # Store return data if specified, or use default key
             if (

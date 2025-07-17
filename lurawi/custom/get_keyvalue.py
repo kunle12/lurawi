@@ -59,14 +59,17 @@ class get_keyvalue(CustomBehaviour):
         found = None
         if isinstance(self.details, dict) and "key" in self.details:
             query_key = self.details["key"]
-            store_obj = self.kb # Default store is the knowledge base itself
+            store_obj = self.kb  # Default store is the knowledge base itself
 
             if "store" in self.details:
                 skey = self.details["store"]
                 if skey in self.kb:  # If 'store' arg is a key in the knowledge base
                     store_obj = self.kb[skey]
                 else:
-                    logger.error("get_keyvalue: 'store' key '%s' not found in knowledge base. Aborting.", skey)
+                    logger.error(
+                        "get_keyvalue: 'store' key '%s' not found in knowledge base. Aborting.",
+                        skey,
+                    )
                     await self.failed()
                     return
 
@@ -78,23 +81,29 @@ class get_keyvalue(CustomBehaviour):
             if isinstance(store_obj, dict) and query_key in store_obj:
                 found = store_obj[query_key]
             elif not isinstance(store_obj, dict):
-                logger.error("get_keyvalue: 'store' must be a dictionary. Got %s. Aborting.", type(store_obj))
+                logger.error(
+                    "get_keyvalue: 'store' must be a dictionary. Got %s. Aborting.",
+                    type(store_obj),
+                )
                 await self.failed()
                 return
 
             if found is None:
-                logger.warning("get_keyvalue: Key '%s' not found in the specified store. Aborting.", query_key)
+                logger.warning(
+                    "get_keyvalue: Key '%s' not found in the specified store. Aborting.",
+                    query_key,
+                )
                 await self.failed()
             else:
                 # Store the found value in the knowledge base
                 if "value" in self.details and isinstance(self.details["value"], str):
                     self.kb[self.details["value"]] = found
                 else:
-                    self.kb["_VALUE_OUTPUT"] = found # Default output key
+                    self.kb["_VALUE_OUTPUT"] = found  # Default output key
                 await self.succeeded()
         else:
             logger.error(
                 "get_keyvalue: Arguments expected to be a dict with at least 'store' and 'key'. Got %s. Aborting",
-                self.details
+                self.details,
             )
             await self.failed()

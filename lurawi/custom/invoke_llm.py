@@ -110,11 +110,6 @@ class invoke_llm(CustomBehaviour):
             await self.failed()
             return
 
-        # Resolve model from KB if it's a key
-        model = self.details["model"]
-        if isinstance(model, str) and model in self.kb:
-            model = self.kb[model]
-
         prompt = self.details["prompt"]
         # Resolve prompt from KB if it's a key
         if isinstance(prompt, str) and prompt in self.kb:
@@ -143,7 +138,7 @@ class invoke_llm(CustomBehaviour):
                         )
                         await self.failed()
                         return
-                    item_payload = json.loads(json.dumps(item)) # Deep copy
+                    item_payload = json.loads(json.dumps(item))  # Deep copy
                     for k, v in item_payload.items():
                         if (
                             isinstance(v, list)
@@ -221,7 +216,7 @@ class invoke_llm(CustomBehaviour):
             logger.error("invoke_llm: failed to call Agent %s: %s", model, err)
             self.kb["ERROR_MESSAGE"] = str(err)
             await self.failed()
-            self.kb["ERROR_MESSAGE"] = "" # Clear error message after handling
+            self.kb["ERROR_MESSAGE"] = ""  # Clear error message after handling
             return
 
         if stream:

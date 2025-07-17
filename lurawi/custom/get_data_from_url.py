@@ -76,7 +76,7 @@ class get_data_from_url(CustomBehaviour):
             for k, v in params.items():
                 urlstr += f"&{k}={v}"
             if "?" not in urlstr:
-                urlstr = urlstr.replace("&", "?", 1) # Replace first '&' with '?'
+                urlstr = urlstr.replace("&", "?", 1)  # Replace first '&' with '?'
 
         headers = self.parse_simple_input(key="headers", check_for_type="dict")
 
@@ -101,7 +101,7 @@ class get_data_from_url(CustomBehaviour):
                 elif isinstance(data, dict) and "message" in data:
                     self.kb["ERROR_MESSAGE"] = data["message"]
             await self.failed()
-            self.kb["ERROR_MESSAGE"] = "" # Clear error message after handling
+            self.kb["ERROR_MESSAGE"] = ""  # Clear error message after handling
         else:
             # Store return data if specified
             if (
