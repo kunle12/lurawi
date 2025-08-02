@@ -103,14 +103,14 @@ class user_file_upload(CustomBehaviour):
         logger.debug("user_file_upload: Expected content types: %s", self.content_types)
         if not all(key in SUPPORTED_DATATYPES for key in self.content_types):
             logger.error(
-                f"user_file_upload: Unsupported file type(s) specified in 'type'. Supported: {', '.join(SUPPORTED_DATATYPES)}. Got: {self.details['type']}. Aborting."
+                "user_file_upload: Unsupported file type(s) specified in 'type'. Supported: {', '.join(SUPPORTED_DATATYPES)}. Got: {self.details['type']}. Aborting."
             )
             await self.failed()
             return
 
-        self.data_key = self.parse_simple_input(key="output", check_for_type="str")
+        self.data_key = self.details.get("output")
 
-        if self.data_key is None:
+        if not self.data_key or not isinstance(self.data_key, str):
             logger.error(
                 "user_file_upload: missing or invalid 'output' argument (expected a string). Aborting."
             )

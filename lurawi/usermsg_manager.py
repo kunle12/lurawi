@@ -31,7 +31,7 @@ class UserMessageListener:
         if they need specific initialization logic.
         """
 
-    async def on_user_message_update(self, context: Dict = {}):
+    async def on_user_message_update(self, context: Dict):
         """
         Handles incoming user message updates.
 
@@ -119,6 +119,7 @@ class UserMessageUpdateManager:
             callable_obj (UserMessageListener): The object to deregister.
         """
         found = None
+        #raise ValueError(f"deregister listener: {callable_obj}")
         for i, (k, v) in enumerate(self.listeners):
             if k == callable_obj:
                 found = i

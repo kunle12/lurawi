@@ -62,9 +62,9 @@ class text_input(CustomBehaviour):
         """
         prompt = ""
 
-        self.data_key = self.parse_simple_input(key="output", check_for_type="str")
+        self.data_key = self.details.get("output")
 
-        if self.data_key is None:
+        if not self.data_key or not isinstance(self.data_key, str):
             logger.error(
                 "text_input: missing or invalid 'output' argument (expected a string). Aborting."
             )
@@ -104,7 +104,7 @@ class text_input(CustomBehaviour):
         self.register_for_user_message_updates()  # Register to receive the user's response
 
         if prompt:
-            await self.message(prompt)  # Send the prompt to the user
+            await self.message(data={"response": prompt})  # Send the prompt to the user
 
     async def on_user_message_update(self, context: Dict):
         """
@@ -118,12 +118,13 @@ class text_input(CustomBehaviour):
             context (Dict): The user message data context, typically containing
                             `activity.content` with the user's text.
         """
-        if self.data_key:
-            self.kb[self.data_key] = context.content
+        if "message" in context:
+            result = context["message"].strip()
+            self.kb[self.data_key] = result
             logger.debug(
                 "text_input: User input received and stored in '%s': %s",
                 self.data_key,
-                context.content,
+                result,
             )
             await self.succeeded()
         else:

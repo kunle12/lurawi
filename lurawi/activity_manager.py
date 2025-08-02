@@ -1,3 +1,5 @@
+# pylint: disable=dangerous-default-value
+
 import asyncio
 import importlib
 import random
@@ -8,7 +10,6 @@ from typing import Dict
 from threading import Lock as mutex
 import simplejson as json
 
-from discord import Message as DiscordMessage
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from .calculate import calculate
@@ -28,7 +29,7 @@ class ActivityManager:
     suspending, and resuming actions.
     """
 
-    def __init__(self, uid, name, behaviour, knowledge):
+    def __init__(self, uid: str, name: str, behaviour, knowledge: Dict):
         """
         Initialize the ActivityManager with user information and behaviours.
 
@@ -38,7 +39,7 @@ class ActivityManager:
             behaviour: Dictionary containing behaviour definitions
             knowledge: Dictionary containing knowledge base information
         """
-        super(ActivityManager, self).__init__()
+        super().__init__()
 
         self.knowledge = json.loads(json.dumps(knowledge))
         self.knowledge["USER_ID"] = uid
@@ -49,6 +50,7 @@ class ActivityManager:
         self.knowledge["MODULES"] = {}
         self.knowledge["__MUTEX__"] = mutex()
         self.access_time = -1
+        self._agent_mode = uid.startswith("agent_")
 
         self.behaviours = {}
         self.resources = {}
@@ -90,6 +92,7 @@ class ActivityManager:
         self.pending_knowledge = {}
         self.on_pending_complete = None
         self.response = None
+        self._discord_message = None
         self._is_initialised = False
 
     @property
@@ -112,8 +115,8 @@ class ActivityManager:
         if self._is_initialised:
             return
 
-        self._is_initialised = True
         await self.play_next_activity()
+        self._is_initialised = True
 
     async def start_user_workflow(self, session_id: str = "", data: Dict = {}):
         """
@@ -133,7 +136,6 @@ class ActivityManager:
             return False
 
         self.knowledge["ACCESS_TIME"] = self.access_time = time.time()
-        self.clear_running_actions()
 
         await self.load_pending_behaviour_if_exists()
 
@@ -282,6 +284,7 @@ class ActivityManager:
             bool: True if workflow continued successfully
         """
         self.knowledge["ACCESS_TIME"] = self.access_time = time.time()
+        self.knowledge["USER_DATA"].update(data)
 
         if (
             activity_id and activity_id != self.knowledge["CURRENT_TURN_CONTEXT"]
@@ -1329,7 +1332,7 @@ class ActivityManager:
             action_id: Identifier for the completed action
         """
         logger.debug(
-            "on_action_completed: completed action %d Complete_cb = %s",
+            "on_action_completed: completed action %s Complete_cb = %s",
             action_id,
             self.action_complete_cb,
         )
@@ -1475,25 +1478,35 @@ class ActivityManager:
             data: Response data or stream handler
             headers: HTTP headers
         """
-        if isinstance(data, DataStreamHandler):
-            headers.update({"X-Accel-Buffering": "no"})
-            self.response = StreamingResponse(
-                data.stream_generator(),
-                headers=headers,
-                media_type="text/event-stream",
-            )
-            return
-
         context = self.knowledge["CURRENT_TURN_CONTEXT"]
-        if isinstance(context, DiscordMessage):
-            # a single discord message cannot be longer than 2000
-            out_text = data["response"]
-            while len(out_text) > 1800:
-                await context.channel.send(out_text[:1800])
-                await asyncio.sleep(0.01)
-                out_text = out_text[1801:]
-            await context.channel.send(out_text)
-            return
+        if not self._agent_mode:
+            if isinstance(data, DataStreamHandler):
+                headers.update({"X-Accel-Buffering": "no"})
+                self.response = StreamingResponse(
+                    data.stream_generator(),
+                    headers=headers,
+                    media_type="text/event-stream",
+                )
+                return
+
+            if self._discord_message is None:
+                try:
+                    from discord import ( # pylint: disable=import-outside-toplevel
+                        Message as DiscordMessage,
+                    )
+
+                    self._discord_message = DiscordMessage
+                except ImportError:
+                    logger.error("Unable to import DiscordMessage")
+            if isinstance(context, self._discord_message):
+                # a single discord message cannot be longer than 2000
+                out_text = data["response"]
+                while len(out_text) > 1800:
+                    await context.channel.send(out_text[:1800])
+                    await asyncio.sleep(0.01)
+                    out_text = out_text[1801:]
+                await context.channel.send(out_text)
+                return
 
         status_msg = "success"
         if status < 200 or status >= 300:
@@ -1501,7 +1514,7 @@ class ActivityManager:
 
         payload = {
             "status": status_msg,
-            "activity_id": self.knowledge["CURRENT_TURN_CONTEXT"],
+            "activity_id": context,
         }
         payload.update(data)
 

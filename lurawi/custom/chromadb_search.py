@@ -171,9 +171,9 @@ class chromadb_search(CustomBehaviour):
         if max_tokens > 0:
             found_doc = cut_string(s=found_doc, n_tokens=max_tokens)
 
-        output = self.parse_simple_input(key="output", check_for_type="str")
+        output = self.details.get("output")
 
-        if output:
+        if output and isinstance(output, str):
             self.kb[output] = found_doc
         self.kb["SEMANTICS_SEARCH_RESULTS"] = found_doc
         await self.succeeded()

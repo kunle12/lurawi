@@ -61,9 +61,9 @@ class random_picker(CustomBehaviour):
             await self.failed()
             return
 
-        output = self.parse_simple_input(key="output", check_for_type="str")
+        output = self.details.get("output")
 
-        if output is None:
+        if not isinstance(output, str):
             logger.error(
                 "random_picker: missing or invalid 'output' argument (expected a string). Aborting."
             )
