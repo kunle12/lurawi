@@ -198,13 +198,46 @@
 
   <!-- ----Below is Agent custom function definitions. DO NOT DELETE THIS LINE -------- -->
   <xml xmlns="http://www.w3.org/1999/xhtml" id="scriptlib" style="display: none;">
-    <cscript name="current_datetime">
-      <argument type="string">format</argument>
-      <argument type="string">output</argument>
+    <cscript name="has_keyvalue">
+      <argument type="string">store</argument>
+      <argument type="string">key</argument>
+      <argument type="action">true_action</argument>
+      <argument type="action">false_action</argument>
     </cscript>
-    <cscript name="text_input">
-      <argument type="any">prompt</argument>
-      <argument type="string">output</argument>
+    <cscript name="chromadb_search">
+      <argument type="string">base_url</argument>
+      <argument type="string">api_key</argument>
+      <argument type="string">collection</argument>
+      <argument type="string">directory</argument>
+      <argument type="string">embedding_model</argument>
+      <argument type="any">doc_data</argument>
+      <argument type="number">max_tokens</argument>
+      <argument type="string">search_text</argument>
+      <argument type="string">results</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="behaviour_router">
+      <argument type="string">select</argument>
+      <argument type="any">behaviours</argument>
+      <argument type="boolean">restricted</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="send_data_to_url">
+      <argument type="string">url</argument>
+      <argument type="any">headers</argument>
+      <argument type="any">payload</argument>
+      <argument type="boolean">use_put</argument>
+      <argument type="string">return_status</argument>
+      <argument type="string">return_data</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="validate_with_regex">
+      <argument type="string">input_text</argument>
+      <argument type="string">regex</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
     </cscript>
     <cscript name="build_gpt_prompt">
       <argument type="string">system_prompt</argument>
@@ -215,30 +248,62 @@
       <argument type="number">max_tokens</argument>
       <argument type="string">output</argument>
     </cscript>
-    <cscript name="has_keyvalue">
-      <argument type="string">store</argument>
-      <argument type="string">key</argument>
-      <argument type="action">true_action</argument>
-      <argument type="action">false_action</argument>
+    <cscript name="current_datetime">
+      <argument type="string">format</argument>
+      <argument type="string">output</argument>
     </cscript>
     <cscript name="random_picker">
       <argument type="any">list</argument>
       <argument type="string">output</argument>
     </cscript>
-    <cscript name="get_indexvalue">
-      <argument type="string">array</argument>
-      <argument type="number">index</argument>
+    <cscript name="get_data_from_url">
+      <argument type="string">url</argument>
+      <argument type="any">headers</argument>
+      <argument type="any">params</argument>
+      <argument type="string">return_status</argument>
+      <argument type="string">return_data</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="get_keyvalue">
+      <argument type="string">store</argument>
+      <argument type="string">key</argument>
       <argument type="string">value</argument>
       <argument type="action">success_action</argument>
       <argument type="action">failed_action</argument>
     </cscript>
-    <cscript name="send_data_to_url">
-      <argument type="string">url</argument>
-      <argument type="any">headers</argument>
+    <cscript name="send_data_to_service_bus">
+      <argument type="string">connect_str</argument>
+      <argument type="string">queue</argument>
       <argument type="any">payload</argument>
-      <argument type="boolean">use_put</argument>
-      <argument type="string">return_status</argument>
-      <argument type="string">return_data</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="cache_conversation_history">
+      <argument type="string">user_input</argument>
+      <argument type="string">llm_output</argument>
+      <argument type="any">history</argument>
+      <argument type="number">max_tokens</argument>
+    </cscript>
+    <cscript name="user_file_upload">
+      <argument type="string">prompt</argument>
+      <argument type="string">type</argument>
+      <argument type="string">output</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="populate_prompt">
+      <argument type="string">prompt_text</argument>
+      <argument type="any">replace</argument>
+      <argument type="string">output</argument>
+    </cscript>
+    <cscript name="query_knowledgebase">
+      <argument type="boolean">phrase_match</argument>
+      <argument type="string">knowledge_key</argument>
+      <argument type="string">query_arg</argument>
+      <argument type="string">query_key</argument>
+      <argument type="string">query_output</argument>
+      <argument type="string">phrase_match_key</argument>
       <argument type="action">success_action</argument>
       <argument type="action">failed_action</argument>
     </cscript>
@@ -254,66 +319,14 @@
       <argument type="action">success_action</argument>
       <argument type="action">failed_action</argument>
     </cscript>
-    <cscript name="query_knowledgebase">
-      <argument type="boolean">phrase_match</argument>
-      <argument type="string">knowledge_key</argument>
-      <argument type="string">query_arg</argument>
-      <argument type="string">query_key</argument>
-      <argument type="string">query_output</argument>
-      <argument type="string">phrase_match_key</argument>
-      <argument type="action">success_action</argument>
-      <argument type="action">failed_action</argument>
-    </cscript>
-    <cscript name="send_data_to_service_bus">
-      <argument type="string">connect_str</argument>
-      <argument type="string">queue</argument>
-      <argument type="any">payload</argument>
-      <argument type="action">success_action</argument>
-      <argument type="action">failed_action</argument>
-    </cscript>
-    <cscript name="validate_with_regex">
-      <argument type="string">input_text</argument>
-      <argument type="string">regex</argument>
-      <argument type="action">success_action</argument>
-      <argument type="action">failed_action</argument>
-    </cscript>
-    <cscript name="user_file_upload">
-      <argument type="string">prompt</argument>
-      <argument type="string">type</argument>
+    <cscript name="text_input">
+      <argument type="any">prompt</argument>
       <argument type="string">output</argument>
-      <argument type="action">success_action</argument>
-      <argument type="action">failed_action</argument>
     </cscript>
-    <cscript name="behaviour_router">
-      <argument type="string">select</argument>
-      <argument type="any">behaviours</argument>
-      <argument type="boolean">restricted</argument>
-      <argument type="action">failed_action</argument>
-    </cscript>
-    <cscript name="cache_conversation_history">
-      <argument type="string">user_input</argument>
-      <argument type="string">llm_output</argument>
-      <argument type="any">history</argument>
-      <argument type="number">max_tokens</argument>
-    </cscript>
-    <cscript name="get_keyvalue">
-      <argument type="string">store</argument>
-      <argument type="string">key</argument>
+    <cscript name="get_indexvalue">
+      <argument type="string">array</argument>
+      <argument type="number">index</argument>
       <argument type="string">value</argument>
-      <argument type="action">success_action</argument>
-      <argument type="action">failed_action</argument>
-    </cscript>
-    <cscript name="populate_prompt">
-      <argument type="string">prompt_text</argument>
-      <argument type="any">replace</argument>
-      <argument type="string">output</argument>
-    </cscript>
-    <cscript name="get_data_from_url">
-      <argument type="string">url</argument>
-      <argument type="any">headers</argument>
-      <argument type="any">params</argument>
-      <argument type="string">return_status</argument>
-      <argument type="string">return_data</argument>
       <argument type="action">success_action</argument>
       <argument type="action">failed_action</argument>
     </cscript>
