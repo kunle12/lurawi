@@ -14,12 +14,20 @@ These utilities are used throughout the Lurawi system to provide common function
 and abstract away implementation details of various operations.
 """
 
+# pylint: disable=broad-exception-caught,global-statement,dangerous-default-value
+
+import re
 import base64
 import time
 import logging
 import os
 import string
 import random
+import tempfile
+
+from io import StringIO, BytesIO
+from typing import Dict, AsyncIterable
+
 import aiofiles as aiof
 import aiohttp
 import boto3
@@ -32,8 +40,6 @@ from azure.storage.blob import BlobClient
 from Crypto.Cipher import AES
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from io import StringIO, BytesIO
-from typing import Dict, AsyncIterable
 
 logger = logging.getLogger("lurawi")
 logger.addHandler(logging.StreamHandler())
@@ -224,9 +230,9 @@ def _encrypt_content(key, content, infile=True):
     if infile:
         tmp_file_name = f"/tmp/{''.join(random.SystemRandom().choice(string.ascii_letters+string.digits) for _ in range(8))}.enc"
 
-        file_out = open(tmp_file_name, "wb")
-        [file_out.write(x) for x in (cipher.nonce, tag, ciphertext)]
-        file_out.close()
+        with open(tmp_file_name, "wb") as file_out:
+            for x in (cipher.nonce, tag, ciphertext):
+                file_out.write(x)
         return tmp_file_name
 
     enc_data = cipher.nonce + tag + ciphertext
@@ -263,7 +269,7 @@ def time2str(time_int):
     return timestr.lstrip()
 
 
-def _get_tiktoken_tokenizer(tokenizer_name="cl100k_base", logger=None, state=None):
+def _get_tiktoken_tokenizer(tokenizer_name="cl100k_base"):
     """Get a tiktoken tokenizer instance.
 
     Args:
@@ -294,7 +300,7 @@ def calc_token_size(text: str) -> int:
     return len(_tiktokeniser.encode(text))
 
 
-def cut_string(s, n_tokens=2500, logger=None, state=None):
+def cut_string(s, n_tokens=2500):
     """Cut a string to a maximum number of tokens.
 
     Args:
@@ -375,7 +381,7 @@ def get_content_from_azure_storage(
             logger.error("unable to load '%s' from blob storage: error %s", filepath, e)
     elif os.path.exists(filepath):
         try:
-            with open(filepath, "r") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             logger.error("unable to load '%s' from local drive: error %s", filepath, e)
@@ -530,7 +536,7 @@ def get_content_from_aws_s3(filepath, container="llamservice_data", as_binary=Fa
             logger.error("unable to load '%s' from s3 storage: error %s", filepath, e)
     elif os.path.exists(filepath):
         try:
-            with open(filepath, "r") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             logger.error("unable to load '%s' from local drive: error %s", filepath, e)
@@ -710,6 +716,18 @@ async def aremove_data_from_url(headers, url, payload):
 
 
 def post_payload_to_url(url, payload, headers=None, use_put=False):
+    """Post JSON payload to a URL.
+
+    Args:
+        url: The URL to post to.
+        payload: The JSON payload to send.
+        headers: Optional dictionary of HTTP headers.
+        use_put: If True, use PUT request instead of POST.
+
+    Returns:
+        tuple: A tuple containing (status_code, json_response) if successful,
+               or (None, error) if an error occurred.
+    """
     if headers is None:
         headers = {"Content-Type": "application/json"}
     try:
@@ -717,6 +735,7 @@ def post_payload_to_url(url, payload, headers=None, use_put=False):
             r = requests.put(url, headers=headers, json=payload, verify=ssl_verify)
         else:
             r = requests.post(url, headers=headers, json=payload, verify=ssl_verify)
+        r.raise_for_status()
     except Exception as err:
         logging.error("unable to send post request, error %s", err)
         return None, err
@@ -731,6 +750,16 @@ def post_payload_to_url(url, payload, headers=None, use_put=False):
 
 
 def write_http_response(status, body_dict, headers={}):
+    """Create a FastAPI JSONResponse.
+
+    Args:
+        status: HTTP status code.
+        body_dict: Dictionary to be converted to JSON response body.
+        headers: Optional dictionary of HTTP headers.
+
+    Returns:
+        fastapi.responses.JSONResponse: The JSON response object.
+    """
     response = JSONResponse(status_code=status, content=body_dict)
     if headers:
         response.headers = headers
@@ -742,6 +771,19 @@ def write_http_response(status, body_dict, headers={}):
 
 
 def decode_json_field(data: Dict) -> Dict:
+    """Decode JSON strings within a dictionary.
+
+    Iterates through dictionary values and attempts to decode them as JSON.
+    If a key ends with "_json", it attempts to parse the value as JSON and
+    stores it under a new key without the "_json" suffix. Otherwise, the
+    key-value pair is copied as is.
+
+    Args:
+        data: The dictionary to process.
+
+    Returns:
+        Dict: A new dictionary with JSON string values decoded.
+    """
     new_dict = {}
     for k, v in data.items():
         if k.endswith("_json"):
@@ -755,11 +797,20 @@ def decode_json_field(data: Dict) -> Dict:
 
 
 def get_dev_stream_handler():
-    global _dev_stream_handler
+    """Get the development stream handler.
+
+    Returns:
+        Any: The development stream handler object.
+    """
     return _dev_stream_handler
 
 
 def set_dev_stream_handler(handler):
+    """Set the development stream handler.
+
+    Returns:
+        None.
+    """
     global _dev_stream_handler
     if _dev_stream_handler and handler is not None:
         logger.warning("set_dev_stream_handler: handler is not empty, replace.")
@@ -774,14 +825,116 @@ def check_type(value: any, type_info: str) -> bool:
 
     if expected_type is None:
         try:
-            expected_type = eval(type_info)
+            expected_type = eval(type_info)  # pylint: disable=eval-used
         except Exception as _:
             return False
 
     return isinstance(value, expected_type)
 
 
-class DataStreamHandler(object):
+def is_valid_url(url_string):
+    """
+    Checks if a string is a valid URL in most common cases using a regex.
+
+    This regex covers:
+    - Schemes: http, https, ftp (case-insensitive)
+    - Hostnames:
+        - Domain names (e.g., example.com, sub.domain.org, with dashes)
+        - Localhost
+        - IPv4 addresses (e.g., 192.168.1.1)
+    - Optional Port numbers (e.g., :8080)
+    - Optional Path, Query String, and Fragment (allowing non-whitespace characters)
+
+    Args:
+        url_string (str): The string to validate as a URL.
+
+    Returns:
+        bool: True if the string is a valid URL, False otherwise.
+    """
+    # Regex pattern to match common URL structures.
+    # re.IGNORECASE flag makes the scheme and domain case-insensitive.
+    url_regex = re.compile(
+        r"^(?:http|ftp)s?://"  # Scheme: http, https, ftp, ftps
+        r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # Domain name (e.g., example.com)
+        r"localhost|"  # localhost
+        r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # IPv4 address (e.g., 192.168.1.1)
+        r"(?::\d{2,5})?"  # Optional Port number (e.g., :8080)
+        r"(?:/?|[/?]\S+)$",  # Optional Path, Query String, or Fragment (non-space characters)
+        re.IGNORECASE,
+    )
+    return bool(url_regex.match(url_string))
+
+
+async def adownload_file_to_temp(url: str) -> str:
+    """
+    Asynchronously downloads a file from a given URL and saves it to a temporary location.
+
+    Args:
+        url (str): The URL of the file to download.
+
+    Returns:
+        str: The path to the downloaded temporary file.
+
+    Raises:
+        aiohttp.ClientError: If there's an issue with the HTTP request (e.g., connection error, bad status).
+        IOError: If there's an issue writing the file to disk.
+    """
+    temp_file_path = None  # Initialize to None for cleanup in case of early failure
+    try:
+        # Determine a suitable file extension for the temporary file
+        filename = os.path.basename(url)
+        _, ext = os.path.splitext(filename)
+        if not ext:  # If no extension in URL, use a common one or leave blank
+            ext = ".tmp"  # Fallback extension
+
+        # Create a temporary file path. aiofiles doesn't directly support tempfile.NamedTemporaryFile
+        # with its async open, so we create a path and manage the file ourselves.
+        # We ensure a unique name using tempfile.mkstemp.
+        fd, temp_file_path = tempfile.mkstemp(suffix=ext)
+        os.close(
+            fd
+        )  # Close the file descriptor immediately as aiofiles.open will handle it
+
+        logger.info(
+            "Attempting to download from: %s and save to %s", url, temp_file_path
+        )
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
+
+                # Open the temporary file asynchronously in binary write mode
+                async with aiof.open(temp_file_path, mode="wb") as f:
+                    # Stream the download in chunks
+                    async for chunk in response.content.iter_chunked(8192):
+                        await f.write(chunk)
+
+        logger.info("File downloaded successfully to: %s", temp_file_path)
+        return temp_file_path
+
+    except aiohttp.ClientError as err:
+        logger.error("Error during async download from %s: %s", url, err)
+        # Clean up the temporary file if it was created but download failed
+        if temp_file_path and os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+        raise
+    except IOError as err:
+        logger.error(
+            "Error writing file to temporary location %s: %s", temp_file_path, err
+        )
+        # Clean up the temporary file if it was created but writing failed
+        if temp_file_path and os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+        raise
+    except Exception as err:
+        logger.error("An unexpected error occurred: %s", err)
+        # General cleanup for any other unexpected errors
+        if temp_file_path and os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+        raise
+
+
+class DataStreamHandler:
     """Handler for streaming data from LLM responses.
 
     This class processes streaming responses from language models

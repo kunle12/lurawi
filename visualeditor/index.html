@@ -198,6 +198,13 @@
 
   <!-- ----Below is Agent custom function definitions. DO NOT DELETE THIS LINE -------- -->
   <xml xmlns="http://www.w3.org/1999/xhtml" id="scriptlib" style="display: none;">
+    <cscript name="file_loader">
+      <argument type="string">file_location</argument>
+      <argument type="string">file_type</argument>
+      <argument type="string">output</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
     <cscript name="has_keyvalue">
       <argument type="string">store</argument>
       <argument type="string">key</argument>

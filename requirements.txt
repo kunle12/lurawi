@@ -20,3 +20,5 @@ bs4
 discord.py
 mkdocs-material
 build
+pdf2image
+pillow

@@ -183,6 +183,9 @@ class invoke_llm(CustomBehaviour):
                     resolved_prompts.append(item_payload)
                 prompt = resolved_prompts
 
+        if isinstance(prompt, str):
+            prompt = [{"role": "user", "content": prompt}]
+
         temperature = self.parse_simple_input(key="temperature", check_for_type="float")
 
         if temperature is None:

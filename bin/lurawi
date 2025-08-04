@@ -47,7 +47,7 @@ class {{function_template}}(CustomBehaviour):
         data_list = self.parse_simple_input(key="list", check_for_type="list")
 
         if data_list is None or len(data_list) == 0:
-            logger.error(f"{{function_template}}: 'list' expected to be a non-empty list or a list variable. Got %s. Aborting",
+            logger.error("{{function_template}}: 'list' expected to be a non-empty list or a list variable. Got %s. Aborting",
                 self.details)
             await self.failed()
             return
@@ -55,7 +55,7 @@ class {{function_template}}(CustomBehaviour):
         output = self.parse_simple_input(key="output", check_for_type="str")
 
         if output is None:
-            logger.error(f"{{function_template}}: 'output' (str) must be a variable name Got %s. Aborting", self.details)
+            logger.error("{{function_template}}: 'output' (str) must be a variable name Got %s. Aborting", self.details)
             await self.failed()
             return
         
