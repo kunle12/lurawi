@@ -83,8 +83,7 @@ class file_loader(CustomBehaviour):
         """
 
         def _encode_image_base64(
-            image: Image,
-            format: Literal["PNG", "JPEG"] = "PNG",  # pylint: disable=redefined-builtin
+            image: Image
         ) -> str:
             """
             Encodes a PIL Image object into a base64 string.
@@ -98,7 +97,7 @@ class file_loader(CustomBehaviour):
                 str: The base64 encoded string of the image.
             """
             buffer = BytesIO()
-            image.save(buffer, format)
+            image.save(buffer, "PNG")
             buffer.seek(0)
             return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
@@ -116,19 +115,14 @@ class file_loader(CustomBehaviour):
         downloaded_file = False
 
         if os.path.isfile(file_location):
-            if not os.path.exists(file_location):
-                logger.error(
-                    "file_loader: invalid file path %s. Aborting", file_location
-                )
-                await self.failed()
-                return
+            logger.debug("file_loader: loading file path %s", file_location)
         elif is_valid_url(file_location):
             try:
                 file_location = await adownload_file_to_temp(url=file_location)
                 downloaded_file = True
-            except Exception as _:
+            except Exception as err:
                 logger.error(
-                    "file_loader: unable to download %s. Aborting", file_location
+                    "file_loader: unable to download %s: %s", file_location, err
                 )
                 await self.failed()
                 return
@@ -148,18 +142,18 @@ class file_loader(CustomBehaviour):
                     self.kb[output_location] = f.read()
             elif file_type == "png":
                 image = Image.open(file_location, formats=["PNG"])
-                self.kb[output_location] = {
+                self.kb[output_location] = [{
                     "type": "image_url",
                     "image_url": {
                         "url": f"data:image/png;base64,{_encode_image_base64(image=image)}"
                     },
-                }
+                }]
             elif file_type == "jpeg":
-                image = Image.open(file_location, formats=["JPEG"])
+                image = Image.open(file_location)
                 self.kb[output_location] = {
                     "type": "image_url",
                     "image_url": {
-                        "url": f"data:image/jpeg;base64,{_encode_image_base64(image=image,format="JPEG")}"
+                        "url": f"data:image/png;base64,{_encode_image_base64(image=image)}"
                     },
                 }
             elif file_type == "pdf":

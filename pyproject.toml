@@ -16,7 +16,8 @@ dependencies = [
   "requests", "simplejson", "pandas", "chromadb", "openai",
   "fastapi", "boto3", "azure-storage-blob", "tiktoken",
   "pyjwt", "aiofiles", "pycryptodome", "autogen-agentchat",
-  "multi-agent-orchestrator", "llama-cpp-python", "aiohttp"
+  "multi-agent-orchestrator", "llama-cpp-python", "aiohttp",
+  "pillow", "pdf2image"
 ]
 
 classifiers = [

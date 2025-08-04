@@ -73,6 +73,8 @@ PYTHON_TYPE_MAPPING = {
     "frozenset": frozenset,
 }
 
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB
+
 
 def is_indev() -> bool:
     """Check if the system is running in development mode.
@@ -512,13 +514,21 @@ async def asave_content_to_azure_storage(
 def get_content_from_aws_s3(filepath, container="llamservice_data", as_binary=False):
     """Retrieve content from AWS S3 or local file system.
 
+    This function attempts to retrieve content from an AWS S3 bucket if AWS credentials
+    are available in the environment variables. If not, it falls back to reading
+    the content from the local file system.
+
     Args:
-        filepath: Path to the file to retrieve
-        container: S3 bucket name
-        as_binary: If True, return content as bytes, otherwise as text
+        filepath (str): The path to the file to retrieve. This can be an S3 object key
+                        or a local file path.
+        container (str, optional): The name of the S3 bucket. Defaults to "llamservice_data".
+        as_binary (bool, optional): If True, the content is returned as bytes.
+                                    If False, the content is returned as text (decoded with utf-8).
+                                    Defaults to False.
 
     Returns:
-        str or bytes or None: File content if successful, None otherwise
+        Union[str, bytes, None]: The content of the file as a string or bytes if successful,
+                                 otherwise None.
     """
     content = None
     if "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ:
@@ -697,6 +707,17 @@ async def apatch_data_to_url(headers, url, payload):
 
 
 async def aremove_data_from_url(headers, url, payload):
+    """Asynchronously send a DELETE request to a URL to remove data.
+
+    Args:
+        headers: HTTP headers to include in the request.
+        url: URL to send the DELETE request to.
+        payload: JSON payload to send with the DELETE request.
+
+    Returns:
+        tuple: (status_code, response_data) if successful,
+               (None, error) if an error occurred.
+    """
     try:
         async with aiohttp.ClientSession(headers=headers) as session:
             async with session.delete(url, json=payload, ssl=ssl_verify) as r:
@@ -732,9 +753,13 @@ def post_payload_to_url(url, payload, headers=None, use_put=False):
         headers = {"Content-Type": "application/json"}
     try:
         if use_put:
-            r = requests.put(url, headers=headers, json=payload, verify=ssl_verify)
+            r = requests.put(
+                url, headers=headers, json=payload, verify=ssl_verify, timeout=10
+            )
         else:
-            r = requests.post(url, headers=headers, json=payload, verify=ssl_verify)
+            r = requests.post(
+                url, headers=headers, json=payload, verify=ssl_verify, timeout=10
+            )
         r.raise_for_status()
     except Exception as err:
         logging.error("unable to send post request, error %s", err)
@@ -748,6 +773,24 @@ def post_payload_to_url(url, payload, headers=None, use_put=False):
         result = None
     return r.status_code, result
 
+
+def get_remote_file_size(url: str) -> int:
+    """Get the size of a remote file in bytes.
+
+    Args:
+        url: The URL of the remote file.
+
+    Returns:
+        int: The size of the file in bytes if successful, -1 otherwise.
+    """
+    try:
+        response = requests.head(url, allow_redirects=True, timeout=10)
+        content_length = response.headers.get("Content-Length")
+        if content_length is not None:
+            return int(content_length)
+    except Exception as e:
+        print(f"Error checking file size: {e}")
+    return -1
 
 def write_http_response(status, body_dict, headers={}):
     """Create a FastAPI JSONResponse.
@@ -880,6 +923,11 @@ async def adownload_file_to_temp(url: str) -> str:
         IOError: If there's an issue writing the file to disk.
     """
     temp_file_path = None  # Initialize to None for cleanup in case of early failure
+    file_size = get_remote_file_size(url=url)
+
+    if file_size < 0 or file_size > MAX_FILE_SIZE_BYTES:
+        raise ValueError("file size exceeded maximum allowed 10MB")
+
     try:
         # Determine a suitable file extension for the temporary file
         filename = os.path.basename(url)
@@ -899,6 +947,7 @@ async def adownload_file_to_temp(url: str) -> str:
             "Attempting to download from: %s and save to %s", url, temp_file_path
         )
 
+        total_size = 0
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
@@ -907,6 +956,11 @@ async def adownload_file_to_temp(url: str) -> str:
                 async with aiof.open(temp_file_path, mode="wb") as f:
                     # Stream the download in chunks
                     async for chunk in response.content.iter_chunked(8192):
+                        total_size += len(chunk)
+                        if total_size > MAX_FILE_SIZE_BYTES:
+                            await f.close()
+                            os.remove(temp_file_path)
+                            raise ValueError("file size exceeded maximum allowed 10MB")
                         await f.write(chunk)
 
         logger.info("File downloaded successfully to: %s", temp_file_path)

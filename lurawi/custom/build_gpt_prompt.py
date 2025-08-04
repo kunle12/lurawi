@@ -30,6 +30,9 @@ class build_gpt_prompt(CustomBehaviour):
         history (list, optional): A list of dictionaries representing past
                                   conversation turns (e.g., `[{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]`).
                                   Defaults to an empty list.
+        media_content (list, optional): A list of media content items to be
+                                        included with the user prompt.
+                                        Defaults to an empty list.
         documents (str, optional): Relevant search results or documents to be
                                    inserted into the `user_prompt` (replaces `{docs}`).
                                    Defaults to an empty string.
@@ -48,6 +51,7 @@ class build_gpt_prompt(CustomBehaviour):
                             "user_prompt": "Based on these documents: {docs}, answer the question: {query}",
                             "query": "What is the capital of France?",
                             "history": [],
+                            "media_content": [],
                             "documents": "France is a country in Europe. Its capital is Paris.",
                             "max_tokens": 5000,
                             "output": "FINAL_LLM_PROMPT"
@@ -103,20 +107,28 @@ class build_gpt_prompt(CustomBehaviour):
             system_content = [{"role": "system", "content": system_prompt}]
 
         user_content = []
+        user_text_content = ""
         if user_prompt:
             user_query_prompt = user_prompt.replace("{query}", query)
 
             if documents:
-                user_content = [
-                    {
-                        "role": "user",
-                        "content": user_query_prompt.replace("{docs}", documents),
-                    }
-                ]
+                user_text_content = user_query_prompt.replace("{docs}", documents),
             elif "{docs}" in user_query_prompt:  # without doc
-                user_content = [{"role": "user", "content": query}]
+                user_text_content = query
             else:
-                user_content = [{"role": "user", "content": user_query_prompt}]
+                user_text_content = user_query_prompt
+
+            user_content = [{
+                "type": "text",
+                "text": user_text_content
+            }]
+
+        media_content = self.parse_simple_input(key="media_content", check_for_type="list")
+
+        if media_content:
+            user_content.extend(media_content)
+
+        user_content = [{"role": "user", "content": user_content}]
 
         outmesg = system_content + history + user_content
 
