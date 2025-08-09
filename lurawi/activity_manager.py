@@ -1,4 +1,4 @@
-# pylint: disable=dangerous-default-value
+# pylint: disable=dangerous-default-value, too-many-lines
 
 import asyncio
 import importlib
@@ -135,13 +135,10 @@ class ActivityManager:
         if self.in_user_interaction:
             return False
 
-        self.knowledge["ACCESS_TIME"] = self.access_time = time.time()
-
         await self.load_pending_behaviour_if_exists()
 
         self.knowledge["CURRENT_TURN_CONTEXT"] = str(uuid.uuid4())
         self.knowledge["CURRENT_SESSION_ID"] = session_id
-        self.knowledge["USER_DATA"] = data
 
         logger.debug(
             "workflow: receiving user %s input %s activity_id %s",
@@ -150,6 +147,8 @@ class ActivityManager:
             self.knowledge["CURRENT_TURN_CONTEXT"],
         )
         if self.engagement_action:
+            self.knowledge["ACCESS_TIME"] = self.access_time = time.time()
+            self.knowledge["USER_DATA"] = data
             return await self.play_action(
                 "workflow_engagement",
                 [self.engagement_action],
@@ -284,7 +283,7 @@ class ActivityManager:
             bool: True if workflow continued successfully
         """
         self.knowledge["ACCESS_TIME"] = self.access_time = time.time()
-        self.knowledge["USER_DATA"].update(data)
+        self.knowledge["USER_DATA"] = data
 
         if (
             activity_id and activity_id != self.knowledge["CURRENT_TURN_CONTEXT"]
@@ -380,7 +379,9 @@ class ActivityManager:
 
         return True
 
-    def select_activity(self, active_section):
+    def select_activity(
+        self, active_section
+    ):  # pylint: disable=too-many-return-statements
         """
         Select an activity based on the active section.
 
@@ -620,7 +621,9 @@ class ActivityManager:
             return
 
         self.continue_playing = True
-        action = self.active_behaviour[self.activity_index + 1]
+        action = self.active_behaviour[  # pylint: disable=unused-variable
+            self.activity_index + 1
+        ]
         # for alet in action:
         #    if alet[0] == 'delay':
         #        message = json.dumps({"node_id": "remote_control", "command":"right_no_suspension"})
@@ -700,7 +703,7 @@ class ActivityManager:
         self,
         action_id,
         action,
-        type=None,
+        action_type=None,
         complete_cb=None,
         external_notification_cb=None,
     ):
@@ -710,7 +713,7 @@ class ActivityManager:
         Args:
             action_id: Identifier for the action
             action: Action to be executed
-            type: Type of the action
+            action_type: Type of the action
             complete_cb: Callback function to be called when the action completes
             external_notification_cb: Callback function for external notification
         """
@@ -749,7 +752,7 @@ class ActivityManager:
         await self.play_or_queue_action(
             action_id=action_id,
             action=action,
-            type=act_type,
+            action_type=act_type,
             complete_cb=complete_cb,
             external_notification_cb=external_notification_cb,
             is_disruptable=True,
@@ -759,7 +762,7 @@ class ActivityManager:
         self,
         action_id,
         action,
-        type=None,
+        action_type=None,
         complete_cb=None,
         external_notification_cb=None,
         is_disruptable=False,
@@ -770,14 +773,14 @@ class ActivityManager:
         Args:
             action_id: Identifier for the action
             action: Action to be executed
-            type: Type of the action
+            action_type: Type of the action
             complete_cb: Callback function to be called when the action completes
             external_notification_cb: Callback function for external notification
             is_disruptable: Whether this action can be disrupted by other actions
         """
         if self.is_busy_after_suspension():
             found = False
-            for aid, act, ccb, encb, disrupt in self.pending_actions:
+            for aid, _, _, _, _ in self.pending_actions:
                 if aid == action_id:
                     found = True
                     break
@@ -846,7 +849,7 @@ class ActivityManager:
         self.current_action_id = action_id
         logger.debug("Playing action with id - %s", self.current_action_id)
         for index, alet in enumerate(action):
-            self.actions_lined_up = False if index == len(action) - 1 else True
+            self.actions_lined_up = index != len(action) - 1
             if alet[0] == "name":
                 logger.debug("Playing action %s(%s)", alet[1], action_id)
                 # if the action_list is just [['name','ALIVE']], action_complete_cb will be called
@@ -857,7 +860,9 @@ class ActivityManager:
 
         return True
 
-    async def play_action_let(self, alet, ignore_moves=[]):
+    async def play_action_let(
+        self, alet, ignore_moves=[]
+    ):  # pylint: disable=too-many-return-statements
         """
         Play a single action element (alet).
 
@@ -1176,7 +1181,7 @@ class ActivityManager:
                             else:
                                 logger.warning(
                                     "play_behaviour: only execute pending disruptable actions %d. purge all other pending action after current play_behaviour concludes",
-                                    aid,
+                                    disrupt_action[0],
                                 )
                                 self.pending_actions = []
                                 self.action_complete_cb = self.play_action
@@ -1367,7 +1372,7 @@ class ActivityManager:
                 next_action,
                 complete_cb,
                 external_notification_cb,
-                is_disruptable,
+                is_disruptable,  # pylint: disable=unused-variable
             ) = self.pending_actions[0]
             # NOTE is_disruptable is not used here. It is only used for play_behaviour logic
             logger.debug("start pending action - %s", next_action_id)
@@ -1425,7 +1430,6 @@ class ActivityManager:
             logger.error("missing or invalid user data %s", data)
             return
 
-        self.knowledge["USER_DATA"] = data
         self.knowledge["CURRENT_TURN_CONTEXT"] = activity_id
 
         if self.userdata_action:
@@ -1491,7 +1495,7 @@ class ActivityManager:
 
             if self._discord_message is None:
                 try:
-                    from discord import ( # pylint: disable=import-outside-toplevel
+                    from discord import (  # pylint: disable=import-outside-toplevel
                         Message as DiscordMessage,
                     )
 

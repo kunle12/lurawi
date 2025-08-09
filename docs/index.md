@@ -12,6 +12,7 @@ Lurawi is a NoCode/LowCode development environment designed for building sophist
 *   **Unified REST API Specification:** Access a comprehensive, out-of-the-box REST API. Refer to the [API Specifications](APISpecifications.md) for details.
 *   **Cloud-Ready Deployment:** Easily deploy workflows as Docker containers in environments like AWS.
 *   **Lurawi-in-a-Box:** A self-contained Docker image providing a fully functional Lurawi system for local execution, requiring only Docker Desktop.
+*   **Lurawi Agent:** Run Lurawi as an agent that can run either independently or integrate with popular agent ecosystems.
 
 The following sections provide detailed instructions on how to experiment with Lurawi using the prebuilt Docker image.
 
@@ -137,7 +138,7 @@ Click the <img src="images/console_icon.png" width="20" style="vertical-align:mi
     <figcaption>Fig. 7 Lurawi Test Console.</figcaption>
 </figure>
 
-**Note on Test Console Payload:**  
+**Note on Test Console Payload:**
 This test console is specifically designed for the following input payload structure:
 
 ```json

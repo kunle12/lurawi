@@ -8,21 +8,22 @@ and interaction with the activity manager.
 import asyncio
 import contextlib
 import os
-import simplejson as json
 import time
 import uuid
+from dataclasses import dataclass
+from typing import AsyncGenerator, List, Sequence, Optional, Any
+
+import simplejson as json
 
 from autogen_core import CancellationToken
 from autogen_agentchat.messages import AgentEvent, TextMessage, ChatMessage
 from autogen_agentchat.agents._base_chat_agent import BaseChatAgent
 from autogen_agentchat.base._chat_agent import Response
-from dataclasses import dataclass
 from multi_agent_orchestrator.agents import (
     Agent as AWSAgent,
     AgentOptions as AWSAgentOption,
 )
 from multi_agent_orchestrator.types import ConversationMessage, ParticipantRole
-from typing import AsyncGenerator, List, Dict, Sequence, Any
 
 from lurawi.utils import logger
 from lurawi.activity_manager import ActivityManager
@@ -84,7 +85,7 @@ class AsyncioLoopHandler:
             return loop.run_until_complete(coro)
 
 
-class LurawiAgent(object):
+class LurawiAgent:
     """
     Base class for Lurawi agents, providing core functionalities for agent management,
     behaviour loading, knowledge base integration, and asynchronous execution.
@@ -257,7 +258,10 @@ class LurawiAgent(object):
             return json.loads(self._activity_manager.get_response().body)["response"]
         return "System is busy, please try later."
 
-class LurawiAutoGenAgent(BaseChatAgent, LurawiAgent):
+
+class LurawiAutoGenAgent(
+    BaseChatAgent, LurawiAgent
+):  # pylint: disable=too-many-ancestors
     """
     A Lurawi agent designed to be compatible with the AutoGen framework.
 
@@ -348,7 +352,6 @@ class LurawiAutoGenAgent(BaseChatAgent, LurawiAgent):
         Args:
             cancellation_token (CancellationToken): A token to signal cancellation.
         """
-        pass  # TODO clear lurawi state
 
 
 @dataclass(kw_only=True)
@@ -394,6 +397,7 @@ class LurawiAWSAgent(AWSAgent, LurawiAgent):
         user_id: str,
         session_id: str,
         chat_history: List[ConversationMessage],
+        additional_params: Optional[dict[str, Any]] = None,
     ) -> ConversationMessage:
         """
         Processes an incoming request from the AWS multi-agent orchestrator.

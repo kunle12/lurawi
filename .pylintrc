@@ -12,10 +12,16 @@ disable=
     C0301, # line-too-long: Disable "line-too-long" warnings. Line length is frequently managed by code formatters or individual team preferences, making this warning redundant. [5, 6, 9]
     C0303, # trailing-whitespace: Disable "trailing-whitespace" warnings. Most modern code editors automatically remove trailing whitespace upon saving. [5, 6]
     C0304, # missing-final-newline: Disable "missing-final-newline" warnings. Editors often handle the presence of a final newline character. [5, 6]
+    R0801, # duplicate-code: Disable "duplicate-code" warnings. This can be noisy for small, intentionally repeated patterns (e.g., similar test cases). [1]
+    R0902, # Too many instance attributes too-many-instance-attributes
     R0903, # too-few-public-methods: Disable "too-few-public-methods" warnings. This can be noisy for simple data classes or classes designed for a single, specific purpose.
+    R0904, # Too many public methods too-many-public-methods
     R0913, # too-many-arguments: Disable "too-many-arguments" warnings. While a high number of arguments can suggest a need for refactoring, it's not always a critical error for all functions.
     R0914, # too-many-locals: Disable "too-many-locals" warnings. Similar to `too-many-arguments`, some functions might legitimately require many local variables. [3]
-    R0801, # duplicate-code: Disable "duplicate-code" warnings. This can be noisy for small, intentionally repeated patterns (e.g., similar test cases). [1]
+    R0915, # Too many statements too-many-statements
+    R0917, # Too many positional arguments too-many-positional-arguments
+    R0912, # Too many branches too-many-branches
+    R1702, # Too many nested blocks too-many-nested-blocks
     R1705, # no-else-return: Disable "no-else-return" warnings. This suggests removing an `else` block when an `if` block already has a `return` statement, which is a stylistic preference. [1]
     R1710, # inconsistent-return-statements: Disable "inconsistent-return-statements" warnings. This can occur with early exits or conditional return paths. [1]
     R1711, # useless-return: Disable "useless-return" warnings. This warns about explicit `return None` at the end of functions, which is often redundant in Python. [1, 2]
@@ -28,7 +34,6 @@ disable=
     W0511, # fixme: Disable "fixme" warnings. This warns about "FIXME", "TODO", "XXX" comments, which are often considered low-priority reminders rather than critical issues for continuous integration.
     C0123, # unidiomatic-typecheck: Disable "unidiomatic-typecheck" warnings, such as `type(x) == int` instead of `isinstance(x, int)`. [5]
     C0121, # singleton-comparison: Disable "singleton-comparison" warnings, like `x == True` instead of `x is True`. [5]
-
 [FORMAT]
 # You can still enforce some basic formatting, e.g., max line length.
 # Maximum number of characters on a single line.

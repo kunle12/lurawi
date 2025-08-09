@@ -187,7 +187,7 @@ class query_knowledgebase(CustomBehaviour):
 
             if found is None:
                 self.kb["UNKNOWN_QUERY"] = input_arg
-                logger.info(
+                logger.debug(
                     "query_knowledgebase: No match found for query '%s'. Storing in UNKNOWN_QUERY.",
                     input_arg,
                 )
