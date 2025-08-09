@@ -123,6 +123,7 @@ class LurawiAgent:
         self._activity_manager = ActivityManager(
             self.agent_id, name, self.behaviours, self.knowledge
         )
+        logger.setLevel(level="CRITICAL")
 
     def _load_knowledge(self, kbase: str) -> bool:
         """
@@ -214,7 +215,7 @@ class LurawiAgent:
         logger.info("load_behaviours: behaviours file %s is loaded!", behaviour_file)
         return loaded_behaviours
 
-    def run_agent(self, message: str, **kwargs) -> str:
+    def run_agent(self, message: str = "", **kwargs) -> str:
         """
         Synchronously runs the agent's workflow with a given message.
 
