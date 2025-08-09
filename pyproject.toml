@@ -1,10 +1,12 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=78.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "lurawi_agent"
 version = "0.0.3"
+license = { text = "Apache License 2.0" }
+
 authors = [
   { name="Xun Wang", email="wang.xun@gmail.com" },
 ]
@@ -28,6 +30,7 @@ classifiers = [
 
 [tool.setuptools]
 packages = ["lurawi", "lurawi.custom"]
+license-files = []
 
 [project.urls]
 "Homepage" = "https://github.com/kunle12/Lurawi"
