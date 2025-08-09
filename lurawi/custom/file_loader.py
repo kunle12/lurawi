@@ -3,7 +3,7 @@ This module provides the `file_loader` custom behavior for loading various file 
 into the knowledge base, including text, PDF, and image formats.
 """
 
-# pylint: disable=broad-exception-caught
+# pylint: disable=broad-exception-caught, import-error
 
 import os
 import base64
@@ -54,16 +54,6 @@ class file_loader(CustomBehaviour):
         failed_action (list, optional): Action to perform on failed file load.
     """
 
-    def __init__(self, kb, details):
-        """
-        Initializes the file_loader behavior.
-
-        Args:
-            kb: The knowledge base instance.
-            details: A dictionary containing the configuration details for this behavior.
-        """
-        super().__init__(kb, details)
-
     async def run(self):
         """
         Executes the file loading operation.
@@ -80,9 +70,7 @@ class file_loader(CustomBehaviour):
             Exception: If there is an error reading the file.
         """
 
-        def _encode_image_base64(
-            image: Image
-        ) -> str:
+        def _encode_image_base64(image: Image) -> str:
             """
             Encodes a PIL Image object into a base64 string.
 
@@ -137,15 +125,17 @@ class file_loader(CustomBehaviour):
         try:
             if file_type == "text":
                 with open(file=file_location, mode="r", encoding="utf-8") as f:
-                    self.kb[output_location] = f.read()
+                    self.kb[output_location] = [{"type": "text", "text": f"{f.read()}"}]
             elif file_type == "image":
                 image = Image.open(file_location)
-                self.kb[output_location] = [{
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/png;base64,{_encode_image_base64(image=image)}"
-                    },
-                }]
+                self.kb[output_location] = [
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{_encode_image_base64(image=image)}"
+                        },
+                    }
+                ]
             elif file_type == "pdf":
                 images = convert_from_path(file_location, fmt="png")
                 # openai image upload str style
