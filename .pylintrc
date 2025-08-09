@@ -1,0 +1,41 @@
+# .pylintrc
+# Pylint configuration file which excludes most common low-risk warnings and errors.
+
+[MESSAGES CONTROL]
+# Disable common low-risk warnings and errors.
+# Consider re-enabling some of these as your project matures or style guidelines become stricter.
+disable=
+    C0103, # invalid-name: Disable "invalid-name" warnings for naming conventions (e.g., variable, function, class names not conforming to snake_case/PascalCase). This is often subjective or handled by auto-formatters like Black. [5, 7, 9, 10]
+    C0114, # missing-module-docstring: Disable "missing-module-docstring" warnings. While docstrings are good practice, for small scripts or internal modules, this can be considered verbose. [5, 6, 7]
+    C0115, # missing-class-docstring: Disable "missing-class-docstring" warnings. Similar to module docstrings, can be noisy for simple classes. [5, 6, 7]
+    C0116, # missing-function-docstring: Disable "missing-function-docstring" warnings. Often disabled in projects that prioritize self-documenting code over explicit docstrings for every function. [5, 6, 7]
+    C0301, # line-too-long: Disable "line-too-long" warnings. Line length is frequently managed by code formatters or individual team preferences, making this warning redundant. [5, 6, 9]
+    C0303, # trailing-whitespace: Disable "trailing-whitespace" warnings. Most modern code editors automatically remove trailing whitespace upon saving. [5, 6]
+    C0304, # missing-final-newline: Disable "missing-final-newline" warnings. Editors often handle the presence of a final newline character. [5, 6]
+    R0903, # too-few-public-methods: Disable "too-few-public-methods" warnings. This can be noisy for simple data classes or classes designed for a single, specific purpose.
+    R0913, # too-many-arguments: Disable "too-many-arguments" warnings. While a high number of arguments can suggest a need for refactoring, it's not always a critical error for all functions.
+    R0914, # too-many-locals: Disable "too-many-locals" warnings. Similar to `too-many-arguments`, some functions might legitimately require many local variables. [3]
+    R0801, # duplicate-code: Disable "duplicate-code" warnings. This can be noisy for small, intentionally repeated patterns (e.g., similar test cases). [1]
+    R1705, # no-else-return: Disable "no-else-return" warnings. This suggests removing an `else` block when an `if` block already has a `return` statement, which is a stylistic preference. [1]
+    R1710, # inconsistent-return-statements: Disable "inconsistent-return-statements" warnings. This can occur with early exits or conditional return paths. [1]
+    R1711, # useless-return: Disable "useless-return" warnings. This warns about explicit `return None` at the end of functions, which is often redundant in Python. [1, 2]
+    W0613, # unused-argument: Disable "unused-argument" warnings. This is common in callbacks, interface implementations, or when arguments are required by signature but not used. [6, 12]
+    W0611, # unused-import: Disable "unused-import" warnings. This is often caught by other linters (e.g., Flakes) if used in conjunction with Pylint. [6]
+    W0603, # global-statement: Disable "global-statement" warnings. While generally discouraged, using the `global` statement is sometimes necessary in specific contexts.
+    W0104, # pointless-statement: Disable "pointless-statement" warnings. This can appear with certain domain-specific languages (DSLs) or intentional side-effects. [2]
+    W0105, # pointless-string-statement: Disable "pointless-string-statement" warnings. This applies to multiline strings that are not docstrings but serve other purposes (e.g., long SQL queries). [2]
+    W0703, # broad-except: Disable "broad-except" warnings. Catching generic `Exception` can be considered bad practice but is sometimes necessary for top-level error handling.
+    W0511, # fixme: Disable "fixme" warnings. This warns about "FIXME", "TODO", "XXX" comments, which are often considered low-priority reminders rather than critical issues for continuous integration.
+    C0123, # unidiomatic-typecheck: Disable "unidiomatic-typecheck" warnings, such as `type(x) == int` instead of `isinstance(x, int)`. [5]
+    C0121, # singleton-comparison: Disable "singleton-comparison" warnings, like `x == True` instead of `x is True`. [5]
+
+[FORMAT]
+# You can still enforce some basic formatting, e.g., max line length.
+# Maximum number of characters on a single line.
+max-line-length=100
+
+[TYPECHECK]
+# List of members which are set dynamically and missed by pylint inference system.
+# This option should be used to report members that are not found by pylint's
+# type inference but are known to exist at runtime.
+# generated-members=
