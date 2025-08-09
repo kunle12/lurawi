@@ -64,7 +64,7 @@
                     <field name="VAR" id="[(wXj4iGH=LLjQ,Cu9v%">user_message</field>
                   </block>
                 </value>
-                <value name="ARG6">
+                <value name="ARG7">
                   <block type="variables_get" id="i4bG{YZGH5LPe`)O{]C[">
                     <field name="VAR" id="Me{wCU?$Bry79xK1M/)-">prompt</field>
                   </block>

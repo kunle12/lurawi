@@ -8,7 +8,6 @@ into the knowledge base, including text, PDF, and image formats.
 import os
 import base64
 
-from typing import Literal
 from io import BytesIO
 from PIL import Image
 from pdf2image import convert_from_path
@@ -19,8 +18,7 @@ from lurawi.utils import logger, is_valid_url, adownload_file_to_temp
 SUPPORTED_FILE_TYPES = [
     "text",  # include txt, md, csv text file format
     "pdf",
-    "png",
-    "jpeg",
+    "image",
 ]
 
 
@@ -140,22 +138,14 @@ class file_loader(CustomBehaviour):
             if file_type == "text":
                 with open(file=file_location, mode="r", encoding="utf-8") as f:
                     self.kb[output_location] = f.read()
-            elif file_type == "png":
-                image = Image.open(file_location, formats=["PNG"])
+            elif file_type == "image":
+                image = Image.open(file_location)
                 self.kb[output_location] = [{
                     "type": "image_url",
                     "image_url": {
                         "url": f"data:image/png;base64,{_encode_image_base64(image=image)}"
                     },
                 }]
-            elif file_type == "jpeg":
-                image = Image.open(file_location)
-                self.kb[output_location] = {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/png;base64,{_encode_image_base64(image=image)}"
-                    },
-                }
             elif file_type == "pdf":
                 images = convert_from_path(file_location, fmt="png")
                 # openai image upload str style
