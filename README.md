@@ -3,6 +3,7 @@
 ![Lurawi Logo](visualeditor/assets/images/lurawi_logo_2.png)
 
 ## Table of Contents
+
 - [Introduction](#introduction)
 - [Key Features](#key-features)
 - [Quick Start](#quick-start)
@@ -25,13 +26,13 @@ Lurawi is a NoCode/LowCode development environment designed for building sophist
 
 ## Key Features
 
-*   **Visual Workflow Design:** Compose workflows intuitively using a drag-and-drop interface on a canvas.
-*   **Minimal Coding:** Leverage visual construction to build workflows, significantly reducing the need for traditional programming.
-*   **Modular and Extensible Architecture:** Extend system capabilities by encapsulating functionalities within modular custom function classes.
-*   **Unified REST API Specification:** Access a comprehensive, out-of-the-box REST API. Refer to the [API Specifications](./docs/APISpecifications.md) for details.
-*   **Cloud-Ready Deployment:** Easily deploy workflows as Docker containers in environments like AWS.
-*   **Lurawi-in-a-Box:** A self-contained Docker image providing a fully functional Lurawi system for local execution, requiring only Docker Desktop.
-*   **Lurawi Agent:** Run Lurawi as an agent that can run either independently or integrate with popular agent ecosystems.
+- **Visual Workflow Design:** Compose workflows intuitively using a drag-and-drop interface on a canvas.
+- **Minimal Coding:** Leverage visual construction to build workflows, significantly reducing the need for traditional programming.
+- **Modular and Extensible Architecture:** Extend system capabilities by encapsulating functionalities within modular custom function classes.
+- **Unified REST API Specification:** Access a comprehensive, out-of-the-box REST API. Refer to the [API Specifications](./docs/APISpecifications.md) for details.
+- **Cloud-Ready Deployment:** Easily deploy workflows as Docker containers in environments like AWS.
+- **Lurawi-in-a-Box:** A self-contained Docker image providing a fully functional Lurawi system for local execution, requiring only Docker Desktop.
+- **Lurawi Agent:** Run Lurawi as an agent that can run either independently or integrate with popular agent ecosystems.
 
 The following sections provide detailed instructions on how to experiment with Lurawi using the prebuilt Docker image.
 
@@ -191,9 +192,12 @@ It is recommended to save both files in a version-controlled repository, such as
 The Lurawi agent workflow visual editor is built upon [Google Blockly](https://developers.google.com/blockly). If you are new to block-based coding, it is highly recommended to familiarize yourself with its mechanics through tutorials, such as those provided by [Scratch](https://scratch.mit.edu/).
 
 Once comfortable with block-based programming, delve into:
-*   [Lurawi Specific Block Concepts](./docs/LurawiConcepts.md) for an understanding of core Lurawi block principles.
-*   [Lurawi Prebuilt Custom Blocks](./docs/LurawiGenAiCustoms.md) for detailed descriptions of prebuilt custom function blocks.
-*   [Advanced: RAG Reference Implementation in Lurawi](./docs/RAGReferenceImplementation.md) for a concrete example of a Retrieval-Augmented Generation (RAG) implementation.
+
+- [Lurawi Specific Block Concepts](./docs/LurawiConcepts.md) for an understanding of core Lurawi block principles.
+
+- [Lurawi Prebuilt Custom Blocks](./docs/LurawiGenAiCustoms.md) for detailed descriptions of prebuilt custom function blocks.
+
+- [Advanced: RAG Reference Implementation in Lurawi](./docs/RAGReferenceImplementation.md) for a concrete example of a Retrieval-Augmented Generation (RAG) implementation.
 
 Lurawi's capabilities are extensible via a plug-in mechanism, allowing integration with third-party systems. Explore [Advanced: How to Create Lurawi Custom Action Primitives](./docs/LurawiGenAiCustoms.md) to learn more.
 
@@ -201,4 +205,5 @@ Finally, review the [Advanced: End-to-end Lurawi Development](./docs/LurawiDevCy
 
 ### Notes
 
-1.  **Lurawi Code Repository:** [https://github.com/kunle12/lurawi](https://github.com/kunle12/lurawi)
+1. **Lurawi Code Repository:** [https://github.com/kunle12/lurawi](https://github.com/kunle12/lurawi)
+2. **Luwari Examples Repository:** [https://github.com/kunle12/lurawi-code-examples](https://github.com/kunle12/lurawi-code-examples) for more examples.
