@@ -106,7 +106,7 @@ class text_input(CustomBehaviour):
         if prompt:
             await self.message(data={"response": prompt})  # Send the prompt to the user
 
-    async def on_user_message_update(self, context: Dict):
+    async def on_user_message_update(self, context):
         """
         Callback method invoked when a user message update is received.
 
@@ -115,18 +115,22 @@ class text_input(CustomBehaviour):
         content and stores it in the knowledge base under the `data_key`.
 
         Args:
-            context (Dict): The user message data context, typically containing
+            context: The user message data context, typically containing
                             `activity.content` with the user's text.
         """
-        if "message" in context:
+        result = ""
+        if isinstance(context, Dict) and "message" in context:
             result = context["message"].strip()
-            self.kb[self.data_key] = result
-            logger.debug(
-                "text_input: User input received and stored in '%s': %s",
-                self.data_key,
-                result,
-            )
-            await self.succeeded()
+        elif hasattr(context, "content"): # discord message
+            result = context.content
         else:
             logger.error("text_input: data_key was not set, cannot store user input.")
             await self.failed()
+
+        self.kb[self.data_key] = result
+        logger.debug(
+            "text_input: User input received and stored in '%s': %s",
+            self.data_key,
+            result,
+        )
+        await self.succeeded()

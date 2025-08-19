@@ -11,8 +11,8 @@ import time
 import simplejson as json
 
 from openai import AsyncOpenAI
-from lurawi.custom_behaviour import CustomBehaviour
-from lurawi.utils import is_indev, logger, DataStreamHandler, set_dev_stream_handler
+from lurawi.custom_behaviour import CustomBehaviour, DataStreamHandler
+from lurawi.utils import is_indev, logger, set_dev_stream_handler
 
 
 class invoke_llm(CustomBehaviour):
@@ -207,6 +207,7 @@ class invoke_llm(CustomBehaviour):
         client = AsyncOpenAI(api_key=api_key, base_url=base_url)
 
         response = None
+        logger.debug(f"final prompt to llm {prompt}")
         try:
             response = await client.chat.completions.create(
                 model=model,
@@ -223,11 +224,11 @@ class invoke_llm(CustomBehaviour):
             return
 
         if stream:
-            data_stream = DataStreamHandler(response=response)
+            data_stream = DataStreamHandler(response=response, callback_custom=self)
             if is_indev():
                 set_dev_stream_handler(data_stream)
                 resp = {
-                    "stream_endpoint": f"http://localhost:{os.getenv('PORT', 8081)}/dev/stream"
+                    "stream_endpoint": f"http://localhost:{os.getenv('PORT', '8081')}/dev/stream"
                 }
                 await self.message(status=200, data=resp)
             else:

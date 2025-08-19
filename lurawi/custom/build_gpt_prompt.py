@@ -106,7 +106,7 @@ class build_gpt_prompt(CustomBehaviour):
         if system_prompt:
             system_content = [{"role": "system", "content": system_prompt}]
 
-        user_content = []
+        user_content = None
         user_text_content = ""
         if user_prompt:
             user_query_prompt = user_prompt.replace("{query}", query)
@@ -118,15 +118,16 @@ class build_gpt_prompt(CustomBehaviour):
             else:
                 user_text_content = user_query_prompt
 
+        media_content = self.parse_simple_input(key="media_content", check_for_type="list")
+
+        if media_content:
             user_content = [{
                 "type": "text",
                 "text": user_text_content
             }]
-
-        media_content = self.parse_simple_input(key="media_content", check_for_type="list")
-
-        if media_content:
             user_content.extend(media_content)
+        else:
+            user_content = user_text_content
 
         user_content = [{"role": "user", "content": user_content}]
 

@@ -15,9 +15,9 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from .calculate import calculate
 from .callbackmsg_manager import RemoteCallbackMessageUpdateManager
 from .compare import compare
-from .custom_behaviour import CustomBehaviour
+from .custom_behaviour import CustomBehaviour, DataStreamHandler
 from .usermsg_manager import UserMessageUpdateManager
-from .utils import write_http_response, DataStreamHandler, logger
+from .utils import write_http_response, logger
 
 
 class ActivityManager:

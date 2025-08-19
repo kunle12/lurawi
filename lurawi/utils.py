@@ -26,7 +26,7 @@ import random
 import tempfile
 
 from io import StringIO, BytesIO
-from typing import Dict, AsyncIterable
+from typing import Dict
 
 import aiofiles as aiof
 import aiohttp
@@ -986,31 +986,3 @@ async def adownload_file_to_temp(url: str) -> str:
         if temp_file_path and os.path.exists(temp_file_path):
             os.remove(temp_file_path)
         raise
-
-
-class DataStreamHandler:
-    """Handler for streaming data from LLM responses.
-
-    This class processes streaming responses from language models
-    and formats them for Server-Sent Events (SSE).
-    """
-
-    def __init__(self, response) -> None:
-        """Initialize a new DataStreamHandler.
-
-        Args:
-            response: The streaming response object from the language model
-        """
-        self._response = response
-
-    async def stream_generator(self) -> AsyncIterable[str]:
-        """Generate formatted SSE data from streaming response.
-
-        Yields:
-            str: Formatted SSE data chunks with HTML line breaks
-        """
-        async for chunk in self._response:
-            content = chunk.choices[0].delta.content or ""
-            if content:
-                content = content.replace("\n", "<br/>")
-                yield f"data: {content}\n\n"

@@ -17,7 +17,7 @@ the run() method to implement their specific logic.
 """
 
 from time import time
-from typing import List, Optional, Callable, Awaitable, Any
+from typing import List, Optional, Callable, Awaitable, Any, AsyncIterable
 
 from lurawi.callbackmsg_manager import RemoteCallbackMessageListener
 from lurawi.usermsg_manager import UserMessageListener
@@ -99,6 +99,18 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
         if data is None and env_name and env_name in self.kb:
             data = self.kb[env_name]
+        
+        # check if it is a composite string
+        if check_for_type == 'str' and isinstance(data, list) and len(data) == 2:
+            text, keys = data
+            if isinstance(keys, list):
+                for k in keys:
+                    if k in self.kb:
+                        text = text.replace("{}", str(self.kb[k]), 1)
+                    else:
+                        _key = str(k).replace("_", " ")
+                        text = text.replace("{}", _key, 1)
+                return text
 
         if check_type(data, check_for_type):
             return data
@@ -375,3 +387,46 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
         """
         self.cancel_user_message_updates()
         self.cancel_callback_message_updates()
+
+class DataStreamHandler:
+    """Handler for streaming data from LLM responses.
+
+    This class processes streaming responses from language models
+    and formats them for Server-Sent Events (SSE).
+    """
+
+    def __init__(self, response, callback_custom: Optional[CustomBehaviour] = None) -> None:
+        """Initialize a new DataStreamHandler.
+
+        Args:
+            response: The streaming response object from the language model
+        """
+        self._response = response
+        self._callback_custom = callback_custom
+
+    async def stream_generator(self) -> AsyncIterable[str]:
+        """Generate formatted SSE data from streaming response.
+
+        Yields:
+            str: Formatted SSE data chunks with HTML line breaks
+        """
+        total_content = ""
+        async for chunk in self._response:
+            content = chunk.choices[0].delta.content or ""
+            if content:
+                content = content.replace("\n", "<br/>")
+                total_content += content
+                yield f"data: {content}\n\n"
+        if self._callback_custom:
+            custom_obj = self._callback_custom
+            if "response" in custom_obj.details and isinstance(custom_obj.details["response"], str):
+                result_variable = custom_obj.details["response"]
+                if result_variable in custom_obj.kb and isinstance(
+                    custom_obj.kb[result_variable], list
+                ):
+                    custom_obj.kb[result_variable].append(total_content)
+                else:
+                    custom_obj.kb[result_variable] = total_content
+            else:
+                custom_obj.kb["LLM_RESPONSE"] = total_content
+            await custom_obj.succeeded()
