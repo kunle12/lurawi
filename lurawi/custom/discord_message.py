@@ -3,15 +3,25 @@ from lurawi.utils import logger
 
 
 class discord_message(CustomBehaviour):
-    """!@brief a function template that takes in a list of items and output a string.
+    """
+    Custom behaviour to send a direct message to a specified Discord user.
+
+    Args:
+        user (str): The Discord username or ID of the recipient.
+        message (str): The content of the message to be sent.
+        success_action (list, optional): Action to perform if the message is sent successfully.
+                                         Defaults to None.
+        failed_action (list, optional): Action to perform if the message sending fails.
+                                        Defaults to None.
+
     Example:
     ["custom", { "name": "discord_message",
                  "args": {
                             "user": "discord_user_name_1",
-                            "message": "message to be send to users",
+                            "message": "Hello from Lurawi!",
                             "success_action": ["play_behaviour", "2"],
                             "failed_action": ["play_behaviour", "next"]
-                          }
+                           }
                 }
     ]
     """
