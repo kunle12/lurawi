@@ -49,7 +49,7 @@ class text_input(CustomBehaviour):
             details (dict): A dictionary containing the arguments for this behaviour.
         """
         super().__init__(kb, details)
-        self.data_key: str | None = None # Key to store the user's input
+        self.data_key: str | None = None  # Key to store the user's input
 
     async def run(self):
         """
@@ -62,10 +62,12 @@ class text_input(CustomBehaviour):
         """
         prompt = ""
 
-        self.data_key = self.parse_simple_input(key="output", check_for_type="str")
+        self.data_key = self.details.get("output")
 
-        if self.data_key is None:
-            logger.error("text_input: missing or invalid 'output' argument (expected a string). Aborting.")
+        if not self.data_key or not isinstance(self.data_key, str):
+            logger.error(
+                "text_input: missing or invalid 'output' argument (expected a string). Aborting."
+            )
             await self.failed()
             return
 
@@ -86,21 +88,25 @@ class text_input(CustomBehaviour):
                     sample = ["hello {}, good {}", ["KB_KEY1", "KB_KEY2"]]
                     logger.error(
                         "text_input: Invalid prompt format %s. Expected format: %s",
-                        prompt_arg, sample
+                        prompt_arg,
+                        sample,
                     )
                     prompt = ""
             elif isinstance(prompt_arg, str):
                 prompt = prompt_arg
             else:
-                logger.error("text_input: Invalid prompt type %s. Expected string or list.", type(prompt_arg))
+                logger.error(
+                    "text_input: Invalid prompt type %s. Expected string or list.",
+                    type(prompt_arg),
+                )
                 prompt = ""
 
-        self.register_for_user_message_updates() # Register to receive the user's response
+        self.register_for_user_message_updates()  # Register to receive the user's response
 
         if prompt:
-            await self.message(prompt) # Send the prompt to the user
+            await self.message(data={"response": prompt})  # Send the prompt to the user
 
-    async def on_user_message_update(self, context: Dict):
+    async def on_user_message_update(self, context):
         """
         Callback method invoked when a user message update is received.
 
@@ -109,13 +115,22 @@ class text_input(CustomBehaviour):
         content and stores it in the knowledge base under the `data_key`.
 
         Args:
-            context (Dict): The user message data context, typically containing
+            context: The user message data context, typically containing
                             `activity.content` with the user's text.
         """
-        if self.data_key:
-            self.kb[self.data_key] = context.content
-            logger.debug("text_input: User input received and stored in '%s': %s", self.data_key, context.content)
-            await self.succeeded()
+        result = ""
+        if isinstance(context, Dict) and "message" in context:
+            result = context["message"].strip()
+        elif hasattr(context, "content"):  # discord message
+            result = context.content
         else:
             logger.error("text_input: data_key was not set, cannot store user input.")
             await self.failed()
+
+        self.kb[self.data_key] = result
+        logger.debug(
+            "text_input: User input received and stored in '%s': %s",
+            self.data_key,
+            result,
+        )
+        await self.succeeded()

@@ -21,7 +21,7 @@ import os
 
 from io import StringIO
 from threading import Lock as mutex
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 import simplejson as json
 import boto3
@@ -113,6 +113,7 @@ class WorkflowEngine(TimerClient):
                 self, init_start=3600, interval=3600
             )
         self._mutex = mutex()
+        self.remote_services: Dict[str, RemoteService] = {}
         self._init_remote_services()
         self.start_remote_services()
 
@@ -151,13 +152,13 @@ class WorkflowEngine(TimerClient):
                 s3_client.download_fileobj("lurawidata", kbase_path, blobio)
                 json_data = json.loads(blobio.read())
             elif os.path.exists(kbase_path):
-                with open(kbase_path) as data:
+                with open(kbase_path, encoding="utf-8") as data:
                     json_data = json.load(data)
             elif os.path.exists(f"/home/lurawi/{kbase_path}"):
-                with open(f"/home/lurawi/{kbase_path}") as data:
+                with open(f"/home/lurawi/{kbase_path}", encoding="utf-8") as data:
                     json_data = json.load(data)
             elif os.path.exists(f"/opt/defaultsite/{kbase_path}"):
-                with open(f"/opt/defaultsite/{kbase_path}") as data:
+                with open(f"/opt/defaultsite/{kbase_path}", encoding="utf-8") as data:
                     json_data = json.load(data)
             else:
                 logger.warning(
@@ -188,7 +189,7 @@ class WorkflowEngine(TimerClient):
         # check for custom domain specific language analysis model
         return True
 
-    def load_behaviours(self, behaviour=""):
+    def load_behaviours(self, behaviour="") -> Dict:
         """Load behaviours from a JSON file.
 
         Attempts to load behaviours from various sources in the following order:
@@ -202,7 +203,7 @@ class WorkflowEngine(TimerClient):
         Returns:
             dict: Dictionary containing loaded behaviours, or empty dict if loading failed
         """
-        loaded_behaviours = {}
+        loaded_behaviours: Dict = {}
         if not behaviour:
             if self.custom_behaviour:
                 behaviour = self.custom_behaviour
@@ -234,13 +235,15 @@ class WorkflowEngine(TimerClient):
                 s3_client.download_fileobj("lurawidata", behaviour_file, blobio)
                 loaded_behaviours = json.loads(blobio.read())
             elif os.path.exists(behaviour_file):
-                with open(behaviour_file) as data:
+                with open(behaviour_file, encoding="utf-8") as data:
                     loaded_behaviours = json.load(data)
             elif os.path.exists(f"/home/lurawi/{behaviour_file}"):
-                with open(f"/home/lurawi/{behaviour_file}") as data:
+                with open(f"/home/lurawi/{behaviour_file}", encoding="utf-8") as data:
                     loaded_behaviours = json.load(data)
             elif os.path.exists(f"/opt/defaultsite/{behaviour_file}"):
-                with open(f"/opt/defaultsite/{behaviour_file}") as data:
+                with open(
+                    f"/opt/defaultsite/{behaviour_file}", encoding="utf-8"
+                ) as data:
                     loaded_behaviours = json.load(data)
             else:
                 logger.error(
@@ -312,14 +315,18 @@ class WorkflowEngine(TimerClient):
             self._mutex.release()
             await activity_manager.update_turn_context(context=message)
         else:
-            if self.pending_behaviours:
-                activity_manager = ActivityManager(
-                    discord_id, user_name, self.pending_behaviours, self.knowledge
-                )
-            else:
-                activity_manager = ActivityManager(
-                    discord_id, user_name, self.behaviours, self.knowledge
-                )
+            activity_manager = ActivityManager(
+                uid=discord_id,
+                name=user_name,
+                behaviour=(
+                    self.pending_behaviours
+                    if self.pending_behaviours
+                    else self.behaviours
+                ),
+                knowledge=self.knowledge,
+                system_service=self.remote_services,
+            )
+
             self.conversation_members[discord_id] = activity_manager
             self._mutex.release()
             await activity_manager.init()
@@ -353,14 +360,17 @@ class WorkflowEngine(TimerClient):
             activity_manager = self.conversation_members[memberid]
             self._mutex.release()
         else:
-            if self.pending_behaviours:
-                activity_manager = ActivityManager(
-                    memberid, payload.name, self.pending_behaviours, self.knowledge
-                )
-            else:
-                activity_manager = ActivityManager(
-                    memberid, payload.name, self.behaviours, self.knowledge
-                )
+            activity_manager = ActivityManager(
+                uid=memberid,
+                name=payload.name,
+                behaviour=(
+                    self.pending_behaviours
+                    if self.pending_behaviours
+                    else self.behaviours
+                ),
+                knowledge=self.knowledge,
+                system_service=self.remote_services,
+            )
             self.conversation_members[memberid] = activity_manager
             self._mutex.release()
             await activity_manager.init()
@@ -435,7 +445,7 @@ class WorkflowEngine(TimerClient):
             return self.conversation_members[uid]
         return None
 
-    async def on_executing_behaviour_for_uid(
+    async def on_executing_behaviour_for_uid(  # pylint: disable=dangerous-default-value
         self, uid: str, behaviour: str, knowledge: Dict = {}
     ) -> bool:
         """Execute a specific behaviour for a given user.
@@ -528,7 +538,6 @@ class WorkflowEngine(TimerClient):
         Dynamically loads and initializes all remote service modules found in
         the lurawi/services directory.
         """
-        self.remote_services: List[RemoteService] = []
         for _, _, files in os.walk("lurawi/services"):
             for f in files:
                 if f.endswith(".py") and f != "__init__.py":
@@ -548,7 +557,7 @@ class WorkflowEngine(TimerClient):
                             try:
                                 obj = objclass(owner=self)
                                 if obj.init():
-                                    self.remote_services.append(obj)
+                                    self.remote_services[name] = obj
                                     logger.info("%s service is initialised.", name)
                             except Exception as err:
                                 logger.error(
@@ -560,22 +569,22 @@ class WorkflowEngine(TimerClient):
 
         Calls the fini method on all remote services and clears the services list.
         """
-        for s in self.remote_services:
-            s.fini()
-        self.remote_services = []
+        for _, service in self.remote_services.items():
+            service.fini()
+        self.remote_services = {}
 
     def start_remote_services(self):
         """Start all initialized remote services.
 
         Calls the start method on all remote services.
         """
-        for s in self.remote_services:
-            s.start()
+        for _, service in self.remote_services.items():
+            service.start()
 
     def stop_remote_services(self):
         """Stop all running remote services.
 
         Calls the stop method on all remote services.
         """
-        for s in self.remote_services:
-            s.fini()
+        for _, service in self.remote_services.items():
+            service.fini()

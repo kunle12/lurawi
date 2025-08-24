@@ -40,7 +40,9 @@ if __name__ == "__main__":
 
     try:
         uvicorn.run(
-            app, host=os.getenv("HOST", "localhost"), port=int(os.getenv("PORT", "8081"))
+            app,
+            host=os.getenv("HOST", "localhost"),
+            port=int(os.getenv("PORT", "8081")),
         )
     except KeyboardInterrupt:
         pass

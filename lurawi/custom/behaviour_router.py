@@ -76,9 +76,7 @@ class behaviour_router(CustomBehaviour):
             if isinstance(selection, str) and selection in self.kb:
                 selection = self.kb[selection]
 
-            is_restricted = (
-                "restricted" in self.details and self.details["restricted"]
-            )
+            is_restricted = "restricted" in self.details and self.details["restricted"]
 
             if "behaviours" in self.details:
                 behaviours = self.details["behaviours"]
@@ -89,7 +87,7 @@ class behaviour_router(CustomBehaviour):
                 if not isinstance(behaviours, list):
                     logger.error(
                         "behaviour_router: 'behaviours' expected to be a list. Got %s. Aborting",
-                        self.details
+                        self.details,
                     )
                     await self.failed()
                     return
@@ -97,7 +95,7 @@ class behaviour_router(CustomBehaviour):
             if is_restricted and not behaviours:
                 logger.error(
                     "behaviour_router: 'behaviours' is not defined when restricted is true. Got %s. Aborting",
-                    self.details
+                    self.details,
                 )
                 await self.failed()
                 return
@@ -117,7 +115,7 @@ class behaviour_router(CustomBehaviour):
                     if not selection:
                         logger.error(
                             "behaviour_router: provided behaviours list is inconsistent with active behaviours. Got %s. Aborting",
-                            self.details
+                            self.details,
                         )
                         await self.failed()
                         return
@@ -128,7 +126,7 @@ class behaviour_router(CustomBehaviour):
                 # If restricted, the selected behaviour must be in the provided list
                 logger.error(
                     "behaviour_router: 'select' behaviour is not in the 'behaviours' list. Got %s. Aborting",
-                    self.details
+                    self.details,
                 )
                 await self.failed()
                 return
@@ -136,7 +134,7 @@ class behaviour_router(CustomBehaviour):
                 # Ensure the selected behaviour actually exists in the active behaviours
                 logger.error(
                     "behaviour_router: 'select' behaviour does not exist. Got %s. Aborting",
-                    self.details
+                    self.details,
                 )
                 await self.failed()
                 return
@@ -147,7 +145,7 @@ class behaviour_router(CustomBehaviour):
         else:
             logger.error(
                 "behaviour_router: arg expected to be a dict with keys 'select'. Got %s. Aborting",
-                self.details
+                self.details,
             )
             await self.failed()
 

@@ -141,7 +141,7 @@ class BehaviourComposer(object):
         valid = True
         if script is not None:
             try:
-                f = open(script, "r", encoding='utf-8')
+                f = open(script, "r", encoding="utf-8")
                 data = json.load(f)
                 f.close()
             except Exception as err:

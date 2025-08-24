@@ -59,14 +59,17 @@ class has_keyvalue(CustomBehaviour):
             and "false_action" in self.details
         ):
             query_key = self.details["key"]
-            store_obj = self.kb # Default store is the knowledge base itself
+            store_obj = self.kb  # Default store is the knowledge base itself
 
             if "store" in self.details:
                 skey = self.details["store"]
                 if skey in self.kb:  # If 'store' arg is a key in the knowledge base
                     store_obj = self.kb[skey]
                 else:
-                    logger.error("has_keyvalue: 'store' key '%s' not found in knowledge base. Aborting.", skey)
+                    logger.error(
+                        "has_keyvalue: 'store' key '%s' not found in knowledge base. Aborting.",
+                        skey,
+                    )
                     await self.failed()
                     return
 
@@ -89,6 +92,6 @@ class has_keyvalue(CustomBehaviour):
         else:
             logger.error(
                 "has_keyvalue: Arguments expected to be a dict with keys 'key', 'true_action' and 'false_action'. Got %s. Aborting",
-                self.details
+                self.details,
             )
             await self.failed()

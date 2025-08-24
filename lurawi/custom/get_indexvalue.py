@@ -75,11 +75,17 @@ class get_indexvalue(CustomBehaviour):
 
             # Validate types
             if not isinstance(array, list):
-                logger.error("get_indexvalue: 'array' must be a list. Got %s. Aborting.", type(array))
+                logger.error(
+                    "get_indexvalue: 'array' must be a list. Got %s. Aborting.",
+                    type(array),
+                )
                 await self.failed()
                 return
             if not isinstance(index, int) or index < 0:
-                logger.error("get_indexvalue: 'index' must be a non-negative integer. Got %s. Aborting.", type(index))
+                logger.error(
+                    "get_indexvalue: 'index' must be a non-negative integer. Got %s. Aborting.",
+                    type(index),
+                )
                 await self.failed()
                 return
 
@@ -88,18 +94,21 @@ class get_indexvalue(CustomBehaviour):
                 found = array[index]
 
             if found is None:
-                logger.warning("get_indexvalue: No value found at index %d in array. Aborting.", index)
+                logger.warning(
+                    "get_indexvalue: No value found at index %d in array. Aborting.",
+                    index,
+                )
                 await self.failed()
             else:
                 # Store the found value in the knowledge base
                 if "value" in self.details and isinstance(self.details["value"], str):
                     self.kb[self.details["value"]] = found
                 else:
-                    self.kb["_VALUE_OUTPUT"] = found # Default output key
+                    self.kb["_VALUE_OUTPUT"] = found  # Default output key
                 await self.succeeded()
         else:
             logger.error(
                 "get_indexvalue: Arguments expected to be a dict with keys 'array' and 'index'. Got %s. Aborting",
-                self.details
+                self.details,
             )
             await self.failed()

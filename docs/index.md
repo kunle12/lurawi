@@ -6,12 +6,13 @@ Lurawi is a NoCode/LowCode development environment designed for building sophist
 
 ### Key Features
 
-*   **Visual Workflow Design:** Compose workflows intuitively using a drag-and-drop interface on a canvas.
-*   **Minimal Coding:** Leverage visual construction to build workflows, significantly reducing the need for traditional programming.
-*   **Modular and Extensible Architecture:** Extend system capabilities by encapsulating functionalities within modular custom function classes.
-*   **Unified REST API Specification:** Access a comprehensive, out-of-the-box REST API. Refer to the [API Specifications](APISpecifications.md) for details.
-*   **Cloud-Ready Deployment:** Easily deploy workflows as Docker containers in environments like AWS.
-*   **Lurawi-in-a-Box:** A self-contained Docker image providing a fully functional Lurawi system for local execution, requiring only Docker Desktop.
+* **Visual Workflow Design:** Compose workflows intuitively using a drag-and-drop interface on a canvas.
+* **Minimal Coding:** Leverage visual construction to build workflows, significantly reducing the need for traditional programming.
+* **Modular and Extensible Architecture:** Extend system capabilities by encapsulating functionalities within modular custom function classes.
+* **Unified REST API Specification:** Access a comprehensive, out-of-the-box REST API. Refer to the [API Specifications](APISpecifications.md) for details.
+* **Cloud-Ready Deployment:** Easily deploy workflows as Docker containers in environments like AWS.
+* **Lurawi-in-a-Box:** A self-contained Docker image providing a fully functional Lurawi system for local execution, requiring only Docker Desktop.
+* **Lurawi Agent:** Run Lurawi as an agent that can run either independently or integrate with popular agent ecosystems.
 
 The following sections provide detailed instructions on how to experiment with Lurawi using the prebuilt Docker image.
 
@@ -137,7 +138,7 @@ Click the <img src="images/console_icon.png" width="20" style="vertical-align:mi
     <figcaption>Fig. 7 Lurawi Test Console.</figcaption>
 </figure>
 
-**Note on Test Console Payload:**  
+**Note on Test Console Payload:**
 This test console is specifically designed for the following input payload structure:
 
 ```json
@@ -172,14 +173,14 @@ The Lurawi agent workflow visual editor is built upon [Google Blockly](https://d
 
 Once comfortable with block-based programming, delve into:
 
-*  [Lurawi Specific Block Concepts](./LurawiConcepts.md) for an understanding of core Lurawi block principles.
+* [Lurawi Specific Block Concepts](./LurawiConcepts.md) for an understanding of core Lurawi block principles.
 
-*  [Lurawi Prebuilt Custom Blocks](./LurawiGenAiCustoms.md) for detailed descriptions of prebuilt custom function blocks.
+* [Lurawi Prebuilt Custom Blocks](./LurawiGenAiCustoms.md) for detailed descriptions of prebuilt custom function blocks.
 
-*  [Advanced: RAG Reference Implementation in Lurawi](RAGReferenceImplementation.md) for a concrete example of a Retrieval-Augmented Generation (RAG) implementation.
+* [Advanced: RAG Reference Implementation in Lurawi](RAGReferenceImplementation.md) for a concrete example of a Retrieval-Augmented Generation (RAG) implementation.
 
 Lurawi's capabilities are extensible via a plug-in mechanism, allowing integration with third-party systems. Explore
 
-*  [Advanced: How to Create Lurawi Custom Action Primitives](LurawiGenAiCustoms.md) to learn more.
+* [Advanced: How to Create Lurawi Custom Action Primitives](LurawiGenAiCustoms.md) to learn more.
 
-Finally, review the [Advanced: End-to-end Lurawi Development](LurawiDevCycle.md) example for a comprehensive development cycle overview.
+Finally, review the [Advanced: End-to-end Lurawi Development](LurawiDevCycle.md) example for a comprehensive development cycle overview. [Luwari Code Examples Repository](https://github.com/kunle12/lurawi-code-examples) for more examples.

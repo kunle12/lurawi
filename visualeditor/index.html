@@ -211,6 +211,7 @@
       <argument type="string">user_prompt</argument>
       <argument type="string">query</argument>
       <argument type="any">history</argument>
+      <argument type="any">media_content</argument>
       <argument type="string">documents</argument>
       <argument type="number">max_tokens</argument>
       <argument type="string">output</argument>
@@ -229,6 +230,19 @@
       <argument type="string">array</argument>
       <argument type="number">index</argument>
       <argument type="string">value</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="chromadb_search">
+      <argument type="string">base_url</argument>
+      <argument type="string">api_key</argument>
+      <argument type="string">collection</argument>
+      <argument type="string">directory</argument>
+      <argument type="string">embedding_model</argument>
+      <argument type="any">doc_data</argument>
+      <argument type="number">max_tokens</argument>
+      <argument type="string">search_text</argument>
+      <argument type="string">results</argument>
       <argument type="action">success_action</argument>
       <argument type="action">failed_action</argument>
     </cscript>
@@ -268,6 +282,13 @@
       <argument type="string">connect_str</argument>
       <argument type="string">queue</argument>
       <argument type="any">payload</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="file_loader">
+      <argument type="string">file_location</argument>
+      <argument type="string">file_type</argument>
+      <argument type="string">output</argument>
       <argument type="action">success_action</argument>
       <argument type="action">failed_action</argument>
     </cscript>
@@ -314,6 +335,12 @@
       <argument type="any">params</argument>
       <argument type="string">return_status</argument>
       <argument type="string">return_data</argument>
+      <argument type="action">success_action</argument>
+      <argument type="action">failed_action</argument>
+    </cscript>
+    <cscript name="discord_message">
+      <argument type="string">user</argument>
+      <argument type="string">message</argument>
       <argument type="action">success_action</argument>
       <argument type="action">failed_action</argument>
     </cscript>

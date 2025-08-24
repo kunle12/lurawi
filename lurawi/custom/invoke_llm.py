@@ -11,8 +11,8 @@ import time
 import simplejson as json
 
 from openai import AsyncOpenAI
-from lurawi.custom_behaviour import CustomBehaviour
-from lurawi.utils import is_indev, logger, DataStreamHandler, set_dev_stream_handler
+from lurawi.custom_behaviour import CustomBehaviour, DataStreamHandler
+from lurawi.utils import is_indev, logger, set_dev_stream_handler
 
 
 class invoke_llm(CustomBehaviour):
@@ -110,11 +110,6 @@ class invoke_llm(CustomBehaviour):
             await self.failed()
             return
 
-        # Resolve model from KB if it's a key
-        model = self.details["model"]
-        if isinstance(model, str) and model in self.kb:
-            model = self.kb[model]
-
         prompt = self.details["prompt"]
         # Resolve prompt from KB if it's a key
         if isinstance(prompt, str) and prompt in self.kb:
@@ -143,7 +138,7 @@ class invoke_llm(CustomBehaviour):
                         )
                         await self.failed()
                         return
-                    item_payload = json.loads(json.dumps(item)) # Deep copy
+                    item_payload = json.loads(json.dumps(item))  # Deep copy
                     for k, v in item_payload.items():
                         if (
                             isinstance(v, list)
@@ -188,6 +183,9 @@ class invoke_llm(CustomBehaviour):
                     resolved_prompts.append(item_payload)
                 prompt = resolved_prompts
 
+        if isinstance(prompt, str):
+            prompt = [{"role": "user", "content": prompt}]
+
         temperature = self.parse_simple_input(key="temperature", check_for_type="float")
 
         if temperature is None:
@@ -209,6 +207,7 @@ class invoke_llm(CustomBehaviour):
         client = AsyncOpenAI(api_key=api_key, base_url=base_url)
 
         response = None
+        logger.debug(f"final prompt to llm {prompt}")
         try:
             response = await client.chat.completions.create(
                 model=model,
@@ -221,15 +220,15 @@ class invoke_llm(CustomBehaviour):
             logger.error("invoke_llm: failed to call Agent %s: %s", model, err)
             self.kb["ERROR_MESSAGE"] = str(err)
             await self.failed()
-            self.kb["ERROR_MESSAGE"] = "" # Clear error message after handling
+            self.kb["ERROR_MESSAGE"] = ""  # Clear error message after handling
             return
 
         if stream:
-            data_stream = DataStreamHandler(response=response)
+            data_stream = DataStreamHandler(response=response, callback_custom=self)
             if is_indev():
                 set_dev_stream_handler(data_stream)
                 resp = {
-                    "stream_endpoint": f"http://localhost:{os.getenv('PORT', 8081)}/dev/stream"
+                    "stream_endpoint": f"http://localhost:{os.getenv('PORT', '8081')}/dev/stream"
                 }
                 await self.message(status=200, data=resp)
             else:

@@ -86,7 +86,8 @@ class populate_prompt(CustomBehaviour):
                     keys = value[1]
                     if not isinstance(keys, list):
                         logger.error(
-                            "populate_prompt: invalid replace: invalid composite value format for key '%s'", k
+                            "populate_prompt: invalid replace: invalid composite value format for key '%s'",
+                            k,
                         )
                         await self.failed()
                         return
@@ -105,7 +106,9 @@ class populate_prompt(CustomBehaviour):
         logger.debug("final replacement string %s", replace_resolved)
 
         for k, v in replace_resolved.items():
-            prompt_text = prompt_text.replace(k, str(v)) # Ensure replacement value is string
+            prompt_text = prompt_text.replace(
+                k, str(v)
+            )  # Ensure replacement value is string
 
         if "output" in self.details and isinstance(self.details["output"], str):
             self.kb[self.details["output"]] = prompt_text

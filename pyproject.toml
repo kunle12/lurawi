@@ -1,10 +1,12 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=78.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "lurawi_agent"
 version = "0.0.1"
+license = { text = "Apache License 2.0" }
+
 authors = [
   { name="Xun Wang", email="wang.xun@gmail.com" },
 ]
@@ -13,10 +15,11 @@ readme = "README.md"
 requires-python = ">=3.10"
 
 dependencies = [
-  "requests", "simplejson", "pandas", "langchain", "openai",
+  "requests", "simplejson", "pandas", "chromadb", "openai",
   "fastapi", "boto3", "azure-storage-blob", "tiktoken",
   "pyjwt", "aiofiles", "pycryptodome", "autogen-agentchat",
-  "multi-agent-orchestrator"
+  "multi-agent-orchestrator", "llama-cpp-python", "aiohttp",
+  "pillow", "pdf2image"
 ]
 
 classifiers = [
@@ -27,6 +30,12 @@ classifiers = [
 
 [tool.setuptools]
 packages = ["lurawi", "lurawi.custom"]
+license-files = []
+
+[tool.setuptools.exclude-package-data]
+"lurawi.custom" = [
+    "discord_message.py",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/kunle12/Lurawi"

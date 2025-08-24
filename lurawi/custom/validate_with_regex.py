@@ -55,29 +55,43 @@ class validate_with_regex(CustomBehaviour):
         input_text = self.parse_simple_input(key="input_text", check_for_type="str")
 
         if input_text is None:
-            logger.error("validate_with_regex: missing or invalid 'input_text' argument (expected a string). Aborting.")
+            logger.error(
+                "validate_with_regex: missing or invalid 'input_text' argument (expected a string). Aborting."
+            )
             await self.failed()
             return
 
         regex_pattern = self.parse_simple_input(key="regex", check_for_type="str")
 
         if regex_pattern is None:
-            logger.error("validate_with_regex: missing or invalid 'regex' argument (expected a string). Aborting.")
+            logger.error(
+                "validate_with_regex: missing or invalid 'regex' argument (expected a string). Aborting."
+            )
             await self.failed()
             return
 
         try:
             compiled_regex = re.compile(regex_pattern)
         except Exception as err:
-            logger.error("validate_with_regex: invalid regex pattern '%s': %s. Aborting.", regex_pattern, err)
+            logger.error(
+                "validate_with_regex: invalid regex pattern '%s': %s. Aborting.",
+                regex_pattern,
+                err,
+            )
             self.kb["ERROR_MESSAGE"] = f"Invalid regex pattern: {err}"
             await self.failed()
             self.kb["ERROR_MESSAGE"] = ""
             return
 
         if compiled_regex.fullmatch(input_text):
-            logger.info("validate_with_regex: Input text '%s' fully matches regex pattern.", input_text)
+            logger.info(
+                "validate_with_regex: Input text '%s' fully matches regex pattern.",
+                input_text,
+            )
             await self.succeeded()
         else:
-            logger.info("validate_with_regex: Input text '%s' does NOT fully match regex pattern.", input_text)
+            logger.info(
+                "validate_with_regex: Input text '%s' does NOT fully match regex pattern.",
+                input_text,
+            )
             await self.failed()

@@ -48,22 +48,32 @@ class random_picker(CustomBehaviour):
         data_list = self.parse_simple_input(key="list", check_for_type="list")
 
         if data_list is None:
-            logger.error("random_picker: missing or invalid 'list' argument (expected a list). Aborting.")
+            logger.error(
+                "random_picker: missing or invalid 'list' argument (expected a list). Aborting."
+            )
             await self.failed()
             return
 
         if not data_list:
-            logger.warning("random_picker: provided list is empty. No item to pick. Aborting.")
+            logger.warning(
+                "random_picker: provided list is empty. No item to pick. Aborting."
+            )
             await self.failed()
             return
 
-        output = self.parse_simple_input(key="output", check_for_type="str")
+        output = self.details.get("output")
 
-        if output is None:
-            logger.error("random_picker: missing or invalid 'output' argument (expected a string). Aborting.")
+        if not isinstance(output, str):
+            logger.error(
+                "random_picker: missing or invalid 'output' argument (expected a string). Aborting."
+            )
             await self.failed()
             return
 
         self.kb[output] = random.choice(data_list)
-        logger.debug("random_picker: picked '%s' from list. Stored in '%s'.", self.kb[output], output)
+        logger.debug(
+            "random_picker: picked '%s' from list. Stored in '%s'.",
+            self.kb[output],
+            output,
+        )
         await self.succeeded()
