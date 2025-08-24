@@ -1,6 +1,6 @@
-
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
+
 
 class discord_message(CustomBehaviour):
     """!@brief a function template that takes in a list of items and output a string.
@@ -15,9 +15,10 @@ class discord_message(CustomBehaviour):
                 }
     ]
     """
+
     def __init__(self, kb, details):
         super().__init__(kb, details)
-        self._discord_service = kb["LURAWI_REMOTE_SERVICES"].get("DiscordMessenger")
+        self._discord_service = kb["LURAWI_SYSTEM_SERVICES"].get("DiscordMessenger")
 
     async def run(self):
         if not self._discord_service:
@@ -28,26 +29,24 @@ class discord_message(CustomBehaviour):
         user = self.parse_simple_input(key="user", check_for_type="str")
 
         if user is None:
-            logger.error("discord_message: 'user' expected to be a string. Got %s. Aborting",
-                self.details)
-            await self.failed()
-            return
-
-        found_user = self._discord_service.get_user(user)
-
-        if found_user is None:
-            logger.error("discord_message: unable to find discord user %s", user)
+            logger.error(
+                "discord_message: 'user' expected to be a string. Got %s. Aborting",
+                self.details,
+            )
             await self.failed()
             return
 
         message = self.parse_simple_input(key="message", check_for_type="str")
 
         if message is None:
-            logger.error("discord_message: 'message' (str) must be a variable name Got %s. Aborting", self.details)
+            logger.error(
+                "discord_message: 'message' (str) must be a variable name Got %s. Aborting",
+                self.details,
+            )
             await self.failed()
             return
 
-        if (await self._discord_service.send_message_to_user(found_user)):
+        if self._discord_service.send_message_to_user(user=user, message=message):
             await self.succeeded()
-        
-        await self.failed()
+        else:
+            await self.failed()

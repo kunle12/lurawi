@@ -29,7 +29,9 @@ class ActivityManager:
     suspending, and resuming actions.
     """
 
-    def __init__(self, uid: str, name: str, behaviour, knowledge: Dict):
+    def __init__(
+        self, uid: str, name: str, behaviour, knowledge: Dict, system_service: Dict = {}
+    ):
         """
         Initialize the ActivityManager with user information and behaviours.
 
@@ -48,6 +50,7 @@ class ActivityManager:
         self.knowledge["CURRENT_TURN_CONTEXT"] = ""
         self.knowledge["CURRENT_SESSION_ID"] = ""
         self.knowledge["MODULES"] = {}
+        self.knowledge["LURAWI_SYSTEM_SERVICES"] = system_service
         self.knowledge["__MUTEX__"] = mutex()
         self.access_time = -1
         self._agent_mode = uid.startswith("agent_")

@@ -112,19 +112,18 @@ class build_gpt_prompt(CustomBehaviour):
             user_query_prompt = user_prompt.replace("{query}", query)
 
             if documents:
-                user_text_content = user_query_prompt.replace("{docs}", documents),
+                user_text_content = (user_query_prompt.replace("{docs}", documents),)
             elif "{docs}" in user_query_prompt:  # without doc
                 user_text_content = query
             else:
                 user_text_content = user_query_prompt
 
-        media_content = self.parse_simple_input(key="media_content", check_for_type="list")
+        media_content = self.parse_simple_input(
+            key="media_content", check_for_type="list"
+        )
 
         if media_content:
-            user_content = [{
-                "type": "text",
-                "text": user_text_content
-            }]
+            user_content = [{"type": "text", "text": user_text_content}]
             user_content.extend(media_content)
         else:
             user_content = user_text_content

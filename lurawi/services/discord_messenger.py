@@ -30,6 +30,7 @@ from lurawi.utils import logger
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 intents.dm_messages = True
 
 
@@ -73,28 +74,30 @@ class HomeBot(discord.Client):
         else:
             await self._main_channel.send(mesg)
 
-    async def send_message_to_user(self, user: discord.User, message: str) -> bool:
+    def send_message_to_user(self, user: discord.User, message: str) -> bool:
         try:
-            await user.send(message)
-        except Exception as _:
+            asyncio.run_coroutine_threadsafe(user.send(message), self._loop)
+        except Exception as err:
+            logger.error("unable to send message %s %s", message, err)
             return False
-        
+
         return True
 
     def get_user(self, user: str) -> discord.User | None:
         if "DiscordUserMap" not in self.kb:
             return None
-        
+
         found_name = ""
         for discord_id, user_name in self.kb["DiscordUserMap"].items():
             if user_name == user:
                 found_name = discord_id
                 break
-    
+
         if not found_name:
+            logger.error("not found")
             return None
 
-        return discord.utils.get(self._guild.members, name=found_name)
+        return discord.utils.get(self._guild.members, display_name=found_name)
 
     def _discord_name_to_user(self, name):
         if "DiscordUserMap" in self.kb and name in self.kb["DiscordUserMap"]:
@@ -152,6 +155,18 @@ class DiscordMessenger(RemoteService):
 
         self.client.start_running()
         self._is_running = True
+
+    def send_message_to_user(self, user: str, message: str) -> bool:
+        if not self._is_initialised or not self._is_running:
+            return False
+
+        discord_user = self.client.get_user(user=user)
+
+        if not discord_user:
+            logger.error("unable to find user %s", user)
+            return False
+
+        return self.client.send_message_to_user(user=discord_user, message=message)
 
     def stop(self):
         if not self._is_running:

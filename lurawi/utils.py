@@ -792,6 +792,7 @@ def get_remote_file_size(url: str) -> int:
         print(f"Error checking file size: {e}")
     return -1
 
+
 def write_http_response(status, body_dict, headers={}):
     """Create a FastAPI JSONResponse.
 

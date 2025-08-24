@@ -99,9 +99,9 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
         if data is None and env_name and env_name in self.kb:
             data = self.kb[env_name]
-        
+
         # check if it is a composite string
-        if check_for_type == 'str' and isinstance(data, list) and len(data) == 2:
+        if check_for_type == "str" and isinstance(data, list) and len(data) == 2:
             text, keys = data
             if isinstance(keys, list):
                 for k in keys:
@@ -388,6 +388,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
         self.cancel_user_message_updates()
         self.cancel_callback_message_updates()
 
+
 class DataStreamHandler:
     """Handler for streaming data from LLM responses.
 
@@ -395,7 +396,9 @@ class DataStreamHandler:
     and formats them for Server-Sent Events (SSE).
     """
 
-    def __init__(self, response, callback_custom: Optional[CustomBehaviour] = None) -> None:
+    def __init__(
+        self, response, callback_custom: Optional[CustomBehaviour] = None
+    ) -> None:
         """Initialize a new DataStreamHandler.
 
         Args:
@@ -419,7 +422,9 @@ class DataStreamHandler:
                 yield f"data: {content}\n\n"
         if self._callback_custom:
             custom_obj = self._callback_custom
-            if "response" in custom_obj.details and isinstance(custom_obj.details["response"], str):
+            if "response" in custom_obj.details and isinstance(
+                custom_obj.details["response"], str
+            ):
                 result_variable = custom_obj.details["response"]
                 if result_variable in custom_obj.kb and isinstance(
                     custom_obj.kb[result_variable], list
