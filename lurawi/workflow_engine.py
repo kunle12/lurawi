@@ -113,6 +113,7 @@ class WorkflowEngine(TimerClient):
                 self, init_start=3600, interval=3600
             )
         self._mutex = mutex()
+        self.remote_services: Dict[str, RemoteService] = {}
         self._init_remote_services()
         self.start_remote_services()
 
@@ -151,13 +152,13 @@ class WorkflowEngine(TimerClient):
                 s3_client.download_fileobj("lurawidata", kbase_path, blobio)
                 json_data = json.loads(blobio.read())
             elif os.path.exists(kbase_path):
-                with open(kbase_path) as data:
+                with open(kbase_path, encoding="utf-8") as data:
                     json_data = json.load(data)
             elif os.path.exists(f"/home/lurawi/{kbase_path}"):
-                with open(f"/home/lurawi/{kbase_path}") as data:
+                with open(f"/home/lurawi/{kbase_path}", encoding="utf-8") as data:
                     json_data = json.load(data)
             elif os.path.exists(f"/opt/defaultsite/{kbase_path}"):
-                with open(f"/opt/defaultsite/{kbase_path}") as data:
+                with open(f"/opt/defaultsite/{kbase_path}", encoding="utf-8") as data:
                     json_data = json.load(data)
             else:
                 logger.warning(
@@ -234,13 +235,13 @@ class WorkflowEngine(TimerClient):
                 s3_client.download_fileobj("lurawidata", behaviour_file, blobio)
                 loaded_behaviours = json.loads(blobio.read())
             elif os.path.exists(behaviour_file):
-                with open(behaviour_file) as data:
+                with open(behaviour_file,  encoding="utf-8") as data:
                     loaded_behaviours = json.load(data)
             elif os.path.exists(f"/home/lurawi/{behaviour_file}"):
-                with open(f"/home/lurawi/{behaviour_file}") as data:
+                with open(f"/home/lurawi/{behaviour_file}", encoding="utf-8") as data:
                     loaded_behaviours = json.load(data)
             elif os.path.exists(f"/opt/defaultsite/{behaviour_file}"):
-                with open(f"/opt/defaultsite/{behaviour_file}") as data:
+                with open(f"/opt/defaultsite/{behaviour_file}", encoding="utf-8") as data:
                     loaded_behaviours = json.load(data)
             else:
                 logger.error(
@@ -528,7 +529,6 @@ class WorkflowEngine(TimerClient):
         Dynamically loads and initializes all remote service modules found in
         the lurawi/services directory.
         """
-        self.remote_services: List[RemoteService] = []
         for _, _, files in os.walk("lurawi/services"):
             for f in files:
                 if f.endswith(".py") and f != "__init__.py":
@@ -548,34 +548,36 @@ class WorkflowEngine(TimerClient):
                             try:
                                 obj = objclass(owner=self)
                                 if obj.init():
-                                    self.remote_services.append(obj)
+                                    self.remote_services[name] = obj
                                     logger.info("%s service is initialised.", name)
                             except Exception as err:
                                 logger.error(
                                     "Unable to load %s service: %s.", name, err
                                 )
 
+        self.knowledge["LURAWI_REMOTE_SERVICES"] = self.remote_services
+
     def fini_remote_services(self):
         """Finalize all remote services.
 
         Calls the fini method on all remote services and clears the services list.
         """
-        for s in self.remote_services:
-            s.fini()
-        self.remote_services = []
+        for _, service in self.remote_services.items():
+            service.fini()
+        self.remote_services = {}
 
     def start_remote_services(self):
         """Start all initialized remote services.
 
         Calls the start method on all remote services.
         """
-        for s in self.remote_services:
-            s.start()
+        for _, service in self.remote_services.items():
+            service.start()
 
     def stop_remote_services(self):
         """Stop all running remote services.
 
         Calls the stop method on all remote services.
         """
-        for s in self.remote_services:
-            s.fini()
+        for _, service in self.remote_services.items():
+            service.fini()

@@ -42,16 +42,17 @@ class HomeBot(discord.Client):
         self._owner = owner
         self._run_thread = None
         self._token = None
+        self._guild = None
         # self.executor = ThreadPoolExecutor(max_workers=3)
         self._task = None
         self._main_channel = None
 
     async def on_ready(self):
-        guild = discord.utils.get(
+        self._guild = discord.utils.get(
             self.guilds, name=self.kb.get("DiscordGuild", "default")
         )
         self._main_channel = discord.utils.get(
-            guild.channels, name=self.kb.get("DiscordChannel", "default")
+            self._guild.channels, name=self.kb.get("DiscordChannel", "default")
         )
         await self._main_channel.send("I am alive", delete_after=5.0)
 
@@ -71,6 +72,29 @@ class HomeBot(discord.Client):
             await self._main_channel.send(mesg, delete_after=delete_after)
         else:
             await self._main_channel.send(mesg)
+
+    async def send_message_to_user(self, user: discord.User, message: str) -> bool:
+        try:
+            await user.send(message)
+        except Exception as _:
+            return False
+        
+        return True
+
+    def get_user(self, user: str) -> discord.User | None:
+        if "DiscordUserMap" not in self.kb:
+            return None
+        
+        found_name = ""
+        for discord_id, user_name in self.kb["DiscordUserMap"].items():
+            if user_name == user:
+                found_name = discord_id
+                break
+    
+        if not found_name:
+            return None
+
+        return discord.utils.get(self._guild.members, name=found_name)
 
     def _discord_name_to_user(self, name):
         if "DiscordUserMap" in self.kb and name in self.kb["DiscordUserMap"]:

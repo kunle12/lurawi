@@ -32,6 +32,11 @@ classifiers = [
 packages = ["lurawi", "lurawi.custom"]
 license-files = []
 
+[tool.setuptools.exclude-package-data]
+"lurawi.custom" = [
+    "discord_message.py",
+]
+
 [project.urls]
 "Homepage" = "https://github.com/kunle12/Lurawi"
 "Bug Tracker" = "https://github.com/kunle12/Lurawi"
