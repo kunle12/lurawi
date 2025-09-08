@@ -6,7 +6,7 @@ import random
 import re
 import time
 import uuid
-from typing import Dict
+from typing import Dict, Any
 from threading import Lock as mutex
 import simplejson as json
 
@@ -41,8 +41,6 @@ class ActivityManager:
             behaviour: Dictionary containing behaviour definitions
             knowledge: Dictionary containing knowledge base information
         """
-        super().__init__()
-
         self.knowledge = json.loads(json.dumps(knowledge))
         self.knowledge["USER_ID"] = uid
         self.knowledge["USER_NAME"] = name
@@ -121,26 +119,32 @@ class ActivityManager:
         await self.play_next_activity()
         self._is_initialised = True
 
-    async def start_user_workflow(self, session_id: str = "", data: Dict = {}):
+    async def start_user_workflow(self, session_id: str = "", context: Any = None, data: Dict = {}):
         """
-        Start a user workflow with the given session ID and data.
+        Initiates a user workflow, setting up the session and context for interaction.
 
-        Sets up the current turn context and session, then either plays the engagement action
-        or continues the workflow directly.
+        This method prepares the system for a new user interaction by setting the current
+        turn context and session ID. It then attempts to load any pending behaviours.
+        If an engagement action is defined, it will be played; otherwise, the workflow
+        will proceed directly to `continue_workflow`.
 
         Args:
-            session_id: Identifier for the current session
-            data: Dictionary containing user data
+            session_id (str, optional): A unique identifier for the current session.
+                                        Defaults to an empty string, in which case a new UUID is generated.
+            context (Any, optional): The context for the current turn. If None, a new UUID is generated.
+            data (Dict, optional): A dictionary containing user-provided data relevant to the workflow.
+                                   Defaults to an empty dictionary.
 
         Returns:
-            bool: True if workflow started successfully, False otherwise
+            bool: True if the workflow was successfully initiated or continued, False if
+                  the system is already in a user interaction.
         """
         if self.in_user_interaction:
             return False
 
         await self.load_pending_behaviour_if_exists()
 
-        self.knowledge["CURRENT_TURN_CONTEXT"] = str(uuid.uuid4())
+        self.knowledge["CURRENT_TURN_CONTEXT"] = context if context else str(uuid.uuid4())
         self.knowledge["CURRENT_SESSION_ID"] = session_id
 
         logger.debug(
@@ -169,46 +173,6 @@ class ActivityManager:
         self.knowledge["CURRENT_TURN_CONTEXT"] = None
         if self.disengagement_action is None:
             return
-        await self.play_disruptive_action(
-            "workflow_disengagement",
-            [self.disengagement_action],
-            external_notification_cb=self.disengage_complete,
-        )
-
-    async def start_user_engagement(self, context):
-        """
-        Start user engagement with the given context.
-
-        Clears running actions, loads any pending behaviours, and plays the engagement action.
-
-        Args:
-            context: The context for the user engagement
-        """
-        self.clear_running_actions()
-        await self.load_pending_behaviour_if_exists()
-
-        if self.engagement_action is None:
-            return
-        self.knowledge["CURRENT_TURN_CONTEXT"] = context
-        self.knowledge["USER_DATA"] = {"message": context.content}
-        await self.play_action(
-            "workflow_engagement",
-            [self.engagement_action],
-            external_notification_cb=self.engage_complete,
-        )
-
-    async def stop_user_engagement(self, context):
-        """
-        Stop user engagement with the given context.
-
-        Plays the disengagement action if defined.
-
-        Args:
-            context: The context for stopping the user engagement
-        """
-        if self.disengagement_action is None:
-            return
-        self.knowledge["CURRENT_TURN_CONTEXT"] = context
         await self.play_disruptive_action(
             "workflow_disengagement",
             [self.disengagement_action],
@@ -272,40 +236,39 @@ class ActivityManager:
         logger.debug("interaction user data completed")
         self.in_user_interaction = False
 
-    async def continue_workflow(self, activity_id: str = "", data: Dict = {}):
+    async def continue_workflow(self, context: Any = None, activity_id: str = "", data: Dict = {}):
         """
-        Continue the current workflow with the given activity ID and data.
+        Continues an existing user workflow, processing new input and updating the system state.
 
-        Updates the access time and processes user messages or updates user data.
+        This method is responsible for advancing the workflow based on new user data or
+        a specified activity ID. It updates the access time, processes user messages
+        through the `usermessage_manager`, and triggers an update to the user data
+        if necessary.
 
         Args:
-            activity_id: Identifier for the activity
-            data: Dictionary containing user data
+            context (Any, optional): The context for the current turn. If provided, it
+                                     overrides the existing `CURRENT_TURN_CONTEXT`.
+            activity_id (str, optional): An identifier for the specific activity to continue.
+                                         If different from the current turn context, it updates it.
+            data (Dict, optional): A dictionary containing new user data to be processed.
+                                   Defaults to an empty dictionary.
 
         Returns:
-            bool: True if workflow continued successfully
+            bool: True if the workflow was successfully continued.
         """
         self.knowledge["ACCESS_TIME"] = self.access_time = time.time()
         self.knowledge["USER_DATA"] = data
 
-        if (
+        if context:
+            self.knowledge["CURRENT_TURN_CONTEXT"] = context
+            if await self.usermessage_manager.process_user_messages(data):
+                await self.on_update_user_data(data=data)
+        elif (
             activity_id and activity_id != self.knowledge["CURRENT_TURN_CONTEXT"]
         ) or await self.usermessage_manager.process_user_messages(data):
-            await self.on_update_user_data(activity_id=activity_id, data=data)
+            self.knowledge["CURRENT_TURN_CONTEXT"] = activity_id
+            await self.on_update_user_data(data=data)
         return True
-
-    async def update_turn_context(self, context):
-        """
-        Update the current turn context.
-
-        Sets the current turn context, updates the access time, and processes user messages.
-
-        Args:
-            context: The new turn context
-        """
-        self.knowledge["CURRENT_TURN_CONTEXT"] = context
-        self.knowledge["ACCESS_TIME"] = self.access_time = time.time()
-        await self.usermessage_manager.process_user_messages(context)
 
     def get_current_session_id(self):
         """
@@ -1419,7 +1382,7 @@ class ActivityManager:
         """
         self.fini()
 
-    async def on_update_user_data(self, activity_id: str, data: Dict = {}):
+    async def on_update_user_data(self, data: Dict = {}):
         """
         Update user data with the given activity ID and data.
 
@@ -1432,8 +1395,6 @@ class ActivityManager:
         if not data or not isinstance(data, dict):
             logger.error("missing or invalid user data %s", data)
             return
-
-        self.knowledge["CURRENT_TURN_CONTEXT"] = activity_id
 
         if self.userdata_action:
             self.in_user_interaction = True
