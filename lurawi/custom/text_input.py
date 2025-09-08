@@ -121,8 +121,6 @@ class text_input(CustomBehaviour):
         result = ""
         if isinstance(context, Dict) and "message" in context:
             result = context["message"].strip()
-        elif hasattr(context, "content"):  # discord message
-            result = context.content
         else:
             logger.error("text_input: data_key was not set, cannot store user input.")
             await self.failed()

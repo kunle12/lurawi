@@ -308,12 +308,21 @@ class WorkflowEngine(TimerClient):
             user_name: Name of the Discord user
             message: Discord message object containing the event data
         """
-        discord_id = message.author.id
+        discord_id = str(message.author.id)
+        user_data = {"message": message.content}
+
+        # Check if the message has attachments
+        for attachment in message.attachments:
+            # TODO: we are only getting one image attachment
+            if attachment.content_type and attachment.content_type.startswith("image"):
+                user_data["image_attachment_url"] = attachment.url
+                break
+
         self._mutex.acquire()
         if discord_id in self.conversation_members:
             activity_manager = self.conversation_members[discord_id]
             self._mutex.release()
-            await activity_manager.update_turn_context(context=message)
+            await activity_manager.continue_workflow(context=message, data=user_data)
         else:
             activity_manager = ActivityManager(
                 uid=discord_id,
@@ -329,8 +338,9 @@ class WorkflowEngine(TimerClient):
 
             self.conversation_members[discord_id] = activity_manager
             self._mutex.release()
+
             await activity_manager.init()
-            await activity_manager.start_user_engagement(context=message)
+            await activity_manager.start_user_workflow(context=message, data=user_data)
 
     async def on_event(
         self,

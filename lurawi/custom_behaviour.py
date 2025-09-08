@@ -414,12 +414,16 @@ class DataStreamHandler:
             str: Formatted SSE data chunks with HTML line breaks
         """
         total_content = ""
-        async for chunk in self._response:
-            content = chunk.choices[0].delta.content or ""
-            if content:
-                content = content.replace("\n", "<br/>")
-                total_content += content
-                yield f"data: {content}\n\n"
+        try:
+            async for chunk in self._response:
+                content = chunk.choices[0].delta.content or ""
+                if content:
+                    content = content.replace("\n", "<br/>")
+                    total_content += content
+                    yield f"data: {content}\n\n"
+        except Exception as _:  # llamacpp server gives error at the end
+            pass
+
         if self._callback_custom:
             custom_obj = self._callback_custom
             if "response" in custom_obj.details and isinstance(
