@@ -69,6 +69,32 @@ class file_loader(CustomBehaviour):
         Raises:
             Exception: If there is an error reading the file.
         """
+        def _scale_image(image: Image.Image) -> Image.Image:
+            """
+            Scales a PIL image to be at or below 1024x1024 while maintaining its aspect ratio.
+
+            Args:
+                image: The input PIL Image object.
+
+            Returns:
+                A new PIL Image object, scaled if necessary.
+            """
+            max_dim = 1024
+            width, height = image.size
+
+            if width <= max_dim and height <= max_dim:
+                return image  # No scaling needed
+
+            if width > height:
+                # Landscape or square image, scale by width
+                new_width = max_dim
+                new_height = int(height * (max_dim / width))
+            else:
+                # Portrait image, scale by height
+                new_height = max_dim
+                new_width = int(width * (max_dim / height))
+
+            return image.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
         def _encode_image_base64(image: Image) -> str:
             """
@@ -82,8 +108,9 @@ class file_loader(CustomBehaviour):
             Returns:
                 str: The base64 encoded string of the image.
             """
+            scaled_image = _scale_image(image=image)
             buffer = BytesIO()
-            image.save(buffer, "PNG")
+            scaled_image.save(buffer, "PNG")
             buffer.seek(0)
             return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
