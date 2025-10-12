@@ -1109,6 +1109,7 @@ class ActivityManager:
                             )
                             module = importlib.util.module_from_spec(spec)
                             spec.loader.exec_module(module)
+                            sys.modules[full_module_name] = module
                         except Exception as err:
                             logger.error(
                                 "Failed to load custom module %s: %s", module_name, err
