@@ -19,7 +19,7 @@ from .callbackmsg_manager import RemoteCallbackMessageUpdateManager
 from .compare import compare
 from .custom_behaviour import CustomBehaviour, DataStreamHandler
 from .usermsg_manager import UserMessageUpdateManager
-from .utils import write_http_response, logger
+from .utils import write_http_response, logger, is_indev
 
 
 class ActivityManager:
@@ -1089,9 +1089,12 @@ class ActivityManager:
                 module_arg = None
 
             module = None
-            if module_name in sys.modules:
-                module = sys.modules[module_name]
-                importlib.reload(module)
+            full_module_name = f"lurawi.custom.{module_name}"
+            if full_module_name in sys.modules:
+                module = sys.modules[full_module_name]
+                if is_indev():
+                    logger.debug("reloading module %s", module_name)
+                    importlib.reload(module)
             else:
                 if "LURAWI_WORKSPACE" in self.knowledge:
                     module_path = os.path.join(
@@ -1114,7 +1117,7 @@ class ActivityManager:
                             return
                 if module is None:
                     try:
-                        module = importlib.import_module(f"lurawi.custom.{module_name}")
+                        module = importlib.import_module(full_module_name)
                     except Exception as err:
                         logger.error(
                             "Failed to load custom module %s: %s", module_name, err
