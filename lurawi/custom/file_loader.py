@@ -69,6 +69,7 @@ class file_loader(CustomBehaviour):
         Raises:
             Exception: If there is an error reading the file.
         """
+
         def _scale_image(image: Image.Image) -> Image.Image:
             """
             Scales a PIL image to be at or below 1024x1024 while maintaining its aspect ratio.

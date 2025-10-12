@@ -11,7 +11,7 @@ import os
 import time
 import uuid
 from dataclasses import dataclass
-from typing import AsyncGenerator, List, Sequence, Optional, Any
+from typing import AsyncGenerator, Dict, List, Sequence, Optional, Any
 
 import simplejson as json
 
@@ -95,7 +95,7 @@ class LurawiAgent:
     orchestrate workflows.
     """
 
-    def __init__(self, name: str, behaviour: str, workspace: str = ".") -> None:
+    def __init__(self, name: str, behaviour: str | Dict, workspace: str = ".") -> None:
         """
         Initializes a new instance of the LurawiAgent.
 
@@ -161,7 +161,7 @@ class LurawiAgent:
         # check for custom domain specific language analysis model
         return True
 
-    def _load_behaviours(self, behaviour: str):
+    def _load_behaviours(self, behaviour: str | Dict) -> Dict:
         """
         Loads agent behaviours from a specified JSON file and integrates associated knowledge.
 
@@ -177,6 +177,9 @@ class LurawiAgent:
             dict: A dictionary containing the loaded behaviours. Returns an empty dictionary
                   if the behaviour file is not found, is misconfigured, or an error occurs.
         """
+        if isinstance(behaviour, Dict):
+            return behaviour
+
         loaded_behaviours = {}
 
         if behaviour.endswith(".json"):

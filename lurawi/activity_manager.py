@@ -1,5 +1,7 @@
 # pylint: disable=dangerous-default-value, too-many-lines
 
+import os
+import sys
 import asyncio
 import importlib
 import random
@@ -119,7 +121,9 @@ class ActivityManager:
         await self.play_next_activity()
         self._is_initialised = True
 
-    async def start_user_workflow(self, session_id: str = "", context: Any = None, data: Dict = {}):
+    async def start_user_workflow(
+        self, session_id: str = "", context: Any = None, data: Dict = {}
+    ):
         """
         Initiates a user workflow, setting up the session and context for interaction.
 
@@ -144,7 +148,9 @@ class ActivityManager:
 
         await self.load_pending_behaviour_if_exists()
 
-        self.knowledge["CURRENT_TURN_CONTEXT"] = context if context else str(uuid.uuid4())
+        self.knowledge["CURRENT_TURN_CONTEXT"] = (
+            context if context else str(uuid.uuid4())
+        )
         self.knowledge["CURRENT_SESSION_ID"] = session_id
 
         logger.debug(
@@ -236,7 +242,9 @@ class ActivityManager:
         logger.debug("interaction user data completed")
         self.in_user_interaction = False
 
-    async def continue_workflow(self, context: Any = None, activity_id: str = "", data: Dict = {}):
+    async def continue_workflow(
+        self, context: Any = None, activity_id: str = "", data: Dict = {}
+    ):
         """
         Continues an existing user workflow, processing new input and updating the system state.
 
@@ -295,7 +303,7 @@ class ActivityManager:
         self.pending_knowledge = json.loads(json.dumps(knowledge))
         self.on_pending_complete = on_complete
 
-    def load_behaviours(self, behaviour, force=False):
+    def load_behaviours(self, behaviour: Dict, force: bool = False) -> bool:
         """
         Load behaviours from the provided behaviour definition.
 
@@ -421,7 +429,7 @@ class ActivityManager:
         logger.error("Cannot find %s behaviour", name)
         return False
 
-    def set_activity_index(self, new_index):
+    def set_activity_index(self, new_index: int) -> bool:
         """
         Set the current activity index.
 
@@ -476,7 +484,7 @@ class ActivityManager:
         Args:
             info: Dictionary containing information to add to the knowledge base
         """
-        if isinstance(info, dict):
+        if isinstance(info, Dict):
             self.knowledge.update(info)
 
     def get_behaviour_action_at(self, behaviour, action_index):
@@ -1079,8 +1087,41 @@ class ActivityManager:
             else:
                 module_name = arg
                 module_arg = None
-            module = importlib.import_module("lurawi.custom." + module_name)
-            importlib.reload(module)
+
+            module = None
+            if module_name in sys.modules:
+                module = sys.modules[module_name]
+                importlib.reload(module)
+            else:
+                if "LURAWI_WORKSPACE" in self.knowledge:
+                    module_path = os.path.join(
+                        self.knowledge["LURAWI_WORKSPACE"],
+                        "custom",
+                        f"{module_name}.py",
+                    )
+                    if os.path.exists(module_path):
+                        try:
+                            spec = importlib.util.spec_from_file_location(
+                                module_name, module_path
+                            )
+                            module = importlib.util.module_from_spec(spec)
+                            spec.loader.exec_module(module)
+                        except Exception as err:
+                            logger.error(
+                                "Failed to load custom module %s: %s", module_name, err
+                            )
+                            await self.actionFailHandler(cmd)
+                            return
+                if module is None:
+                    try:
+                        module = importlib.import_module(f"lurawi.custom.{module_name}")
+                    except Exception as err:
+                        logger.error(
+                            "Failed to load custom module %s: %s", module_name, err
+                        )
+                        await self.actionFailHandler(cmd)
+                        return
+
             tclass = getattr(module, module_name)
             if issubclass(tclass, CustomBehaviour):
                 self.custom_behaviours[module_name] = tclass(self.knowledge, module_arg)
@@ -1091,11 +1132,11 @@ class ActivityManager:
                 self.custom_behaviours[module_name].on_failure = self.actionFailHandler
                 await self.custom_behaviours[module_name].run()
             else:
-                logger.warning(
+                logger.error(
                     "Custom script has to be an instance of CustomBehaviour. Ignoring %s",
                     alet,
                 )
-                await self.actionFailHandler(module_name)
+                await self.actionFailHandler(cmd)
         elif cmd == "workflow_interaction":
             if isinstance(arg, dict):
                 if "engagement" in arg:
