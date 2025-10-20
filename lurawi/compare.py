@@ -5,10 +5,36 @@ from lurawi.utils import logger
 
 
 class compare(CustomBehaviour):
+    """!@brief Compares two operands and executes actions based on the comparison result.
+
+    This behavior evaluates two operands (which can be knowledge base values,
+    numbers, time, or arithmetic expressions) and performs a comparison using
+    the specified operator. Based on the result, it executes either the true_action
+    or false_action if provided.
+    Args:
+        operand1: First value to compare (string referencing kb key, number, "time", or arithmetic expression)
+        operand2: Second value to compare (string referencing kb key, number, "time", or arithmetic expression)
+        comparison_operator: Comparison operator to use ("<", "<=", "=", "!=", ">", ">=")
+        success_action (list, optional): An action to execute if the value
+                                         is successfully retrieved (e.g., `["play_behaviour", "2"]`).
+        failed_action (list, optional): An action to execute if the retrieval
+                                        fails (e.g., `["play_behaviour", "next"]`).
+
+    Example:
+    ["custom", { "name": "compare",
+                 "args": {
+                    "operand1": "temperature",
+                    "operand2": "25",
+                    "comparison_operator": ">",
+                    "true_action": "turn_on_ac",
+                    "false_action": "turn_off_ac"
+                }
+        }
+    ]
+    """
+
     def __init__(self, kb, details):
-        super().__init__(kb)
-        self.kb = kb
-        self.details = details
+        super().__init__(kb=kb, details=details)
         # details is a dict with keys operand1, operand2, comparison_operator, true_action, false_action
         # operands can be: "a" where a is a key in kb or any number
         #                  "time" where time is current unix epoch time
@@ -40,20 +66,23 @@ class compare(CustomBehaviour):
             k in self.details for k in ("operand1", "operand2", "comparison_operator")
         ):
             logger.error(
-                f"compare: details is expected to be a dict with keys-'operand1', 'operand2', 'true_action, 'false_action', 'comparison_operator'(got {self.details}). Aborting"
+                "compare: details is expected to be a dict with keys-'operand1', 'operand2', 'true_action, 'false_action', 'comparison_operator'(got %s). Aborting",
+                self.details,
             )
             await self.failed()
             return
         if self.details["comparison_operator"] not in self.comp_operators:
             logger.error(
-                f"Compare: Permitted comparison operators = {self.comp_operators.keys()}, recieved = {self.details['comparison_operator']}"
+                "Compare: Permitted comparison operators = %s, recieved = %s",
+                self.comp_operators.keys(),
+                self.details["comparison_operator"],
             )
             await self.failed()
             return
         operand1 = self.getOperand(self.details["operand1"], self.arith_operators)
         operand2 = self.getOperand(self.details["operand2"], self.arith_operators)
         if operand1 is None or operand2 is None:
-            logger.error(f"compare: Invalid operand. op1={operand1}, op2={operand2}")
+            logger.error("compare: Invalid operand. op1=%s, op2=%s", operand1, operand2)
             await self.failed()
             return
         try:
@@ -61,11 +90,19 @@ class compare(CustomBehaviour):
                 operand1, operand2
             )
             logger.debug(
-                f"compare: {operand1} {self.details['comparison_operator']} {operand2} . Result = {result}"
+                "compare: %s %s %s. Result = %s",
+                operand1,
+                self.details["comparison_operator"],
+                operand2,
+                result,
             )
         except Exception as e:
             logger.error(
-                f"compare: operand1 = {operand1}, operand2 = {operand2}, operator = {self.details['comparison_operator']}, exception = {e}"
+                "compare: operand1 = %s, operand2 = %s, operator = %s, exception = %s",
+                operand1,
+                operand2,
+                self.details["comparison_operator"],
+                e,
             )
             await self.failed()
             return
@@ -85,7 +122,8 @@ class compare(CustomBehaviour):
         comp_op_in_arg = [x for x in self.comp_operators if x in arg]
         if comp_op_in_arg:
             logger.error(
-                f"compare: Only arithmetic operators-{self.arith_operators.keys()} allowed in operands."
+                "compare: Only arithmetic operators-%s allowed in operands.",
+                self.arith_operators.keys(),
             )
             return None
         # print "\ninside getoperand, arg = {}".format(arg)
@@ -102,12 +140,12 @@ class compare(CustomBehaviour):
                         if "." in self.kb[arg]
                         else int(self.kb[arg])
                     )
-                except:
+                except Exception as _:
                     operand = self.kb[arg]
             else:
                 try:
                     operand = float(arg) if "." in arg else int(arg)
-                except:
+                except Exception as _:
                     operand = arg
             # print 'No op in arg. operand = {}\n'.format(operand)
             return operand
@@ -133,7 +171,11 @@ class compare(CustomBehaviour):
                     result = self.arith_operators[op](result, operand)
                 except Exception as e:
                     logger.error(
-                        f"compare: Exception while {result} {op} {operand}. e={e}"
+                        "compare: Exception while %s %s %s. e=%s",
+                        result,
+                        op,
+                        operand,
+                        e,
                     )
                     return None
                 # print 'operand = {}, result = {} _arg = {}'.format(operand, result, _arg)
