@@ -180,7 +180,7 @@ class LurawiAgent:
         if isinstance(behaviour, Dict):
             return behaviour
 
-        loaded_behaviours = {}
+        loaded_behaviours: Dict = {}
 
         if behaviour.endswith(".json"):
             logger.warning("load_behaviours: extension .json is not required")

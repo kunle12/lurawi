@@ -477,7 +477,7 @@ class ActivityManager:
         """
         self.userdata_action = action
 
-    def update_knowledge(self, info):
+    def update_knowledge(self, info: Dict):
         """
         Update the knowledge base with new information.
 
@@ -1107,6 +1107,14 @@ class ActivityManager:
                             spec = importlib.util.spec_from_file_location(
                                 module_name, module_path
                             )
+                            if spec is None or spec.loader is None:
+                                logger.error(
+                                    "Cannot find spec for module %s at %s",
+                                    module_name,
+                                    module_path,
+                                )
+                                await self.actionFailHandler(cmd)
+                                return
                             module = importlib.util.module_from_spec(spec)
                             spec.loader.exec_module(module)
                             sys.modules[full_module_name] = module
@@ -1437,7 +1445,7 @@ class ActivityManager:
             activity_id: Identifier for the activity
             data: Dictionary containing user data
         """
-        if not data or not isinstance(data, dict):
+        if not data or not isinstance(data, Dict):
             logger.error("missing or invalid user data %s", data)
             return
 
