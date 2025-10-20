@@ -36,7 +36,7 @@ workspace/
 
 **Key Components:**
 
-- **Behaviour Files**: JSON-based workflow definitions, e.g. `llm_example.json`.
+- **Behaviour Files**: JSON-based workflow definitions, e.g. `lurawi_example.json`.
 - **Knowledge Files**: a corresponding knowledge base configuration in `llm_example_knowledge.json`
 - **Custom Directory**: Contains Python scripts with custom functions not part of the official Lurawi function library
 
@@ -64,7 +64,7 @@ from lurawi.lurawi_agent import LurawiAgent
 # Initialize the agent with your workflow
 agent = LurawiAgent(
     name="my_agent",
-    behaviour="llm_example",
+    behaviour="lurawi_example",
     workspace="./workspace"  # Path to your workspace directory
 )
 ```
@@ -105,7 +105,7 @@ from modelcontextprotocol.models import Tool
 # Initialize Lurawi Agent
 lurawi_agent = LurawiAgent(
     name="mcp_agent",
-    behaviour="llm_example",
+    behaviour="lurawi_example",
     workspace="./workspace"
 )
 
