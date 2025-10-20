@@ -18,9 +18,21 @@ The following sections provide detailed instructions on how to experiment with L
 
 ### Quick Start
 
-For a rapid setup and initial exploration, execute the following Docker command. Ensure you replace `{YOUR_PROJECT_NAME}` and `{YOUR_ACCESS_KEY}` with your registered project details.
+### Use Local Code Repository
 
 ```bash
+git clone https://github.com/kunle12/lurawi.git
+
+cd lurawi
+source .env.example
+bin/lurawi dev
+```
+
+### Use Prebuilt Docker Image
+
+```bash
+docker pull kunle12/lurawi:latest
+
 docker run -d \
   -p 3031:3031 \
   -p 8081:8081 \
@@ -28,6 +40,10 @@ docker run -d \
   -e PROJECT_ACCESS_KEY={YOUR_ACCESS_KEY} \
   kunle12/lurawi:latest
 ```
+
+Replace `{YOUR_PROJECT_NAME}` and `{YOUR_ACCESS_KEY}` with your registered project details.
+
+Fast forward to [use visual editor to build workflow](#working-with-the-lurawi-agent-workflow-visual-editor) section.
 
 ## Installation
 
@@ -56,17 +72,6 @@ Upon successful download, the `kunle12/lurawi:latest` image will be available in
 ### Launching the Lurawi Docker Container
 
 To launch the Lurawi container, you can use the Docker Desktop UI by clicking the "Play" button under "Actions" for the `kunle12/lurawi:latest` image.
-
-Alternatively, for more control and reproducibility, use the following command in your terminal:
-
-```bash
-docker run -d \
-  -p 3031:3031 \
-  -p 8081:8081 \
-  -e PROJECT_NAME={YOUR_PROJECT_NAME} \
-  -e PROJECT_ACCESS_KEY={YOUR_ACCESS_KEY} \
-  kunle12/lurawi:latest
-```
 
 **Important:**
 *   Bind your local machine ports `3031` and `8081` to the container's respective ports.
@@ -178,6 +183,8 @@ Once comfortable with block-based programming, delve into:
 * [Lurawi Prebuilt Custom Blocks](./LurawiGenAiCustoms.md) for detailed descriptions of prebuilt custom function blocks.
 
 * [Advanced: RAG Reference Implementation in Lurawi](RAGReferenceImplementation.md) for a concrete example of a Retrieval-Augmented Generation (RAG) implementation.
+
+- [Advanced: `LurawiAgent`](./docs/LurawiAgent.md) for running Lurawi workflow as an independent agent.
 
 Lurawi's capabilities are extensible via a plug-in mechanism, allowing integration with third-party systems. Explore
 

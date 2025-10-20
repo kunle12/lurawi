@@ -189,7 +189,7 @@ class WorkflowEngine(TimerClient):
         # check for custom domain specific language analysis model
         return True
 
-    def load_behaviours(self, behaviour="") -> Dict:
+    def load_behaviours(self, behaviour: str = "") -> Dict:
         """Load behaviours from a JSON file.
 
         Attempts to load behaviours from various sources in the following order:
