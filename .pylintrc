@@ -5,8 +5,7 @@
 # Disable common low-risk warnings and errors.
 # Consider re-enabling some of these as your project matures or style guidelines become stricter.
 disable=
-    R1732,
-    R1732, # An opened file is not closed (file-leak)
+    R1732, # consider-using-with
     C0103, # invalid-name: Disable "invalid-name" warnings for naming conventions (e.g., variable, function, class names not conforming to snake_case/PascalCase). This is often subjective or handled by auto-formatters like Black. [5, 7, 9, 10]
     C0114, # missing-module-docstring: Disable "missing-module-docstring" warnings. While docstrings are good practice, for small scripts or internal modules, this can be considered verbose. [5, 6, 7]
     C0115, # missing-class-docstring: Disable "missing-class-docstring" warnings. Similar to module docstrings, can be noisy for simple classes. [5, 6, 7]
