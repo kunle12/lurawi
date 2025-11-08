@@ -44,7 +44,6 @@ class HomeBot(discord.Client):
         self._run_thread = None
         self._token = None
         self._guild = None
-        # self.executor = ThreadPoolExecutor(max_workers=3)
         self._task = None
         self._main_channel = None
 
@@ -66,7 +65,7 @@ class HomeBot(discord.Client):
     async def logging_out(self):
         msg = await self._main_channel.send("I am going offline")
         await msg.delete()
-        await self.logout()
+        await self.close()
 
     async def _send_message(self, mesg, delete_after=0.0):
         if delete_after > 0.0:
@@ -106,7 +105,6 @@ class HomeBot(discord.Client):
 
     def _start_run_thread(self):
         self._task = asyncio.ensure_future(self.start(self._token), loop=self._loop)
-        # self._task.add_done_callback(stop_loop_on_completion)
 
         try:
             self._loop.run_until_complete(self._task)
@@ -114,7 +112,6 @@ class HomeBot(discord.Client):
             logger.error("Unable to log into the bot, error %s", e)
             self._task = None
         except (asyncio.exceptions.CancelledError, KeyboardInterrupt):
-            self._loop.run_until_complete(self.logging_out())
             self._task = None
         self._run_thread = None
 
@@ -129,6 +126,7 @@ class HomeBot(discord.Client):
         if not self._run_thread:
             return
 
+        asyncio.run_coroutine_threadsafe(self.logging_out(), self._loop)
         # also listen for termination of hearbeat / connection
         if self._task and not self._task.cancelled():
             self._task.cancel()
