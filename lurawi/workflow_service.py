@@ -11,7 +11,7 @@ and provides graceful shutdown handling through signal management.
 import os
 import importlib
 import inspect
-import signal
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,6 +45,38 @@ class WorkflowService:
         self.app = None
         self.webhook_handlers = {}
 
+    @asynccontextmanager
+    async def lifespan(self, app: FastAPI):
+        """
+        Context manager to handle the lifecycle of the FastAPI application.
+        Everything before 'yield' is Startup.
+        Everything after 'yield' is Shutdown (triggered by Ctrl+C / SIGINT).
+        """
+        # --- Startup Logic ---
+        # Note: We load handlers here or during create_app depending on preference.
+        # If they need to be loaded once at start:
+        logger.info("Service is starting up...")
+
+        yield  # The application serves requests here
+
+        # --- Shutdown Logic (Graceful handling of Ctrl+C / SIGINT) ---
+        logger.info("Ctrl-C/Termination signal detected. Cleaning up...")
+
+        for name, handler in self.webhook_handlers.items():
+            try:
+                # If .fini() is async, use 'await handler.fini()'
+                handler.fini()
+                logger.info("Cleaned up handler: %s", name)
+            except Exception as e:
+                logger.error("Error during handler %s cleanup: %s", name, e)
+
+        try:
+            # If .on_shutdown() is async, use 'await self.workflow_engine.on_shutdown()'
+            self.workflow_engine.on_shutdown()
+            logger.info("Workflow engine shut down successfully.")
+        except Exception as e:
+            logger.error("Error during workflow engine shutdown: %s", e)
+
     def create_app(self) -> FastAPI:
         """
         Create and configure the FastAPI application.
@@ -62,6 +94,7 @@ class WorkflowService:
         self.app = FastAPI(
             title="Agent Workflow Runtime Service",
             version="0.0.1",
+            lifespan=self.lifespan,
         )
         self.app.add_middleware(
             CORSMiddleware,
@@ -85,37 +118,8 @@ class WorkflowService:
                 methods=["POST"],
             )
         self._register_webhook_handlers(self.router)
-        self.app.add_event_handler("startup", self.handle_signal)
         self.app.include_router(self.router)
         return self.app
-
-    def handle_signal(self):
-        """
-        Set up signal handling for graceful shutdown.
-
-        This method is registered as a startup event handler for the FastAPI application.
-        It captures SIGINT (Ctrl+C) signals and ensures that all webhook handlers and
-        the workflow engine are properly shut down before terminating.
-
-        Returns:
-            None
-        """
-        default_sigint_handler = signal.getsignal(signal.SIGINT)
-
-        def terminate_now(signum: int, frame):
-            # do whatever you need to unblock your own tasks
-            for _, handler in self.webhook_handlers.items():
-                handler.fini()
-            self.workflow_engine.on_shutdown()
-
-            # Call the default handler if it's callable
-            if callable(default_sigint_handler):
-                default_sigint_handler(signum, frame)
-            else:
-                # If not callable, use the default behaviour (exit)
-                os._exit(1)  # Force exit
-
-        signal.signal(signal.SIGINT, terminate_now)
 
     def _load_webhook_handlers(self):
         """

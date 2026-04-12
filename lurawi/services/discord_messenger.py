@@ -66,7 +66,7 @@ class HomeBot(discord.Client):
     async def logging_out(self):
         msg = await self._main_channel.send("I am going offline")
         await msg.delete()
-        await self.logout()
+        await self.close()
 
     async def _send_message(self, mesg, delete_after=0.0):
         if delete_after > 0.0:
@@ -83,7 +83,7 @@ class HomeBot(discord.Client):
 
         return True
 
-    def get_user(self, user: str) -> discord.User | None:
+    def get_user_by_name(self, user: str) -> discord.User | None:
         if "DiscordUserMap" not in self.kb:
             return None
 
@@ -160,7 +160,7 @@ class DiscordMessenger(RemoteService):
         if not self._is_initialised or not self._is_running:
             return False
 
-        discord_user = self.client.get_user(user=user)
+        discord_user = self.client.get_user_by_name(user=user)
 
         if not discord_user:
             logger.error("unable to find user %s", user)
