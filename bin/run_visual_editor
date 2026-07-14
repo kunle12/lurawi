@@ -50,6 +50,99 @@ def parse_custom_scripts(fdir: str):
     return content
 
 
+def _infer_type(t, k: str) -> str:
+    """Infer the argument type from its example value and key name."""
+    if isinstance(t, bool):
+        return "boolean"
+    if isinstance(t, str):
+        return "string"
+    if isinstance(t, float) or isinstance(t, int):
+        return "number"
+    if isinstance(t, list) and ("action" in k or "command" in k):
+        return "action"
+    return "any"
+
+
+def _merge_args(examples: list) -> list[tuple]:
+    """Merge argument definitions from multiple examples into one.
+
+    For each key, if all examples agree on the type use that; otherwise 'any'.
+    Returns a list of (key, type) pairs with success_action and failed_action last.
+    """
+    merged: dict[str, set] = {}
+    for ex in examples:
+        args = ex.get("args", {})
+        for k, v in args.items():
+            atype = _infer_type(v, k)
+            if k not in merged:
+                merged[k] = set()
+            merged[k].add(atype)
+
+    result = []
+    tail = []
+    for k, types in merged.items():
+        atype = "any" if len(types) != 1 else next(iter(types))
+        if k in ("success_action", "failed_action"):
+            tail.append((k, atype))
+        else:
+            result.append((k, atype))
+    return result + tail
+
+
+def _extract_examples(ds: str) -> list:
+    """Extract all ['custom', ...] examples from a docstring."""
+    examples = []
+    pos = 0
+    while True:
+        cindex = ds.find('"custom"', pos)
+        if cindex < 0:
+            break
+
+        # Search backward from "custom" for the '[' that starts this expression.
+        # Only accept a '[' that is on the same line (no '\n' between it and cindex)
+        # to avoid grabbing unrelated brackets from other list expressions.
+        bracket_pos = -1
+        for i in range(cindex, 0, -1):
+            if ds[i] == "[" and ds[i:cindex].find("\n") < 0:
+                bracket_pos = i
+                break
+        if bracket_pos < 0:
+            pos = cindex + 1
+            continue
+
+        # Proper bracket matching: find the matching ']' for this '['
+        depth = 0
+        eindex = -1
+        for i in range(bracket_pos, len(ds)):
+            ch = ds[i]
+            if ch == "[":
+                depth += 1
+            elif ch == "]":
+                depth -= 1
+                if depth == 0:
+                    eindex = i
+                    break
+        if eindex <= bracket_pos:
+            pos = cindex + 1
+            continue
+
+        exstr = ds[bracket_pos : eindex + 1]
+        try:
+            exalet = ast.literal_eval(exstr)
+        except Exception:
+            pos = cindex + 1
+            continue
+        if not isinstance(exalet, list) or len(exalet) != 2:
+            pos = cindex + 1
+            continue
+        if isinstance(exalet[1], dict):
+            examples.append(exalet[1])
+        elif isinstance(exalet[1], str):
+            examples.append({"name": exalet[1], "args": {}})
+        pos = eindex + 1
+    return examples
+
+
 def extract_example_info(fname: str):
     """
     Extracts example information from a Python file's docstrings, specifically looking for
@@ -68,54 +161,29 @@ def extract_example_info(fname: str):
     with open(fname, encoding="utf-8") as f:
         tree = ast.parse(f.read())
 
-        modef = tuple({ast.ClassDef: "Class"})
+        modef = (ast.ClassDef,)
         for n in ast.walk(tree):
             if isinstance(n, modef):
                 ds = ast.get_docstring(n)
-                # print("extracted class docstring {}".format(ds))
                 if ds is None:
                     continue
-                cindex = ds.find('"custom"')
-                if cindex > 0:
-                    exstr = ds[ds.rfind("[", 0, cindex) :]
-                    eindex = exstr.rfind("]", 0, len(exstr))
-                    if eindex <= 0:
-                        print(f"unable to parse doc string example 1: {exstr}")
-                        continue
-                    exstr = exstr[: eindex + 1]
-                    try:
-                        exalet = ast.literal_eval(exstr)
-                    except Exception as _:
-                        print(f"unable to parse doc string example 2: {exstr}")
-                        continue
-
-                    if not isinstance(exalet, list) or len(exalet) != 2:
-                        print(f"unable to parse the example 3: {exalet}")
-                        continue
-                    if isinstance(exalet[1], dict):
-                        # print("custom script {} with".format(exalet[1]['name']))
-                        content = content + f'    <cscript name="{exalet[1]["name"]}">\n'
-                        kargs = exalet[1]["args"]
-                        for k, t in kargs.items():
-                            atype = "any"
-                            if isinstance(t, bool):
-                                atype = "boolean"
-                            elif isinstance(t, str):
-                                atype = "string"
-                            elif isinstance(t, float) or isinstance(t, int):
-                                atype = "number"
-                            elif isinstance(t, list) and ("action" in k or "command" in k):
-                                atype = "action"
-                            content = content + f'      <argument type="{atype}">{k}</argument>\n'
-                        content = content + "    </cscript>\n"
-                    elif isinstance(exalet[1], str):
-                        # print("custom script: {} no arg".format(exalet[1]))
-                        content = content + f'    <cscript name="{exalet[1]}"></cscript>\n'
-                    else:
-                        print(f"unable to parse doc string example 4: {exstr}")
-                        continue
-                else:
+                examples = _extract_examples(ds)
+                if not examples:
                     continue
+
+                # Group examples by script name
+                by_name: dict[str, list] = {}
+                for ex in examples:
+                    ename = ex.get("name", "")
+                    if ename:
+                        by_name.setdefault(ename, []).append(ex)
+
+                for sname, exs in by_name.items():
+                    merged = _merge_args(exs)
+                    content += f'    <cscript name="{sname}">\n'
+                    for k, atype in merged:
+                        content += f'      <argument type="{atype}">{k}</argument>\n'
+                    content += "    </cscript>\n"
     return content
 
 
