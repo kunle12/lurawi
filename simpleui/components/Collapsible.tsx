@@ -13,7 +13,7 @@ const CollaspsibleContent = styled.div`
         border: none;
         cursor: pointer;
         overflow: hidden;
-        outline: none;    
+        outline: none;
     }
     div {
         margin-left: 10px;

@@ -1,12 +1,7 @@
-"""
-Custom behaviour for dynamically routing and playing selected behaviours.
-
-This module defines the `behaviour_router` class, which allows for the
-dynamic selection and execution of other behaviours based on specified
-criteria, including random selection or selection from a restricted list.
-"""
+"""Custom behaviour for dynamically selecting and routing to other behaviours, supporting random or restricted-list selection."""
 
 import random
+
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 
@@ -56,9 +51,7 @@ class behaviour_router(CustomBehaviour):
         """
         super().__init__(kb, details)
         # Access the list of all active behaviours from the ActivityManager module
-        self.active_behaviours = self.kb["MODULES"]["ActivityManager"].behaviours[
-            "behaviours"
-        ]
+        self.active_behaviours = self.kb["MODULES"]["ActivityManager"].behaviours["behaviours"]
 
     async def run(self):
         """

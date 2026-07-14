@@ -16,17 +16,15 @@ and abstract away implementation details of various operations.
 
 # pylint: disable=broad-exception-caught,global-statement,dangerous-default-value
 
-import re
 import base64
-import time
 import logging
 import os
-import string
 import random
+import re
+import string
 import tempfile
-
-from io import StringIO, BytesIO
-from typing import Dict
+import time
+from io import BytesIO, StringIO
 
 import aiofiles as aiof
 import aiohttp
@@ -34,9 +32,8 @@ import boto3
 import requests
 import simplejson as json
 import tiktoken
-
-from azure.storage.blob.aio import BlobClient as AsyncBlobClient
 from azure.storage.blob import BlobClient
+from azure.storage.blob.aio import BlobClient as AsyncBlobClient
 from Crypto.Cipher import AES
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -142,9 +139,7 @@ def encrypt_ifavailable(data):
              otherwise the original data
     """
     if "LLMServiceDataAccessKey" not in os.environ:
-        logging.warning(
-            "encrypt_ifavailable: missing data access keys, return original data"
-        )
+        logging.warning("encrypt_ifavailable: missing data access keys, return original data")
         return data
 
     encdata = None
@@ -170,9 +165,7 @@ def decrypt_ifavailable(data):
              otherwise the original data
     """
     if "LLMServiceDataAccessKey" not in os.environ:
-        logging.warning(
-            "decrypt_ifavailable: missing data access keys, return original data"
-        )
+        logging.warning("decrypt_ifavailable: missing data access keys, return original data")
         return data
 
     decdata = None
@@ -230,7 +223,7 @@ def _encrypt_content(key, content, infile=True):
     ciphertext, tag = cipher.encrypt_and_digest(content.encode("utf-8"))
 
     if infile:
-        tmp_file_name = f"/tmp/{''.join(random.SystemRandom().choice(string.ascii_letters+string.digits) for _ in range(8))}.enc"
+        tmp_file_name = f"/tmp/{''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(8))}.enc"
 
         with open(tmp_file_name, "wb") as file_out:
             for x in (cipher.nonce, tag, ciphertext):
@@ -337,9 +330,7 @@ def get_stickyness_cookie():
     """
     global _aws_sticky_cookie
     if _aws_sticky_cookie:
-        if (
-            _aws_sticky_cookie[1] - time.time() <= 10
-        ):  # ignore cookie is older than 10 sec
+        if _aws_sticky_cookie[1] - time.time() <= 10:  # ignore cookie is older than 10 sec
             return _aws_sticky_cookie[0]
         _aws_sticky_cookie = None
     return None
@@ -355,9 +346,7 @@ def _set_stickyness_cookie(cookies):
     _aws_sticky_cookie = (cookies, time.time())
 
 
-def get_content_from_azure_storage(
-    filepath, container="llamservice_data", as_binary=False
-):
+def get_content_from_azure_storage(filepath, container="llamservice_data", as_binary=False):
     """Retrieve content from Azure Blob Storage or local file system.
 
     Args:
@@ -383,7 +372,7 @@ def get_content_from_azure_storage(
             logger.error("unable to load '%s' from blob storage: error %s", filepath, e)
     elif os.path.exists(filepath):
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             logger.error("unable to load '%s' from local drive: error %s", filepath, e)
@@ -414,7 +403,7 @@ async def aget_content_from_azure_storage(filepath, container="llmservicedata"):
             logger.error("unable to load '%s' from blob storage: error %s", filepath, e)
     elif os.path.exists(filepath):
         try:
-            async with aiof.open(filepath, "r") as f:
+            async with aiof.open(filepath) as f:
                 content = await f.read()
         except Exception as e:
             logger.error("unable to load '%s' from local drive: error %s", filepath, e)
@@ -464,9 +453,7 @@ def save_content_to_azure_storage(filepath, content_file, container="llmservice_
     return True
 
 
-async def asave_content_to_azure_storage(
-    filepath, content_file, container="llmservice_data"
-):
+async def asave_content_to_azure_storage(filepath, content_file, container="llmservice_data"):
     """Asynchronously save content to Azure Blob Storage or local file system.
 
     Args:
@@ -546,7 +533,7 @@ def get_content_from_aws_s3(filepath, container="llamservice_data", as_binary=Fa
             logger.error("unable to load '%s' from s3 storage: error %s", filepath, e)
     elif os.path.exists(filepath):
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             logger.error("unable to load '%s' from local drive: error %s", filepath, e)
@@ -590,9 +577,7 @@ async def aget_data_from_url(headers, url):
         return None, err
 
 
-async def apost_payload_to_url(
-    headers, url, payload, use_put=False, use_stickyness=False
-):
+async def apost_payload_to_url(headers, url, payload, use_put=False, use_stickyness=False):
     """Asynchronously post JSON payload to a URL.
 
     Args:
@@ -674,9 +659,7 @@ async def apost_data_to_url(headers, url, data, use_put=False, use_stickyness=Fa
                         result = None
                     return r.status, result
     except Exception as err:
-        logger.error(
-            "apost_data_to_url: failed to post data to url %s: error %s", url, err
-        )
+        logger.error("apost_data_to_url: failed to post data to url %s: error %s", url, err)
         return None, err
 
 
@@ -753,13 +736,9 @@ def post_payload_to_url(url, payload, headers=None, use_put=False):
         headers = {"Content-Type": "application/json"}
     try:
         if use_put:
-            r = requests.put(
-                url, headers=headers, json=payload, verify=ssl_verify, timeout=10
-            )
+            r = requests.put(url, headers=headers, json=payload, verify=ssl_verify, timeout=10)
         else:
-            r = requests.post(
-                url, headers=headers, json=payload, verify=ssl_verify, timeout=10
-            )
+            r = requests.post(url, headers=headers, json=payload, verify=ssl_verify, timeout=10)
         r.raise_for_status()
     except Exception as err:
         logging.error("unable to send post request, error %s", err)
@@ -814,7 +793,7 @@ def write_http_response(status, body_dict, headers={}):
     return response
 
 
-def decode_json_field(data: Dict) -> Dict:
+def decode_json_field(data: dict) -> dict:
     """Decode JSON strings within a dictionary.
 
     Iterates through dictionary values and attempts to decode them as JSON.
@@ -940,13 +919,9 @@ async def adownload_file_to_temp(url: str) -> str:
         # with its async open, so we create a path and manage the file ourselves.
         # We ensure a unique name using tempfile.mkstemp.
         fd, temp_file_path = tempfile.mkstemp(suffix=ext)
-        os.close(
-            fd
-        )  # Close the file descriptor immediately as aiofiles.open will handle it
+        os.close(fd)  # Close the file descriptor immediately as aiofiles.open will handle it
 
-        logger.info(
-            "Attempting to download from: %s and save to %s", url, temp_file_path
-        )
+        logger.info("Attempting to download from: %s and save to %s", url, temp_file_path)
 
         total_size = 0
         async with aiohttp.ClientSession() as session:
@@ -973,10 +948,8 @@ async def adownload_file_to_temp(url: str) -> str:
         if temp_file_path and os.path.exists(temp_file_path):
             os.remove(temp_file_path)
         raise
-    except IOError as err:
-        logger.error(
-            "Error writing file to temporary location %s: %s", temp_file_path, err
-        )
+    except OSError as err:
+        logger.error("Error writing file to temporary location %s: %s", temp_file_path, err)
         # Clean up the temporary file if it was created but writing failed
         if temp_file_path and os.path.exists(temp_file_path):
             os.remove(temp_file_path)

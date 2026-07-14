@@ -1,6 +1,7 @@
 """Custom behaviour to get and format the current datetime."""
 
 from datetime import datetime
+
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 

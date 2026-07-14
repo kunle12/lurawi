@@ -23,8 +23,10 @@ import asyncio
 
 # import concurrent.futures
 from threading import Thread
+
 import discord
 from discord import Message
+
 from lurawi.remote_service import RemoteService
 from lurawi.utils import logger
 
@@ -49,9 +51,7 @@ class HomeBot(discord.Client):
         self._main_channel = None
 
     async def on_ready(self):
-        self._guild = discord.utils.get(
-            self.guilds, name=self.kb.get("DiscordGuild", "default")
-        )
+        self._guild = discord.utils.get(self.guilds, name=self.kb.get("DiscordGuild", "default"))
         self._main_channel = discord.utils.get(
             self._guild.channels, name=self.kb.get("DiscordChannel", "default")
         )

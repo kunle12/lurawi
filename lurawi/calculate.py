@@ -1,5 +1,6 @@
 import operator
 import time
+
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 
@@ -49,17 +50,13 @@ class calculate(CustomBehaviour):
                 operand = int(time.time())
             elif arg in self.kb:
                 try:
-                    operand = (
-                        float(self.kb[arg])
-                        if "." in self.kb[arg]
-                        else int(self.kb[arg])
-                    )
-                except:
+                    operand = float(self.kb[arg]) if "." in self.kb[arg] else int(self.kb[arg])
+                except Exception:
                     operand = self.kb[arg]
             else:
                 try:
                     operand = float(arg) if "." in arg else int(arg)
-                except:
+                except Exception:
                     operand = arg
             # print 'No op in arg. operand = {}\n'.format(operand)
             return operand
@@ -84,9 +81,7 @@ class calculate(CustomBehaviour):
                 try:
                     result = self.arith_operators[op](result, operand)
                 except Exception as e:
-                    logger.error(
-                        f"calculate: Exception while {result} {op} {operand}. e={e}"
-                    )
+                    logger.error(f"calculate: Exception while {result} {op} {operand}. e={e}")
                     return None
                 # print 'operand = {}, result = {} _arg = {}'.format(operand, result, _arg)
             return result

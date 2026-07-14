@@ -1,12 +1,7 @@
-"""
-Custom behaviour for validating input text against a regular expression.
-
-This module defines the `validate_with_regex` class, which allows the system
-to check if a given input string fully matches a specified regular expression
-pattern, and then trigger success or failure actions accordingly.
-"""
+"""Custom behaviour for validating input text against a regex pattern, branching workflow via success_action/failed_action."""
 
 import re
+
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 
@@ -80,7 +75,6 @@ class validate_with_regex(CustomBehaviour):
             )
             self.kb["ERROR_MESSAGE"] = f"Invalid regex pattern: {err}"
             await self.failed()
-            self.kb["ERROR_MESSAGE"] = ""
             return
 
         if compiled_regex.fullmatch(input_text):

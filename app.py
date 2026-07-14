@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 
+import argparse
 import os
 import sys
-import argparse
-import uvicorn
-from lurawi import utils
 
+import uvicorn
+
+from lurawi import utils
 from lurawi.workflow_service import WorkflowService
 
 DEFAULT_BEHAVIOUR_SCRIPT = "lurawi_example"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--skip-auth", action="store_false", help="Skip authentication step."
-    )
+    parser.add_argument("--skip-auth", action="store_false", help="Skip authentication step.")
     parser.add_argument(
         "--no-ssl-verify",
         action="store_true",
@@ -31,9 +30,7 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     behaviour_script = (
-        DEFAULT_BEHAVIOUR_SCRIPT
-        if utils.project_name == "lurawi"
-        else utils.project_name
+        DEFAULT_BEHAVIOUR_SCRIPT if utils.project_name == "lurawi" else utils.project_name
     )
     server = WorkflowService(behaviour_script)
     app = server.create_app()

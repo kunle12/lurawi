@@ -12,7 +12,7 @@ import shutil
 import subprocess
 import sys
 from venv import EnvBuilder
-from typing import Dict
+
 from version import VERSION
 
 ## Calling example
@@ -58,14 +58,14 @@ class {{function_template}}(CustomBehaviour):
             logger.error("{{function_template}}: 'output' (str) must be a variable name Got %s. Aborting", self.details)
             await self.failed()
             return
-        
+
         # TODO: do some processing here
 
         self.kb[output] = "someoutput"
 '''
 
 
-def _create_activate_working_environment(path: str) -> Dict:
+def _create_activate_working_environment(path: str) -> dict:
     venv_dir = f"{path}/.venv"
     new_venv_env = os.environ.copy()
     if os.path.isdir(venv_dir):
@@ -74,9 +74,7 @@ def _create_activate_working_environment(path: str) -> Dict:
         new_venv_env["PATH"] = f"{venv_dir}/bin:{new_venv_env['PATH']}"
     else:  # create working environment
         print("create working environment...")
-        env_builder = EnvBuilder(
-            with_pip=True, system_site_packages=True, symlinks=True
-        )
+        env_builder = EnvBuilder(with_pip=True, system_site_packages=True, symlinks=True)
         env_builder.create(venv_dir)
         new_venv_env["VIRTUAL_ENV"] = venv_dir
         new_venv_env["PATH"] = f"{venv_dir}/bin:{new_venv_env['PATH']}"
@@ -117,9 +115,7 @@ if __name__ == "__main__":
     command = args.command
 
     missing_variables = [
-        variable
-        for variable in REQUIRED_ENVIRONMENT_VARIABLES
-        if variable not in os.environ
+        variable for variable in REQUIRED_ENVIRONMENT_VARIABLES if variable not in os.environ
     ]
     if command != "create" and missing_variables:
         print(f"Missing environment variables: {', '.join(missing_variables)}")
@@ -195,22 +191,20 @@ if __name__ == "__main__":
                     if not os.path.isdir("/home/lurawi/custom"):
                         os.mkdir("/home/lurawi/custom")
                     LOCAL_PATH = f"/home/lurawi/custom/{SCRIPT_NAME}"
-                    with open(LOCAL_PATH, "w", encoding='utf-8') as f:
+                    with open(LOCAL_PATH, "w", encoding="utf-8") as f:
                         OUTPUT = CUSTOM_FUNCTION_TEMPLATE.replace(
                             "{{function_template}}", function_name
                         )
                         f.write(OUTPUT)
                     os.symlink(src=LOCAL_PATH, dst=DESTINATION_PATH)
                 else:
-                    with open(DESTINATION_PATH, "w", encoding='utf-8') as f:
+                    with open(DESTINATION_PATH, "w", encoding="utf-8") as f:
                         OUTPUT = CUSTOM_FUNCTION_TEMPLATE.replace(
                             "{{function_template}}", function_name
                         )
                         f.write(OUTPUT)
             except Exception as err:
-                print(
-                    f"Internal error: unable to create custom function {function_name}: {err}"
-                )
+                print(f"Internal error: unable to create custom function {function_name}: {err}")
                 sys.exit(-1)
             print(f"Created custom function template for {function_name}")
         else:
@@ -222,18 +216,12 @@ if __name__ == "__main__":
             if script_path.startswith("/opt/defaultsite"):
                 LOCAL_PATH = f"/home/lurawi/{project_name}.xml"
                 if os.path.isfile(LOCAL_PATH):
-                    print(
-                        f"Unable to create project: project {project_name} already exists"
-                    )
+                    print(f"Unable to create project: project {project_name} already exists")
                     sys.exit(-1)
-                shutil.copyfile(
-                    src="/opt/defaultsite/lurawi_example.xml", dst=LOCAL_PATH
-                )
+                shutil.copyfile(src="/opt/defaultsite/lurawi_example.xml", dst=LOCAL_PATH)
                 DOCKER_FILE = "/home/lurawi/Dockerfile"
                 if not os.path.exists(DOCKER_FILE):
-                    shutil.copyfile(
-                        src="/opt/defaultsite/Dockerfile.new", dst=DOCKER_FILE
-                    )
+                    shutil.copyfile(src="/opt/defaultsite/Dockerfile.new", dst=DOCKER_FILE)
             else:
                 LOCAL_PATH = f"{base_path}/{project_name}.xml"
                 shutil.copyfile(src=f"{base_path}/lurawi_example.xml", dst=LOCAL_PATH)

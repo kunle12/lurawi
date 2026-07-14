@@ -1,13 +1,7 @@
-"""
-Custom behaviour for querying the knowledge base with various conditions.
-
-This module defines the `query_knowledgebase` class, which allows the system
-to retrieve specific data from its knowledge base based on a `knowledge_key`,
-an optional `query_arg` (which can be a direct value or a key to another
-knowledge base entry), and an optional `phrase_match` flag for fuzzy matching.
-"""
+"""Custom behaviour for flexible KB queries: direct key lookup, nested dict extraction, and case-insensitive phrase matching."""
 
 import simplejson as json
+
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 
@@ -136,9 +130,7 @@ class query_knowledgebase(CustomBehaviour):
                                 await self.failed()
                                 return
                             else:
-                                input_arg = input_arg[
-                                    0
-                                ]  # Take the first item if it's a list
+                                input_arg = input_arg[0]  # Take the first item if it's a list
                     else:
                         logger.error(
                             "query_knowledgebase: query_arg dict '%s' does not contain query key '%s'. Aborting.",
@@ -166,9 +158,7 @@ class query_knowledgebase(CustomBehaviour):
                                 ):
                                     self.kb[self.details["phrase_match_key"]] = t
                                 else:
-                                    self.kb["PHRASE_MATCH_KEY"] = (
-                                        t  # Default key for phrase match
-                                    )
+                                    self.kb["PHRASE_MATCH_KEY"] = t  # Default key for phrase match
                                 break
                         else:
                             logger.warning(
@@ -194,16 +184,12 @@ class query_knowledgebase(CustomBehaviour):
                 await self.failed()
             else:
                 self.kb["KNOWN_QUERY"] = input_arg
-                if "query_output" in self.details and isinstance(
-                    self.details["query_output"], str
-                ):
+                if "query_output" in self.details and isinstance(self.details["query_output"], str):
                     self.kb[self.details["query_output"]] = found
                 else:
                     self.kb["QUERY_OUTPUT"] = found  # Default output key
                 logger.debug("query_knowledgebase: Query successful. Result: %s", found)
                 await self.succeeded()
         else:
-            logger.error(
-                "query_knowledgebase: 'knowledge_key' argument is required. Aborting."
-            )
+            logger.error("query_knowledgebase: 'knowledge_key' argument is required. Aborting.")
             await self.failed()

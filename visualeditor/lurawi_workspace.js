@@ -685,7 +685,7 @@ var Code = {
         */
         Code.options['toolbox'] = toolbox;
         Code.workspace = Blockly.inject('content_blocks', Code.options);
-        
+
         Code.loadFile = document.getElementById('file-input');
         Code.saveFile = document.getElementById('file-output');
         Code.sendFile = document.getElementById('file-send');

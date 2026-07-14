@@ -4,8 +4,9 @@ operations via a webhook.
 """
 
 import os
-from typing import Dict
+
 from pydantic import BaseModel
+
 from lurawi.webhook_handler import WebhookHandler
 
 
@@ -22,7 +23,7 @@ class SystemOperationPayload(BaseModel):
 
     admin_key: str
     command: str
-    value: str | Dict = None
+    value: str | dict = None
 
 
 class SystemOperationsHandler(WebhookHandler):
@@ -41,16 +42,14 @@ class SystemOperationsHandler(WebhookHandler):
         Args:
             server: The server instance to which this handler is attached.
         """
-        super(SystemOperationsHandler, self).__init__(server)
+        super().__init__(server)
         self.route = "/backend_operation"
         self.is_disabled = (
             "BackendOperationEnabled" not in os.environ
             or os.environ["BackendOperationEnabled"] != "1"
         )
 
-    async def process_callback(
-        self, payload: SystemOperationPayload
-    ):  # pylint: disable=unused-argument
+    async def process_callback(self, payload: SystemOperationPayload):  # pylint: disable=unused-argument
         """
         Processes incoming system operation requests.
 

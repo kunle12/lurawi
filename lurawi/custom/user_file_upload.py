@@ -1,17 +1,11 @@
-"""
-Custom behaviour for prompting a user to upload a file and handling the upload.
+"""Custom behaviour for prompting file upload from the user, validating type, and saving locally or to Azure Blob Storage."""
 
-This module defines the `user_file_upload` class, which allows the system
-to request a file from the user, validate its type, and save it either
-locally or to Azure Blob Storage, storing the file path in the knowledge base.
-"""
-
+import json
 import os
 import urllib.request
-import json
 
-from typing import Dict
 from azure.storage.blob import BlobClient
+
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 
@@ -89,9 +83,7 @@ class user_file_upload(CustomBehaviour):
 
         content_types_str = self.details["type"]
         if isinstance(content_types_str, str):
-            self.content_types = [
-                ext.strip().lower() for ext in content_types_str.split("|")
-            ]
+            self.content_types = [ext.strip().lower() for ext in content_types_str.split("|")]
         else:
             logger.error(
                 "user_file_upload: 'type' argument must be a string. Got %s. Aborting.",
@@ -103,7 +95,7 @@ class user_file_upload(CustomBehaviour):
         logger.debug("user_file_upload: Expected content types: %s", self.content_types)
         if not all(key in SUPPORTED_DATATYPES for key in self.content_types):
             logger.error(
-                "user_file_upload: Unsupported file type(s) specified in 'type'. Supported: {', '.join(SUPPORTED_DATATYPES)}. Got: {self.details['type']}. Aborting."
+                f"user_file_upload: Unsupported file type(s) specified in 'type'. Supported: {', '.join(SUPPORTED_DATATYPES)}. Got: {self.details['type']}. Aborting."
             )
             await self.failed()
             return
@@ -153,7 +145,7 @@ class user_file_upload(CustomBehaviour):
         self.register_for_user_message_updates()  # Register to receive the user's file upload
         await self.message(prompt)  # Send the prompt to the user
 
-    async def on_user_message_update(self, context: Dict):
+    async def on_user_message_update(self, context: dict):
         """
         Callback method invoked when a user message update (containing attachments) is received.
 
@@ -193,9 +185,7 @@ class user_file_upload(CustomBehaviour):
             bool: True if the attachment was successfully downloaded and written, False otherwise.
         """
         if turn_context.activity.attachments:
-            return await self._download_attachment_and_write(
-                turn_context.activity.attachments[0]
-            )
+            return await self._download_attachment_and_write(turn_context.activity.attachments[0])
         return False
 
     async def _download_attachment_and_write(self, attachment) -> bool:
@@ -216,12 +206,8 @@ class user_file_upload(CustomBehaviour):
             response = urllib.request.urlopen(attachment.content_url)
             headers = response.info()
 
-            file_content_type = (
-                headers.get("content-type", "").split(";")[0].strip().lower()
-            )
-            logger.debug(
-                "user_file_upload: Uploaded file content type: %s", file_content_type
-            )
+            file_content_type = headers.get("content-type", "").split(";")[0].strip().lower()
+            logger.debug("user_file_upload: Uploaded file content type: %s", file_content_type)
 
             # Determine file extension from attachment name or content type
             fn, ext = os.path.splitext(attachment.name)
@@ -250,9 +236,7 @@ class user_file_upload(CustomBehaviour):
                             "utf-8"
                         )  # Re-encode if it's just JSON content
                 except Exception as e:
-                    logger.error(
-                        "user_file_upload: Failed to parse JSON attachment: %s", e
-                    )
+                    logger.error("user_file_upload: Failed to parse JSON attachment: %s", e)
                     await self.message(f"Error parsing JSON file {attachment.name}.")
                     return False
             else:
@@ -262,10 +246,7 @@ class user_file_upload(CustomBehaviour):
                         f"Uploaded file '{attachment.name}' has an unsupported extension '.{actual_ext}'. Expected types: {', '.join(self.content_types)}."
                     )
                     return False
-                elif (
-                    not actual_ext
-                    and file_content_type.split("/")[-1] not in self.content_types
-                ):
+                elif not actual_ext and file_content_type.split("/")[-1] not in self.content_types:
                     # Fallback check if no extension but content type matches
                     await self.message(
                         f"Uploaded file '{attachment.name}' has an unsupported content type '{file_content_type}'. Expected types: {', '.join(self.content_types)}."
@@ -274,9 +255,7 @@ class user_file_upload(CustomBehaviour):
                 data = response.read()
 
             if data is None:
-                await self.message(
-                    f"Could not read data from uploaded file {attachment.name}."
-                )
+                await self.message(f"Could not read data from uploaded file {attachment.name}.")
                 return False
 
         except urllib.error.URLError as url_err:
@@ -344,9 +323,7 @@ class user_file_upload(CustomBehaviour):
                 saved_path = f"azureblob://{container_name}/{blob_name}"
             else:
                 # Save locally
-                upload_dir = os.path.join(
-                    os.getcwd(), "uploads"
-                )  # Create an 'uploads' directory
+                upload_dir = os.path.join(os.getcwd(), "uploads")  # Create an 'uploads' directory
                 os.makedirs(upload_dir, exist_ok=True)  # Ensure directory exists
 
                 local_file_path = os.path.join(upload_dir, local_filename)
@@ -365,9 +342,7 @@ class user_file_upload(CustomBehaviour):
                 attachment.name,
                 e,
             )
-            await self.message(
-                f"Unable to save uploaded file {attachment.name}, error={e}"
-            )
+            await self.message(f"Unable to save uploaded file {attachment.name}, error={e}")
             return False
 
         await self.message(f"Successfully received file {attachment.name}")

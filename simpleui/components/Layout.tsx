@@ -25,7 +25,7 @@ const Content = styled.div`
   width:100%;
   color: #F1F7FB;
   word-wrap: break-word;
-  
+
   h3 {
     margin: 0px;
     #color: #23A9F2;
@@ -94,7 +94,7 @@ const FieldLayout = styled.div`
 const InputDetails = styled.div`
   display: flex;
   flex-direction: column;
-  
+
   p {
     font-weight: bold;
     font-size: 12px;

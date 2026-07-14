@@ -5,10 +5,10 @@ from a directory of smaller JSON files. It handles loading, validating, and savi
 behaviour definitions, including managing default behaviours and program variables.
 """
 
-from __future__ import print_function
+import argparse
 import os
 import sys
-import argparse
+
 import simplejson as json
 
 
@@ -17,7 +17,7 @@ def print_error(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-class BehaviourComposer(object):
+class BehaviourComposer:
     """
     Composes a master behaviour file from a directory of small JSON files.
 
@@ -106,9 +106,7 @@ class BehaviourComposer(object):
                             if self.master_data["default"] == "" and dname:
                                 self.master_data["default"] = dname
                                 self.found_default_behaviour = True
-                            elif self.master_data["default"] in [
-                                x["name"] for x in data
-                            ]:
+                            elif self.master_data["default"] in [x["name"] for x in data]:
                                 self.found_default_behaviour = True
 
         # consolidate variables
@@ -141,7 +139,7 @@ class BehaviourComposer(object):
         valid = True
         if script is not None:
             try:
-                f = open(script, "r", encoding="utf-8")
+                f = open(script, encoding="utf-8")
                 data = json.load(f)
                 f.close()
             except Exception as err:
@@ -173,9 +171,7 @@ class BehaviourComposer(object):
                                 )
                         else:
                             valid = False
-                            print_error(
-                                f"invalid behaviour {be['name']} action {id_ac} {al}."
-                            )
+                            print_error(f"invalid behaviour {be['name']} action {id_ac} {al}.")
         except Exception as _:
             print_error("the behaviour file contains unresolved errors.")
             valid = False
@@ -211,13 +207,9 @@ class BehaviourComposer(object):
 
         for chktype in self.behaviour_keywords[alet[0]]:
             if isinstance(alet[1], chktype):
-                if chktype == list:
-                    valid = (
-                        True
-                        if (len(alet[1]) % 2 == 0)
-                        else isinstance(alet[1][0], dict)
-                    )
-                elif chktype == dict:
+                if chktype is list:
+                    valid = True if (len(alet[1]) % 2 == 0) else isinstance(alet[1][0], dict)
+                elif chktype is dict:
                     s_valid = True
                     for k, v in alet[1].items():
                         if k.endswith("_action"):
@@ -263,7 +255,7 @@ class BehaviourComposer(object):
                 if len(init_action) == 1:  # the file has no default behaviour
                     del data["behaviours"][0]  # delete the __init__ block
         except Exception as _:
-            print_error(f"unexpected default init behaviour, ignore")
+            print_error("unexpected default init behaviour, ignore")
             return
 
     def save_master_data(self):
@@ -275,9 +267,7 @@ class BehaviourComposer(object):
         """
         try:
             f = open(self.outputname, "w", encoding="utf-8")
-            json.dump(
-                self.master_data, f, sort_keys=True, indent=2, separators=(",", ": ")
-            )
+            json.dump(self.master_data, f, sort_keys=True, indent=2, separators=(",", ": "))
             f.close()
         except Exception as err:
             print_error(f"unable to save behaviours file {self.outputname}: {err}.")
@@ -288,7 +278,7 @@ class BehaviourComposer(object):
             return False
 
         try:
-            with open(self.outputname, "r", encoding="utf-8") as f:
+            with open(self.outputname, encoding="utf-8") as f:
                 content = f.read()
             content = content.replace("_new_line_", "  \\n")
             if self.asset_url:
@@ -296,9 +286,7 @@ class BehaviourComposer(object):
             with open(self.outputname, "w", encoding="utf-8") as f:
                 f.write(content)
         except Exception as err:
-            print_error(
-                f"unable to update asset url in behaviours file {self.outputname}: {err}."
-            )
+            print_error(f"unable to update asset url in behaviours file {self.outputname}: {err}.")
             return False
 
         print(f"saved all validated behaviours into {self.outputname}.")

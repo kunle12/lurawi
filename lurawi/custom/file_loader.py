@@ -1,19 +1,16 @@
-"""
-This module provides the `file_loader` custom behavior for loading various file types
-into the knowledge base, including text, PDF, and image formats.
-"""
+"""Custom behaviour for loading text, PDF, or image files into the knowledge base, with base64 encoding for images and PDF pages."""
 
 # pylint: disable=broad-exception-caught, import-error
 
-import os
 import base64
-
+import os
 from io import BytesIO
-from PIL import Image
+
 from pdf2image import convert_from_path
+from PIL import Image
 
 from lurawi.custom_behaviour import CustomBehaviour
-from lurawi.utils import logger, is_valid_url, adownload_file_to_temp
+from lurawi.utils import adownload_file_to_temp, is_valid_url, logger
 
 SUPPORTED_FILE_TYPES = [
     "text",  # include txt, md, csv text file format
@@ -47,7 +44,7 @@ class file_loader(CustomBehaviour):
 
     Args:
         file_location (str): The absolute path to the file to be loaded.
-        file_type (str): The type of the file. Must be one of "text", "pdf", "png", or "jpeg".
+        file_type (str): The type of the file. Must be one of "text", "pdf", or "image".
         output (str, optional): The key in the knowledge base where the loaded
                                 content will be stored. Defaults to "LOADED_FILE_CONTENT".
         success_action (list, optional): Action to perform on successful file load.
@@ -122,9 +119,7 @@ class file_loader(CustomBehaviour):
             await self.failed()
             return
 
-        file_location = self.parse_simple_input(
-            key="file_location", check_for_type="str"
-        )
+        file_location = self.parse_simple_input(key="file_location", check_for_type="str")
 
         downloaded_file = False
 
@@ -135,9 +130,7 @@ class file_loader(CustomBehaviour):
                 file_location = await adownload_file_to_temp(url=file_location)
                 downloaded_file = True
             except Exception as err:
-                logger.error(
-                    "file_loader: unable to download %s: %s", file_location, err
-                )
+                logger.error("file_loader: unable to download %s: %s", file_location, err)
                 await self.failed()
                 return
         else:
@@ -152,7 +145,7 @@ class file_loader(CustomBehaviour):
 
         try:
             if file_type == "text":
-                with open(file=file_location, mode="r", encoding="utf-8") as f:
+                with open(file=file_location, encoding="utf-8") as f:
                     self.kb[output_location] = [{"type": "text", "text": f"{f.read()}"}]
             elif file_type == "image":
                 image = Image.open(file_location)

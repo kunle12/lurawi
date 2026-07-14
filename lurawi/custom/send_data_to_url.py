@@ -1,15 +1,9 @@
-"""
-Custom behaviour for sending data (payload) to a specified URL via HTTP POST or PUT.
-
-This module defines the `send_data_to_url` class, which allows the system
-to make HTTP requests (POST by default, or PUT if specified) to external URLs,
-including custom headers and a JSON payload, and store the response status
-and data in the knowledge base.
-"""
+"""Custom behaviour for sending JSON payloads to a URL via HTTP POST or PUT, with KB-resolved payload and header values."""
 
 import simplejson as json
-from lurawi.utils import apost_payload_to_url, logger
+
 from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import apost_payload_to_url, logger
 
 
 class send_data_to_url(CustomBehaviour):
@@ -172,7 +166,6 @@ class send_data_to_url(CustomBehaviour):
                 data,
             )
             await self.failed()
-            self.kb["ERROR_MESSAGE"] = ""  # Clear error message after handling
         else:
             # Store return data if specified, or use default key
             if (

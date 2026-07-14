@@ -1,11 +1,4 @@
-"""
-Custom behaviour for checking the existence of a key in a dictionary or knowledge base.
-
-This module defines the `has_keyvalue` class, which allows the system to
-verify if a specified key exists within a given dictionary (store) or directly
-in the knowledge base. Based on the existence of the key, it triggers
-either a 'true_action' or a 'false_action'.
-"""
+"""Custom behaviour for checking key existence in a store dict or KB, branching workflow via true_action/false_action."""
 
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
@@ -16,8 +9,9 @@ class has_keyvalue(CustomBehaviour):
 
     This custom behaviour determines if a specified key is present in a target
     dictionary (which can be a knowledge base key pointing to a dictionary, or
-    the main knowledge base itself). It then executes a `true_action` if the
-    key is found, or a `false_action` if it is not found.
+    the main knowledge base itself). If the store is not a dict, falls back to
+    checking if the key exists directly in the main KB. Executes `true_action`
+    if found, or `false_action` if not.
 
     Args:
         store (str, optional): The knowledge base key pointing to the dictionary

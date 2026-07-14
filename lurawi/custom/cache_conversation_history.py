@@ -1,12 +1,7 @@
-"""
-Custom behaviour for caching user-bot conversation history.
-
-This module defines the `cache_conversation_history` class, which is used
-to store and manage the dialogue turns between a user and a bot,
-optionally enforcing a maximum token limit by purging older entries.
-"""
+"""Custom behaviour for storing and managing user-bot conversation history, with optional token-limit truncation of older entries."""
 
 import re
+
 import simplejson as json
 
 from lurawi.custom_behaviour import CustomBehaviour
@@ -83,9 +78,7 @@ class cache_conversation_history(CustomBehaviour):
             max_tokens = -1
 
         if user_input and llm_output:
-            llm_output = re.sub(
-                r"<think>.*?</think>", "", llm_output
-            )  # remove think content
+            llm_output = re.sub(r"<think>.*?</think>", "", llm_output)  # remove think content
             llm_output = llm_output.strip()  # To remove any leading or trailing spaces
             history.extend(
                 [
@@ -94,9 +87,7 @@ class cache_conversation_history(CustomBehaviour):
                 ]
             )
         else:
-            logger.warning(
-                "cache_conversation_history: missing user input and/or llm output"
-            )
+            logger.warning("cache_conversation_history: missing user input and/or llm output")
 
         mesg_str = ""
 

@@ -10,23 +10,25 @@ import contextlib
 import os
 import time
 import uuid
+from collections.abc import AsyncGenerator, Sequence
 from dataclasses import dataclass
-from typing import AsyncGenerator, Dict, List, Sequence, Optional, Any
+from typing import Any
 
 import simplejson as json
-
-from autogen_core import CancellationToken
-from autogen_agentchat.messages import AgentEvent, TextMessage, ChatMessage
 from autogen_agentchat.agents._base_chat_agent import BaseChatAgent
 from autogen_agentchat.base._chat_agent import Response
+from autogen_agentchat.messages import AgentEvent, ChatMessage, TextMessage
+from autogen_core import CancellationToken
 from multi_agent_orchestrator.agents import (
     Agent as AWSAgent,
+)
+from multi_agent_orchestrator.agents import (
     AgentOptions as AWSAgentOption,
 )
 from multi_agent_orchestrator.types import ConversationMessage, ParticipantRole
 
-from lurawi.utils import logger
 from lurawi.activity_manager import ActivityManager
+from lurawi.utils import logger
 
 STANDARD_GENAI_CONFIGS = [
     "PROJECT_NAME",
@@ -95,7 +97,7 @@ class LurawiAgent:
     orchestrate workflows.
     """
 
-    def __init__(self, name: str, behaviour: str | Dict, workspace: str = ".") -> None:
+    def __init__(self, name: str, behaviour: str | dict, workspace: str = ".") -> None:
         """
         Initializes a new instance of the LurawiAgent.
 
@@ -144,14 +146,10 @@ class LurawiAgent:
                 with open(kbase_path, encoding="utf-8") as data:
                     json_data = json.load(data)
             else:
-                logger.warning(
-                    "load_knowledge: no knowledge file %s is provided.", kbase
-                )
+                logger.warning("load_knowledge: no knowledge file %s is provided.", kbase)
                 return True
         except Exception as err:
-            logger.error(
-                "load_knowledge: unable to load knowledge file '%s':%s", kbase_path, err
-            )
+            logger.error("load_knowledge: unable to load knowledge file '%s':%s", kbase_path, err)
             return False
 
         self.knowledge.update(json_data)
@@ -161,7 +159,7 @@ class LurawiAgent:
         # check for custom domain specific language analysis model
         return True
 
-    def _load_behaviours(self, behaviour: str | Dict) -> Dict:
+    def _load_behaviours(self, behaviour: str | dict) -> dict:
         """
         Loads agent behaviours from a specified JSON file and integrates associated knowledge.
 
@@ -177,10 +175,10 @@ class LurawiAgent:
             dict: A dictionary containing the loaded behaviours. Returns an empty dictionary
                   if the behaviour file is not found, is misconfigured, or an error occurs.
         """
-        if isinstance(behaviour, Dict):
+        if isinstance(behaviour, dict):
             return behaviour
 
-        loaded_behaviours: Dict = {}
+        loaded_behaviours: dict = {}
 
         if behaviour.endswith(".json"):
             logger.warning("load_behaviours: extension .json is not required")
@@ -232,9 +230,7 @@ class LurawiAgent:
         Returns:
             str: The response from the agent's workflow.
         """
-        return self._async_loop_handler.run_async(
-            self.arun_agent(message=message, **kwargs)
-        )
+        return self._async_loop_handler.run_async(self.arun_agent(message=message, **kwargs))
 
     async def arun_agent(self, message: str, **kwargs) -> str:
         """
@@ -263,9 +259,7 @@ class LurawiAgent:
         return "System is busy, please try later."
 
 
-class LurawiAutoGenAgent(
-    BaseChatAgent, LurawiAgent
-):  # pylint: disable=too-many-ancestors
+class LurawiAutoGenAgent(BaseChatAgent, LurawiAgent):  # pylint: disable=too-many-ancestors
     """
     A Lurawi agent designed to be compatible with the AutoGen framework.
 
@@ -304,7 +298,7 @@ class LurawiAutoGenAgent(
             Sequence[type[ChatMessage]]: A tuple containing `TextMessage` as the
                                          produced message type.
         """
-        message_types: List[type[ChatMessage]] = [TextMessage]
+        message_types: list[type[ChatMessage]] = [TextMessage]
         return tuple(message_types)
 
     async def on_messages(
@@ -400,8 +394,8 @@ class LurawiAWSAgent(AWSAgent, LurawiAgent):
         input_text: str,
         user_id: str,
         session_id: str,
-        chat_history: List[ConversationMessage],
-        additional_params: Optional[dict[str, Any]] = None,
+        chat_history: list[ConversationMessage],
+        additional_params: dict[str, Any] | None = None,
     ) -> ConversationMessage:
         """
         Processes an incoming request from the AWS multi-agent orchestrator.

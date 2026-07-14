@@ -4,12 +4,12 @@ notifications from remote services.
 """
 
 import os
-from typing import Dict
 
 import requests
 from pydantic import BaseModel
-from lurawi.webhook_handler import WebhookHandler
+
 from lurawi.utils import is_indev, logger
+from lurawi.webhook_handler import WebhookHandler
 
 
 class RemoteServiceNotificationPayload(BaseModel):
@@ -28,7 +28,7 @@ class RemoteServiceNotificationPayload(BaseModel):
     access_key: str
     uid: str
     method: str
-    data: str | Dict
+    data: str | dict
 
 
 class RemoteServiceNotificationHandler(WebhookHandler):
@@ -66,9 +66,7 @@ class RemoteServiceNotificationHandler(WebhookHandler):
                 f"http://{local_ip}:{int(os.getenv('PORT', 8081))}/remote_callback"
             )
 
-    async def process_callback(
-        self, payload: RemoteServiceNotificationPayload
-    ):  # pylint: disable=unused-argument
+    async def process_callback(self, payload: RemoteServiceNotificationPayload):  # pylint: disable=unused-argument
         """Process incoming data is expected to have the following format:
         {
             "access_key": "fjeoijoefvjae", # access key put as the same as activity id
@@ -98,8 +96,6 @@ class RemoteServiceNotificationHandler(WebhookHandler):
             )
 
         if payload.success:
-            await member.process_remote_callback_payload(
-                method=payload.method, data=payload.data
-            )
+            await member.process_remote_callback_payload(method=payload.method, data=payload.data)
 
         return self.write_http_response(200, {"status": "success"})

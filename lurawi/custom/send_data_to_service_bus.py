@@ -1,17 +1,13 @@
-"""
-Custom behaviour for sending data to Azure Service Bus.
-
-This module defines the `send_data_to_service_bus` class, which allows the
-system to send messages to a specified Azure Service Bus queue using a
-connection string and a JSON payload.
-"""
+"""Custom behaviour for sending JSON payloads to an Azure Service Bus queue, with KB-resolved connection string and payload values."""
 
 import os
+
 import simplejson as json
-from lurawi.utils import logger
-from lurawi.custom_behaviour import CustomBehaviour
 from azure.servicebus import ServiceBusMessage
 from azure.servicebus.aio import ServiceBusClient
+
+from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import logger
 
 
 class send_data_to_service_bus(CustomBehaviour):
@@ -60,13 +56,9 @@ class send_data_to_service_bus(CustomBehaviour):
         It handles success and failure actions accordingly.
         """
         connect_str = None
-        if "connect_str" in self.details and isinstance(
-            self.details["connect_str"], str
-        ):
+        if "connect_str" in self.details and isinstance(self.details["connect_str"], str):
             connect_str = self.details["connect_str"]
-        elif "ServiceBusConnStr" in os.environ and isinstance(
-            os.environ["ServiceBusConnStr"], str
-        ):
+        elif "ServiceBusConnStr" in os.environ and isinstance(os.environ["ServiceBusConnStr"], str):
             connect_str = os.environ["ServiceBusConnStr"]
 
         if connect_str is None:
@@ -146,4 +138,3 @@ class send_data_to_service_bus(CustomBehaviour):
             )
             self.kb["ERROR_MESSAGE"] = str(err)  # Store error message in KB
             await self.failed()
-            self.kb["ERROR_MESSAGE"] = ""  # Clear error message after handling

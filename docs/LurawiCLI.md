@@ -30,4 +30,3 @@ To view the available commands, open a terminal in VS Code and execute `lurawi -
 | `lurawi create <project_name>`| Creates a new Lurawi project XML file from a default template. This XML file can be opened in the visual editor. |
 | `lurawi custom list`          | Lists all available Lurawi Custom functions.                                                            |
 | `lurawi custom new <custom_name>`| Creates a new custom function from a default template. The Python code for this function can then be edited in VS Code. |
- 

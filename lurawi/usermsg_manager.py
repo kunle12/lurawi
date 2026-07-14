@@ -11,7 +11,6 @@ The module enables components to:
 - Filter messages based on interests
 """
 
-from typing import Dict, List
 from lurawi.utils import logger
 
 
@@ -31,7 +30,7 @@ class UserMessageListener:
         if they need specific initialization logic.
         """
 
-    async def on_user_message_update(self, context: Dict):
+    async def on_user_message_update(self, context: dict):
         """
         Handles incoming user message updates.
 
@@ -61,7 +60,7 @@ class UserMessageUpdateManager:
     - Clear all registered listeners.
     """
 
-    def __init__(self, kb: Dict):
+    def __init__(self, kb: dict):
         """
         Initializes a new UserMessageUpdateManager.
 
@@ -73,12 +72,12 @@ class UserMessageUpdateManager:
             The manager automatically registers itself in the knowledge base
             under `kb["MODULES"]["UserMessageManager"]`.
         """
-        self.listeners: List[tuple[UserMessageListener, List[str]]] = []
+        self.listeners: list[tuple[UserMessageListener, list[str]]] = []
         self.knowledge = kb
         self.knowledge["MODULES"]["UserMessageManager"] = self
 
     def register_for_user_message_updates(
-        self, callable_obj: UserMessageListener, interests: List[str] = []
+        self, callable_obj: UserMessageListener, interests: list[str] = []
     ):
         """
         Registers an object to receive user message updates.
@@ -98,9 +97,7 @@ class UserMessageUpdateManager:
             TypeError: If `interests` is not a list of strings.
         """
         if not isinstance(callable_obj, UserMessageListener):
-            logger.error(
-                "%s is not a UserMessageListener", callable_obj.__class__.__name__
-            )
+            logger.error("%s is not a UserMessageListener", callable_obj.__class__.__name__)
             return
         if interests is not None and not isinstance(interests, list):
             logger.error(
@@ -128,7 +125,7 @@ class UserMessageUpdateManager:
         if found is not None:
             del self.listeners[found]
 
-    async def process_user_messages(self, message: Dict):
+    async def process_user_messages(self, message: dict):
         """
         Processes a user message by distributing it to registered listeners.
 

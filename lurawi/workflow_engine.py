@@ -16,16 +16,14 @@ and routing events to appropriate handlers.
 
 import importlib
 import inspect
-import time
 import os
-
+import time
 from io import StringIO
 from threading import Lock as mutex
-from typing import Dict, Any
+from typing import Any
 
-import simplejson as json
 import boto3
-
+import simplejson as json
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobClient
 from discord import Message as DiscordMessage
@@ -36,7 +34,7 @@ from pydantic import BaseModel, Extra
 from lurawi.activity_manager import ActivityManager
 from lurawi.remote_service import RemoteService
 from lurawi.timer_manager import TimerClient, timerManager
-from lurawi.utils import logger, api_access_check, write_http_response
+from lurawi.utils import api_access_check, logger, write_http_response
 
 STANDARD_LURAWI_CONFIGS = [
     "PROJECT_NAME",
@@ -56,7 +54,7 @@ class WorkflowInputPayload(BaseModel, extra=Extra.allow):
     name: str  # Name of the user/entity
     session_id: str = ""  # Optional session identifier
     activity_id: str = ""  # Optional activity identifier
-    data: Dict[str, Any] = {}  # Additional data payload
+    data: dict[str, Any] = {}  # Additional data payload
 
     @property
     def extra_fields(self) -> set[str]:
@@ -105,15 +103,10 @@ class WorkflowEngine(TimerClient):
         # self.auto_save_log_timer = timerManager.add_timer(self, init_start=1800, interval=1800)
         self.auto_purge_timer = None
 
-        if (
-            "AutoPurgeIdleUsers" in os.environ
-            and os.environ["AutoPurgeIdleUsers"] == "1"
-        ):
-            self.auto_purge_timer = timerManager.add_timer(
-                self, init_start=3600, interval=3600
-            )
+        if "AutoPurgeIdleUsers" in os.environ and os.environ["AutoPurgeIdleUsers"] == "1":
+            self.auto_purge_timer = timerManager.add_timer(self, init_start=3600, interval=3600)
         self._mutex = mutex()
-        self.remote_services: Dict[str, RemoteService] = {}
+        self.remote_services: dict[str, RemoteService] = {}
         self._init_remote_services()
         self.start_remote_services()
 
@@ -161,9 +154,7 @@ class WorkflowEngine(TimerClient):
                 with open(f"/opt/defaultsite/{kbase_path}", encoding="utf-8") as data:
                     json_data = json.load(data)
             else:
-                logger.warning(
-                    "load_knowledge: no knowledge file %s is provided.", kbase
-                )
+                logger.warning("load_knowledge: no knowledge file %s is provided.", kbase)
                 return True
         except ResourceNotFoundError:
             logger.warning("load_knowledge: no knowledge file %s is provided.", kbase)
@@ -189,7 +180,7 @@ class WorkflowEngine(TimerClient):
         # check for custom domain specific language analysis model
         return True
 
-    def load_behaviours(self, behaviour: str = "") -> Dict:
+    def load_behaviours(self, behaviour: str = "") -> dict:
         """Load behaviours from a JSON file.
 
         Attempts to load behaviours from various sources in the following order:
@@ -203,7 +194,7 @@ class WorkflowEngine(TimerClient):
         Returns:
             dict: Dictionary containing loaded behaviours, or empty dict if loading failed
         """
-        loaded_behaviours: Dict = {}
+        loaded_behaviours: dict = {}
         if not behaviour:
             if self.custom_behaviour:
                 behaviour = self.custom_behaviour
@@ -226,10 +217,7 @@ class WorkflowEngine(TimerClient):
                     blob_name=behaviour_file,
                 )
                 loaded_behaviours = json.loads(blob.download_blob().content_as_text())
-            elif (
-                "AWS_ACCESS_KEY_ID" in os.environ
-                and "AWS_SECRET_ACCESS_KEY" in os.environ
-            ):
+            elif "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ:
                 s3_client = boto3.client("s3")
                 blobio = StringIO()
                 s3_client.download_fileobj("lurawidata", behaviour_file, blobio)
@@ -241,9 +229,7 @@ class WorkflowEngine(TimerClient):
                 with open(f"/home/lurawi/{behaviour_file}", encoding="utf-8") as data:
                     loaded_behaviours = json.load(data)
             elif os.path.exists(f"/opt/defaultsite/{behaviour_file}"):
-                with open(
-                    f"/opt/defaultsite/{behaviour_file}", encoding="utf-8"
-                ) as data:
+                with open(f"/opt/defaultsite/{behaviour_file}", encoding="utf-8") as data:
                     loaded_behaviours = json.load(data)
             else:
                 logger.error(
@@ -327,11 +313,7 @@ class WorkflowEngine(TimerClient):
             activity_manager = ActivityManager(
                 uid=discord_id,
                 name=user_name,
-                behaviour=(
-                    self.pending_behaviours
-                    if self.pending_behaviours
-                    else self.behaviours
-                ),
+                behaviour=(self.pending_behaviours if self.pending_behaviours else self.behaviours),
                 knowledge=self.knowledge,
                 system_service=self.remote_services,
             )
@@ -360,9 +342,7 @@ class WorkflowEngine(TimerClient):
             Response object with workflow results or error message
         """
         if not authorised:
-            return write_http_response(
-                401, {"status": "failed", "message": "Unauthorised access."}
-            )
+            return write_http_response(401, {"status": "failed", "message": "Unauthorised access."})
 
         memberid = payload.uid
         self._mutex.acquire()
@@ -373,11 +353,7 @@ class WorkflowEngine(TimerClient):
             activity_manager = ActivityManager(
                 uid=memberid,
                 name=payload.name,
-                behaviour=(
-                    self.pending_behaviours
-                    if self.pending_behaviours
-                    else self.behaviours
-                ),
+                behaviour=(self.pending_behaviours if self.pending_behaviours else self.behaviours),
                 knowledge=self.knowledge,
                 system_service=self.remote_services,
             )
@@ -456,7 +432,7 @@ class WorkflowEngine(TimerClient):
         return None
 
     async def on_executing_behaviour_for_uid(  # pylint: disable=dangerous-default-value
-        self, uid: str, behaviour: str, knowledge: Dict = {}
+        self, uid: str, behaviour: str, knowledge: dict = {}
     ) -> bool:
         """Execute a specific behaviour for a given user.
 
@@ -482,9 +458,7 @@ class WorkflowEngine(TimerClient):
             JSONResponse with status information
         """
         result = "Welcome to the HealthCheck Service!"
-        return JSONResponse(
-            status_code=200, content={"status": "success", "result": result}
-        )
+        return JSONResponse(status_code=200, content={"status": "success", "result": result})
 
     def on_shutdown(self):
         """Clean up resources when the workflow engine is shutting down.
@@ -555,24 +529,17 @@ class WorkflowEngine(TimerClient):
                     try:
                         m = importlib.import_module(mpath)
                     except Exception as err:  # pylint: disable=broad-exception-caught
-                        logger.error(
-                            "Unable to import service module script %s: %s", f, err
-                        )
+                        logger.error("Unable to import service module script %s: %s", f, err)
                         continue
                     for name, objclass in inspect.getmembers(m, inspect.isclass):
-                        if (
-                            issubclass(objclass, RemoteService)
-                            and name != "RemoteService"
-                        ):
+                        if issubclass(objclass, RemoteService) and name != "RemoteService":
                             try:
                                 obj = objclass(owner=self)
                                 if obj.init():
                                     self.remote_services[name] = obj
                                     logger.info("%s service is initialised.", name)
                             except Exception as err:
-                                logger.error(
-                                    "Unable to load %s service: %s.", name, err
-                                )
+                                logger.error("Unable to load %s service: %s.", name, err)
 
     def fini_remote_services(self):
         """Finalize all remote services.

@@ -7,8 +7,9 @@ methods for initializing the handler, processing incoming data, and
 generating HTTP responses.
 """
 
-from pydantic import BaseModel
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
 from lurawi.utils import logger
 
 

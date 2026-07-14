@@ -16,12 +16,13 @@ Custom behaviours should inherit from the CustomBehaviour class and override
 the run() method to implement their specific logic.
 """
 
+from collections.abc import AsyncIterable, Awaitable, Callable
 from time import time
-from typing import List, Optional, Callable, Awaitable, Any, AsyncIterable
+from typing import Any
 
 from lurawi.callbackmsg_manager import RemoteCallbackMessageListener
 from lurawi.usermsg_manager import UserMessageListener
-from lurawi.utils import logger, check_type
+from lurawi.utils import check_type, logger
 
 
 class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
@@ -46,8 +47,8 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
         """
         self.kb = kb
         self.details = details or {}
-        self.on_success = Optional[Callable[[str, Any], Awaitable[None]]]
-        self.on_failure = Optional[Callable[[str, Any], Awaitable[None]]]
+        self.on_success = Callable[[str, Any], Awaitable[None]] | None
+        self.on_failure = Callable[[str, Any], Awaitable[None]] | None
         self._usermessage_manager = kb["MODULES"]["UserMessageManager"]
         self._callback_manager = kb["MODULES"]["RemoteCallbackMessageManager"]
         self._registered_for_user_message = False
@@ -117,9 +118,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
 
         return None
 
-    def register_for_user_message_updates(
-        self, interests: List[str] = []
-    ):  # pylint: disable=dangerous-default-value
+    def register_for_user_message_updates(self, interests: list[str] = []):  # pylint: disable=dangerous-default-value
         """
         Register this behaviour to receive user message updates.
 
@@ -159,9 +158,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
         self._registered_for_user_message = False
         self._usermessage_manager.deregister_for_user_message_updates(self)
 
-    def register_for_callback_message_updates(
-        self, interests: List[str] = []
-    ):  # pylint: disable=dangerous-default-value
+    def register_for_callback_message_updates(self, interests: list[str] = []):  # pylint: disable=dangerous-default-value
         """
         Register this behaviour to receive remote callback message updates.
 
@@ -183,9 +180,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
             return
 
         self._registered_for_callback_message = True
-        self._callback_manager.register_for_remote_callback_message_updates(
-            self, interests
-        )
+        self._callback_manager.register_for_remote_callback_message_updates(self, interests)
 
     def cancel_callback_message_updates(self):
         """
@@ -226,7 +221,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
         """
         Signal that this behaviour has failed.
 
-        Calls the on_failure callback if it exists.
+        Calls the on_failure callback if it exists and clears ERROR_MESSAGE.
 
         Args:
             action (Any, optional): The action that failed. If not provided,
@@ -240,6 +235,7 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
                 self.__class__.__name__,
                 action if action else self.details.get("failed_action"),
             )
+        self.kb["ERROR_MESSAGE"] = ""
 
     async def _dummy_message(self):
         """
@@ -396,9 +392,7 @@ class DataStreamHandler:
     and formats them for Server-Sent Events (SSE).
     """
 
-    def __init__(
-        self, response, callback_custom: Optional[CustomBehaviour] = None
-    ) -> None:
+    def __init__(self, response, callback_custom: CustomBehaviour | None = None) -> None:
         """Initialize a new DataStreamHandler.
 
         Args:
@@ -426,9 +420,7 @@ class DataStreamHandler:
 
         if self._callback_custom:
             custom_obj = self._callback_custom
-            if "response" in custom_obj.details and isinstance(
-                custom_obj.details["response"], str
-            ):
+            if "response" in custom_obj.details and isinstance(custom_obj.details["response"], str):
                 result_variable = custom_obj.details["response"]
                 if result_variable in custom_obj.kb and isinstance(
                     custom_obj.kb[result_variable], list
