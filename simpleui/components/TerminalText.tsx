@@ -19,7 +19,7 @@ const ContentWithBlinkingCursor = styled.div`
         display: inline-block;
         animation: ${pulse} 1.5s steps(2) infinite;
     }
-      
+
     p {
         margin-left: 7px;
         margin-bottom: -2px;
@@ -27,7 +27,7 @@ const ContentWithBlinkingCursor = styled.div`
     }
 `;
 
-const NormalContent = styled.div`      
+const NormalContent = styled.div`
     p {
         margin-left: 7px;
         margin-bottom: -2px;
@@ -56,7 +56,7 @@ function escapeBrackets(text: string): string {
       },
     );
   }
-  
+
 function escapeMhchem(text: string) {
     return text.replaceAll('$\\ce{', '$\\\\ce{').replaceAll('$\\pu{', '$\\\\pu{');
 }
@@ -74,27 +74,27 @@ function preprocessLaTeX(content: string): string {
       codeBlocks.push(code);
       return `<<CODE_BLOCK_${codeBlocks.length - 1}>>`;
     });
-  
+
     // Step 2: Protect existing LaTeX expressions
     const latexExpressions: string[] = [];
     content = content.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\(.*?\\\))/g, (match) => {
       latexExpressions.push(match);
       return `<<LATEX_${latexExpressions.length - 1}>>`;
     });
-  
+
     // Step 3: Escape dollar signs that are likely currency indicators
     content = content.replace(/\$(?=\d)/g, '\\$');
-  
+
     // Step 4: Restore LaTeX expressions
     content = content.replace(/<<LATEX_(\d+)>>/g, (_, index) => latexExpressions[parseInt(index)]);
-  
+
     // Step 5: Restore code blocks
     content = content.replace(/<<CODE_BLOCK_(\d+)>>/g, (_, index) => codeBlocks[parseInt(index)]);
-  
+
     // Step 6: Apply additional escaping functions
     content = escapeBrackets(content);
     content = escapeMhchem(content);
-  
+
     return content;
 }
 
@@ -102,7 +102,7 @@ const TerminalText = ({content, active}) => {
     if (content.includes("\[")) {
         content = preprocessLaTeX(content);
     }
-    return ( active ? 
+    return ( active ?
         <ContentWithBlinkingCursor>
             <ReactMarkdown
                 remarkPlugins={[remarkMath]}

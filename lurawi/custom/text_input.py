@@ -1,12 +1,5 @@
-"""
-Custom behaviour for handling user text input.
+"""Custom behaviour for prompting the user for text input and storing the response in the KB, with dynamic template-based prompts."""
 
-This module defines the `text_input` class, which allows the system to
-prompt the user for text input and store the received response in the
-knowledge base.
-"""
-
-from typing import Dict
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 
@@ -119,7 +112,7 @@ class text_input(CustomBehaviour):
                             `activity.content` with the user's text.
         """
         result = ""
-        if isinstance(context, Dict) and "message" in context:
+        if isinstance(context, dict) and "message" in context:
             result = context["message"].strip()
         else:
             logger.error("text_input: data_key was not set, cannot store user input.")

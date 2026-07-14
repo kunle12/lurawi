@@ -44,7 +44,7 @@ const LLMPromptForm = () => {
   useEffect(() => {
     divRef.current?.scrollIntoView({ behavior: 'smooth' });
   });
-  
+
 
   useEffect(() => {
     if (router.isReady) {
@@ -107,7 +107,7 @@ const LLMPromptForm = () => {
       'X-LURAWI-API-KEY': process.env.NEXT_PUBLIC_PROJECT_ACCESS_KEY,
       'X-Accel-Buffering': 'no'
     }
-    
+
     const postOptions = {
       method: 'POST',
       headers: headers,

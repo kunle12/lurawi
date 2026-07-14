@@ -1,14 +1,8 @@
-"""
-Custom behaviour for retrieving data from a specified URL.
+"""Custom behaviour for HTTP GET requests to external URLs with optional headers and query parameters, storing response status and data in the KB."""
 
-This module defines the `get_data_from_url` class, which allows the system
-to make HTTP GET requests to external URLs, optionally including headers
-and query parameters, and store the response status and data in the
-knowledge base.
-"""
-
-from lurawi.utils import aget_data_from_url as get_remote_data, logger
 from lurawi.custom_behaviour import CustomBehaviour
+from lurawi.utils import aget_data_from_url as get_remote_data
+from lurawi.utils import logger
 
 
 class get_data_from_url(CustomBehaviour):
@@ -101,7 +95,6 @@ class get_data_from_url(CustomBehaviour):
                 elif isinstance(data, dict) and "message" in data:
                     self.kb["ERROR_MESSAGE"] = data["message"]
             await self.failed()
-            self.kb["ERROR_MESSAGE"] = ""  # Clear error message after handling
         else:
             # Store return data if specified
             if (

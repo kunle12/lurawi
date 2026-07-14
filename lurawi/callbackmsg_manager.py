@@ -6,7 +6,8 @@ about specific remote callback messages, allowing for decoupled communication be
 components.
 """
 
-from typing import Dict, List, cast
+from typing import cast
+
 from lurawi.utils import logger
 
 
@@ -21,9 +22,7 @@ class RemoteCallbackMessageListener:
     def __init__(self):
         """Initialize a new RemoteCallbackMessageListener."""
 
-    async def on_remote_callback_message_update(
-        self, data: Dict = {}
-    ):  # pylint: disable=unused-argument, dangerous-default-value
+    async def on_remote_callback_message_update(self, data: dict = {}):  # pylint: disable=unused-argument, dangerous-default-value
         """Handle a remote callback message update.
 
         This method is called when a remote callback message is received.
@@ -57,9 +56,7 @@ class RemoteCallbackMessageUpdateManager:
         self.knowledge = kb
         self.knowledge["MODULES"]["RemoteCallbackMessageManager"] = self
 
-    def register_for_remote_callback_message_updates(
-        self, callableObj, interests: List[str] = []
-    ):
+    def register_for_remote_callback_message_updates(self, callableObj, interests: list[str] = []):
         """Register a listener for remote callback message updates.
 
         Args:
@@ -96,7 +93,7 @@ class RemoteCallbackMessageUpdateManager:
         if found is not None:
             del self.listeners[found]
 
-    async def process_remote_callback_messages(self, method: str, message: Dict):
+    async def process_remote_callback_messages(self, method: str, message: dict):
         """Process incoming remote callback messages.
 
         Routes the message to all registered listeners that have expressed

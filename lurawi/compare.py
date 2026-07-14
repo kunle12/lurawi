@@ -1,5 +1,6 @@
 import operator
 import time
+
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 
@@ -86,9 +87,7 @@ class compare(CustomBehaviour):
             await self.failed()
             return
         try:
-            result = self.comp_operators[self.details["comparison_operator"]](
-                operand1, operand2
-            )
+            result = self.comp_operators[self.details["comparison_operator"]](operand1, operand2)
             logger.debug(
                 "compare: %s %s %s. Result = %s",
                 operand1,
@@ -135,11 +134,7 @@ class compare(CustomBehaviour):
                 operand = int(time.time())
             elif arg in self.kb:
                 try:
-                    operand = (
-                        float(self.kb[arg])
-                        if "." in self.kb[arg]
-                        else int(self.kb[arg])
-                    )
+                    operand = float(self.kb[arg]) if "." in self.kb[arg] else int(self.kb[arg])
                 except Exception as _:
                     operand = self.kb[arg]
             else:

@@ -4,8 +4,9 @@ conversation data in development mode.
 """
 
 from fastapi.responses import StreamingResponse
+
+from lurawi.utils import get_dev_stream_handler, is_indev, set_dev_stream_handler
 from lurawi.webhook_handler import WebhookHandler
-from lurawi.utils import is_indev, get_dev_stream_handler, set_dev_stream_handler
 
 
 class GetConversationStream(WebhookHandler):
@@ -18,7 +19,7 @@ class GetConversationStream(WebhookHandler):
     """
 
     def __init__(self, server=None):
-        super(GetConversationStream, self).__init__(server)
+        super().__init__(server)
         self.is_disabled = not is_indev()
         self.route = "/dev/stream"
         self.methods = ["GET"]

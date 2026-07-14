@@ -291,4 +291,3 @@ A `message` call returns a response similar to the following:
   "response": "Hello, I'm an AI assistant"
 }
 ```
-

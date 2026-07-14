@@ -1,3 +1,5 @@
+"""Custom behaviour to send a direct message to a specified Discord user."""
+
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 

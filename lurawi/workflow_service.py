@@ -8,16 +8,17 @@ The service automatically discovers and registers webhook handlers from the hand
 and provides graceful shutdown handling through signal management.
 """
 
-import os
 import importlib
 import inspect
+import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from lurawi.workflow_engine import WorkflowEngine
+
+from lurawi.utils import is_indev, logger
 from lurawi.webhook_handler import WebhookHandler
-from lurawi.utils import logger, is_indev
+from lurawi.workflow_engine import WorkflowEngine
 
 
 class WorkflowService:
@@ -139,24 +140,17 @@ class WorkflowService:
         if not os.path.exists("lurawi/handlers"):
             return
 
-        for _, _, files in os.walk(
-            "lurawi/handlers"
-        ):  # pylint: disable=too-many-nested-blocks
+        for _, _, files in os.walk("lurawi/handlers"):  # pylint: disable=too-many-nested-blocks
             for f in files:
                 if f.endswith(".py") and f != "__init__.py":
                     mpath = "lurawi.handlers." + os.path.splitext(f)[0]
                     try:
                         m = importlib.import_module(mpath)
                     except Exception as err:  # pylint: disable=broad-exception-caught
-                        logger.error(
-                            "Unable to import api handler module %s: %s", f, err
-                        )
+                        logger.error("Unable to import api handler module %s: %s", f, err)
                         continue
                     for name, objclass in inspect.getmembers(m, inspect.isclass):
-                        if (
-                            issubclass(objclass, WebhookHandler)
-                            and name != "WebhookHandler"
-                        ):
+                        if issubclass(objclass, WebhookHandler) and name != "WebhookHandler":
                             try:
                                 obj = objclass(self.workflow_engine)
                                 if not obj.is_disabled:
@@ -165,9 +159,7 @@ class WorkflowService:
                             except (
                                 Exception  # pylint: disable=broad-exception-caught
                             ) as err:
-                                logger.error(
-                                    "Unable to webhook handler %s: %s", name, err
-                                )
+                                logger.error("Unable to webhook handler %s: %s", name, err)
 
     def _register_webhook_handlers(self, router):
         """
@@ -184,6 +176,4 @@ class WorkflowService:
         """
         self._load_webhook_handlers()
         for route, handler in self.webhook_handlers.items():
-            router.add_api_route(
-                route, endpoint=handler.process_callback, methods=handler.methods
-            )
+            router.add_api_route(route, endpoint=handler.process_callback, methods=handler.methods)

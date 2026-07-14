@@ -1,10 +1,4 @@
-"""
-Custom behaviour for populating a prompt template with dynamic values.
-
-This module defines the `populate_prompt` class, which allows the system
-to replace placeholders within a given prompt string with values retrieved
-from the knowledge base or other sources.
-"""
+"""Custom behaviour for replacing placeholders in a prompt string with KB-resolved values, supporting nested template structures."""
 
 import simplejson as json
 
@@ -106,9 +100,7 @@ class populate_prompt(CustomBehaviour):
         logger.debug("final replacement string %s", replace_resolved)
 
         for k, v in replace_resolved.items():
-            prompt_text = prompt_text.replace(
-                k, str(v)
-            )  # Ensure replacement value is string
+            prompt_text = prompt_text.replace(k, str(v))  # Ensure replacement value is string
 
         if "output" in self.details and isinstance(self.details["output"], str):
             self.kb[self.details["output"]] = prompt_text

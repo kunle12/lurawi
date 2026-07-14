@@ -1,20 +1,15 @@
-"""
-This module provides functionality for performing semantic searches using ChromaDB with either
-LlamaCpp or OpenAI embedding models. It includes a custom embedding function for LlamaCpp models
-and a behavior class for executing semantic search operations.
-"""
+"""Custom behaviour for semantic search via ChromaDB using LlamaCpp or OpenAI embedding models."""
 
 import os
-import numpy as np
 
-from llama_cpp import Llama
+import numpy as np
+from chromadb import Documents, EmbeddingFunction, Embeddings, PersistentClient
 from chromadb.config import Settings
-from chromadb import PersistentClient
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
-from chromadb import Documents, EmbeddingFunction, Embeddings
+from llama_cpp import Llama
 
 from lurawi.custom_behaviour import CustomBehaviour
-from lurawi.utils import logger, cut_string
+from lurawi.utils import cut_string, logger
 
 
 class LlamaCppEmbeddingFunction(EmbeddingFunction):
@@ -111,9 +106,7 @@ class chromadb_search(CustomBehaviour):
         chroma_client = PersistentClient(
             path=db_directory, settings=Settings(anonymized_telemetry=False)
         )
-        embedding_model = self.parse_simple_input(
-            key="embedding_model", check_for_type="str"
-        )
+        embedding_model = self.parse_simple_input(key="embedding_model", check_for_type="str")
 
         if embedding_model is None:
             logger.error("chromadb_search: missing embedding model name")
@@ -136,12 +129,14 @@ class chromadb_search(CustomBehaviour):
             vector_store = chroma_client.get_collection(
                 name=collection, embedding_function=embedding_function
             )
-        except ValueError:
+        except Exception:
             logger.error(
                 "chromadb_search: unable to load collection %s from %s",
                 collection,
                 db_directory,
             )
+            await self.failed()
+            return
 
         doc_data = self.parse_simple_input(key="doc_data", check_for_type="dict")
 
@@ -157,10 +152,10 @@ class chromadb_search(CustomBehaviour):
 
             if doc_data:
                 found_doc = "\n".join(
-                    [doc_data[result[0].metadata["chunk_id"]] for result in results]
+                    [doc_data[m["chunk_id"]] for m in results.get("metadatas", [[]])[0]]
                 )
             else:
-                found_doc = "\n".join([result[0].page_content for result in results])
+                found_doc = "\n".join(results.get("documents", [[]])[0])
         except Exception as err:  # pylint: disable=broad-exception-caught
             logger.error("chromadb_search: semantic search return error: %s", err)
             if "SEMANTICS_SEARCH_RESULTS" in self.kb:

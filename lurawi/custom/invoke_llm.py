@@ -1,16 +1,10 @@
-"""
-Custom behaviour for invoking Large Language Models (LLMs) via an OpenAI-compatible API.
-
-This module defines the `invoke_llm` class, which allows the system to send
-prompts to an LLM, manage streaming responses, and store the LLM's output
-in the knowledge base.
-"""
+"""Custom behaviour for invoking LLMs via OpenAI-compatible APIs, supporting streaming and non-streaming responses with template-based prompt resolution."""
 
 import os
-import time
-import simplejson as json
 
+import simplejson as json
 from openai import AsyncOpenAI
+
 from lurawi.custom_behaviour import CustomBehaviour, DataStreamHandler
 from lurawi.utils import is_indev, logger, set_dev_stream_handler
 
@@ -82,7 +76,6 @@ class invoke_llm(CustomBehaviour):
         and handles the response, either streaming it or storing the full
         content in the knowledge base. Error handling for API calls is included.
         """
-        invoke_time = time.time()
 
         base_url = self.parse_simple_input(key="base_url", check_for_type="str")
 
@@ -133,25 +126,17 @@ class invoke_llm(CustomBehaviour):
                 resolved_prompts = []
                 for item in prompt:
                     if not isinstance(item, dict):
-                        logger.error(
-                            "invoke_llm: invalid payload: invalid composite prompt format"
-                        )
+                        logger.error("invoke_llm: invalid payload: invalid composite prompt format")
                         await self.failed()
                         return
                     item_payload = json.loads(json.dumps(item))  # Deep copy
                     for k, v in item_payload.items():
-                        if (
-                            isinstance(v, list)
-                            and len(v) == 2
-                            and isinstance(v[1], list)
-                        ):
+                        if isinstance(v, list) and len(v) == 2 and isinstance(v[1], list):
                             # Nested template: ["content {}", ["key"]]
                             content, keys = v
                             for key in keys:
                                 if key in self.kb:
-                                    content = content.replace(
-                                        "{}", str(self.kb[key]), 1
-                                    )
+                                    content = content.replace("{}", str(self.kb[key]), 1)
                                 else:
                                     _key = str(key).replace("_", " ")
                                     content = content.replace("{}", _key, 1)
@@ -171,9 +156,7 @@ class invoke_llm(CustomBehaviour):
                                 content = value[0]
                                 for key in keys:
                                     if key in self.kb:
-                                        content = content.replace(
-                                            "{}", str(self.kb[key]), 1
-                                        )
+                                        content = content.replace("{}", str(self.kb[key]), 1)
                                     else:
                                         _key = str(key).replace("_", " ")
                                         content = content.replace("{}", _key, 1)
@@ -220,7 +203,6 @@ class invoke_llm(CustomBehaviour):
             logger.error("invoke_llm: failed to call Agent %s: %s", model, err)
             self.kb["ERROR_MESSAGE"] = str(err)
             await self.failed()
-            self.kb["ERROR_MESSAGE"] = ""  # Clear error message after handling
             return
 
         if stream:
@@ -236,9 +218,7 @@ class invoke_llm(CustomBehaviour):
         else:
             if "response" in self.details and isinstance(self.details["response"], str):
                 result_variable = self.details["response"]
-                if result_variable in self.kb and isinstance(
-                    self.kb[result_variable], list
-                ):
+                if result_variable in self.kb and isinstance(self.kb[result_variable], list):
                     self.kb[result_variable].append(response.choices[0].message.content)
                 else:
                     self.kb[result_variable] = response.choices[0].message.content

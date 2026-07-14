@@ -20,7 +20,7 @@ repo_url: https://github.com/kunle12/lurawi
 
 nav:
   - index.md
-  - Advanced Topics: 
+  - Advanced Topics:
     - LurawiCLI.md
     - APISpecifications.md
     - LurawiConcepts.md

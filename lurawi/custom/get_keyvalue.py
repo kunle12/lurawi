@@ -1,11 +1,4 @@
-"""
-Custom behaviour for retrieving a value from a dictionary (store) by its key.
-
-This module defines the `get_keyvalue` class, which allows the system to
-access an element within a dictionary (stored in the knowledge base or
-directly provided) using a specified key and then store the retrieved value
-under a new knowledge base key.
-"""
+"""Custom behaviour for retrieving a value from a dictionary (KB store or main KB) by key, with KB-key resolution for both store and key arguments."""
 
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger

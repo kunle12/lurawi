@@ -96,7 +96,7 @@ If input validation failed, we immediately call `await self.failed()` and `retur
 
 Now we generate a list of Fibonacci numbers and save them in a knowledgebase variable specified in the `output`. If `output` is not given, we save the result under a generic name  `FIBONACCI_SEQ`.
 
-If the follow on `success_action` is defined, we call the action, whereas in *failed* case, we call the `failed_action` when it is provided. Note that, we deliberately treating `input_size == 1` as the fail case in this custom to illustrate how a custom may handle its failed cases. 
+If the follow on `success_action` is defined, we call the action, whereas in *failed* case, we call the `failed_action` when it is provided. Note that, we deliberately treating `input_size == 1` as the fail case in this custom to illustrate how a custom may handle its failed cases.
 
 **This is all you need to implement for most custom action primitives!!**
 

@@ -1,17 +1,17 @@
 # pylint: disable=dangerous-default-value, too-many-lines
 
-import os
-import sys
 import asyncio
 import importlib
+import os
 import random
 import re
+import sys
 import time
 import uuid
-from typing import Dict, Any
 from threading import Lock as mutex
-import simplejson as json
+from typing import Any
 
+import simplejson as json
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from .calculate import calculate
@@ -19,7 +19,7 @@ from .callbackmsg_manager import RemoteCallbackMessageUpdateManager
 from .compare import compare
 from .custom_behaviour import CustomBehaviour, DataStreamHandler
 from .usermsg_manager import UserMessageUpdateManager
-from .utils import write_http_response, logger, is_indev
+from .utils import is_indev, logger, write_http_response
 
 
 class ActivityManager:
@@ -31,9 +31,7 @@ class ActivityManager:
     suspending, and resuming actions.
     """
 
-    def __init__(
-        self, uid: str, name: str, behaviour, knowledge: Dict, system_service: Dict = {}
-    ):
+    def __init__(self, uid: str, name: str, behaviour, knowledge: dict, system_service: dict = {}):
         """
         Initialize the ActivityManager with user information and behaviours.
 
@@ -85,9 +83,7 @@ class ActivityManager:
         self.load_behaviours(behaviour)
 
         self.usermessage_manager = UserMessageUpdateManager(self.knowledge)
-        self.callbackmessage_manager = RemoteCallbackMessageUpdateManager(
-            self.knowledge
-        )
+        self.callbackmessage_manager = RemoteCallbackMessageUpdateManager(self.knowledge)
 
         self.knowledge["MESG_FUNC"] = self.send_message
 
@@ -121,9 +117,7 @@ class ActivityManager:
         await self.play_next_activity()
         self._is_initialised = True
 
-    async def start_user_workflow(
-        self, session_id: str = "", context: Any = None, data: Dict = {}
-    ):
+    async def start_user_workflow(self, session_id: str = "", context: Any = None, data: dict = {}):
         """
         Initiates a user workflow, setting up the session and context for interaction.
 
@@ -148,9 +142,7 @@ class ActivityManager:
 
         await self.load_pending_behaviour_if_exists()
 
-        self.knowledge["CURRENT_TURN_CONTEXT"] = (
-            context if context else str(uuid.uuid4())
-        )
+        self.knowledge["CURRENT_TURN_CONTEXT"] = context if context else str(uuid.uuid4())
         self.knowledge["CURRENT_SESSION_ID"] = session_id
 
         logger.debug(
@@ -242,9 +234,7 @@ class ActivityManager:
         logger.debug("interaction user data completed")
         self.in_user_interaction = False
 
-    async def continue_workflow(
-        self, context: Any = None, activity_id: str = "", data: Dict = {}
-    ):
+    async def continue_workflow(self, context: Any = None, activity_id: str = "", data: dict = {}):
         """
         Continues an existing user workflow, processing new input and updating the system state.
 
@@ -303,7 +293,7 @@ class ActivityManager:
         self.pending_knowledge = json.loads(json.dumps(knowledge))
         self.on_pending_complete = on_complete
 
-    def load_behaviours(self, behaviour: Dict, force: bool = False) -> bool:
+    def load_behaviours(self, behaviour: dict, force: bool = False) -> bool:
         """
         Load behaviours from the provided behaviour definition.
 
@@ -323,9 +313,7 @@ class ActivityManager:
         if self.is_busy():
             if force:
                 self.clear_running_actions()
-                logger.warning(
-                    "System is busy, clear running actions and force load behaviours."
-                )
+                logger.warning("System is busy, clear running actions and force load behaviours.")
             else:
                 logger.error("System is busy, cannot load behaviours.")
                 return False
@@ -353,9 +341,7 @@ class ActivityManager:
 
         return True
 
-    def select_activity(
-        self, active_section
-    ):  # pylint: disable=too-many-return-statements
+    def select_activity(self, active_section):  # pylint: disable=too-many-return-statements
         """
         Select an activity based on the active section.
 
@@ -388,15 +374,10 @@ class ActivityManager:
         elif ":" in active_section:  # "queensland_demo:2"
             if len(active_section.split(":")) == 2:
                 (behave, index) = active_section.split(":")
-                if (
-                    self.set_active_behaviour(behave.strip())
-                    and index.strip().isdigit()
-                ):
+                if self.set_active_behaviour(behave.strip()) and index.strip().isdigit():
                     return self.set_activity_index(int(index) - 1)
             else:
-                logger.error(
-                    "Expected activity to be 'some_behaviour:1', got %s", active_section
-                )
+                logger.error("Expected activity to be 'some_behaviour:1', got %s", active_section)
                 return False
         else:
             return self.set_active_behaviour(active_section.strip())
@@ -477,14 +458,14 @@ class ActivityManager:
         """
         self.userdata_action = action
 
-    def update_knowledge(self, info: Dict):
+    def update_knowledge(self, info: dict):
         """
         Update the knowledge base with new information.
 
         Args:
             info: Dictionary containing information to add to the knowledge base
         """
-        if isinstance(info, Dict):
+        if isinstance(info, dict):
             self.knowledge.update(info)
 
     def get_behaviour_action_at(self, behaviour, action_index):
@@ -507,9 +488,7 @@ class ActivityManager:
             logger.error("Unable to find behaviour %s", behaviour)
             return found
         if action_index < 0 or action_index >= len(found["actions"]):
-            logger.error(
-                "Invalid action index %d for behaviour %s", action_index, behaviour
-            )
+            logger.error("Invalid action index %d for behaviour %s", action_index, behaviour)
             return None
         return found["actions"][action_index]
 
@@ -587,17 +566,13 @@ class ActivityManager:
 
         if self.activity_index == len(self.active_behaviour) - 1:
             logger.debug("End of active behaviour")
-            if self.activity_complete_cb is not None and callable(
-                self.activity_complete_cb
-            ):
+            if self.activity_complete_cb is not None and callable(self.activity_complete_cb):
                 self.activity_complete_cb()
                 self.activity_complete_cb = None
             return
 
         self.continue_playing = True
-        action = self.active_behaviour[  # pylint: disable=unused-variable
-            self.activity_index + 1
-        ]
+        self.active_behaviour[self.activity_index + 1]
         # for alet in action:
         #    if alet[0] == 'delay':
         #        message = json.dumps({"node_id": "remote_control", "command":"right_no_suspension"})
@@ -657,9 +632,7 @@ class ActivityManager:
 
         if self.activity_index == len(self.active_behaviour) - 1:
             logger.debug("End of active behaviour")
-            if self.activity_complete_cb is not None and callable(
-                self.activity_complete_cb
-            ):
+            if self.activity_complete_cb is not None and callable(self.activity_complete_cb):
                 await self.activity_complete_cb()
                 self.activity_complete_cb = None
             return
@@ -834,9 +807,7 @@ class ActivityManager:
 
         return True
 
-    async def play_action_let(
-        self, alet, ignore_moves=[]
-    ):  # pylint: disable=too-many-return-statements
+    async def play_action_let(self, alet, ignore_moves=[]):  # pylint: disable=too-many-return-statements
         """
         Play a single action element (alet).
 
@@ -883,13 +854,9 @@ class ActivityManager:
                 )
                 return
             else:
-                self.running_actions[tag] = (
-                    arg.copy() if isinstance(arg, dict) else {"name": arg}
-                )
+                self.running_actions[tag] = arg.copy() if isinstance(arg, dict) else {"name": arg}
         except Exception as _:
-            logger.error(
-                "Not running %s, Something wrong with the args. Got %s", cmd, tag
-            )
+            logger.error("Not running %s, Something wrong with the args. Got %s", cmd, tag)
             return
 
         # set call backs if present
@@ -919,9 +886,7 @@ class ActivityManager:
                 sample = ["text", ["hello {}, good {}", ["KB_KEY1", "KB_KEY2"]]]
                 keys = arg[1]
                 if not isinstance(keys, list):
-                    logger.error(
-                        "Invalid alet(%s). action should of form-%s", alet, sample
-                    )
+                    logger.error("Invalid alet(%s). action should of form-%s", alet, sample)
                     await self.actionFailHandler(cmd)
                     return
                 to_say = arg[0]
@@ -944,9 +909,7 @@ class ActivityManager:
                 await self.send_message(status=status, data={"response": to_say})
                 await self.actionHandler(cmd)
             except Exception as err:
-                logger.error(
-                    "unable to sending message to user: %s: %s", lc_to_say, err
-                )
+                logger.error("unable to sending message to user: %s: %s", lc_to_say, err)
                 await self.actionFailHandler(cmd)
         elif cmd == "http_response":
             if isinstance(arg, str):
@@ -972,21 +935,15 @@ class ActivityManager:
                         content = value[0]
                         for key in keys:
                             if key in self.knowledge:
-                                content = content.replace(
-                                    "{}", str(self.knowledge[key]), 1
-                                )
+                                content = content.replace("{}", str(self.knowledge[key]), 1)
                             else:
                                 _key = str(key).replace("_", " ")
                                 content = content.replace("{}", _key, 1)
                         payload[k] = content
                     else:
                         payload[k] = value
-            if "status_code" not in payload or not isinstance(
-                payload["status_code"], int
-            ):
-                logger.error(
-                    "Invalid alet({cmd}): invalid payload: missing status code"
-                )
+            if "status_code" not in payload or not isinstance(payload["status_code"], int):
+                logger.error("Invalid alet({cmd}): invalid payload: missing status code")
                 await self.actionFailHandler(cmd)
                 return
             status_code = payload["status_code"]
@@ -1006,9 +963,7 @@ class ActivityManager:
                 for k, v in arg.items():
                     if isinstance(v, str):
                         if v in self.knowledge:
-                            self.knowledge.update(
-                                {k: json.loads(json.dumps(self.knowledge[v]))}
-                            )
+                            self.knowledge.update({k: json.loads(json.dumps(self.knowledge[v]))})
                         else:
                             self.knowledge.update({k: v})
                     elif isinstance(v, list) and len(v) == 2 and isinstance(v[1], list):
@@ -1016,9 +971,7 @@ class ActivityManager:
                         content = v[0]
                         for key in keys:
                             if key in self.knowledge:
-                                content = content.replace(
-                                    "{}", str(self.knowledge[key]), 1
-                                )
+                                content = content.replace("{}", str(self.knowledge[key]), 1)
                             else:
                                 _key = str(key).replace("_", " ")
                                 content = content.replace("{}", _key, 1)
@@ -1104,9 +1057,7 @@ class ActivityManager:
                     )
                     if os.path.exists(module_path):
                         try:
-                            spec = importlib.util.spec_from_file_location(
-                                module_name, module_path
-                            )
+                            spec = importlib.util.spec_from_file_location(module_name, module_path)
                             if spec is None or spec.loader is None:
                                 logger.error(
                                     "Cannot find spec for module %s at %s",
@@ -1119,27 +1070,23 @@ class ActivityManager:
                             spec.loader.exec_module(module)
                             sys.modules[full_module_name] = module
                         except Exception as err:
-                            logger.error(
-                                "Failed to load custom module %s: %s", module_name, err
-                            )
+                            logger.error("Failed to load custom module %s: %s", module_name, err)
                             await self.actionFailHandler(cmd)
                             return
                 if module is None:
                     try:
                         module = importlib.import_module(full_module_name)
                     except Exception as err:
-                        logger.error(
-                            "Failed to load custom module %s: %s", module_name, err
-                        )
+                        logger.error("Failed to load custom module %s: %s", module_name, err)
                         await self.actionFailHandler(cmd)
                         return
 
             tclass = getattr(module, module_name)
             if issubclass(tclass, CustomBehaviour):
                 self.custom_behaviours[module_name] = tclass(self.knowledge, module_arg)
-                self.running_actions[module_name]["_custom_obj"] = (
-                    self.custom_behaviours[module_name]
-                )
+                self.running_actions[module_name]["_custom_obj"] = self.custom_behaviours[
+                    module_name
+                ]
                 self.custom_behaviours[module_name].on_success = self.actionHandler
                 self.custom_behaviours[module_name].on_failure = self.actionFailHandler
                 await self.custom_behaviours[module_name].run()
@@ -1179,9 +1126,7 @@ class ActivityManager:
                     if len(self.suspended_actions) > 0:
                         for name, arg in self.suspended_actions.items():
                             arg["_custom_obj"].fini()
-                            del self.custom_behaviours[
-                                name
-                            ]  # delete from custom_behaviour
+                            del self.custom_behaviours[name]  # delete from custom_behaviour
                         self.suspended_actions = {}
 
                     if len(self.pending_actions) > 0:
@@ -1305,9 +1250,7 @@ class ActivityManager:
             await self.play_action_let(data)
 
         if not self.is_busy():
-            logger.error(
-                "Completed(failed) action with id - %s", self.current_action_id
-            )
+            logger.error("Completed(failed) action with id - %s", self.current_action_id)
             self.chained_actions = {}
             await self.on_action_completed(self.current_action_id)
 
@@ -1331,9 +1274,7 @@ class ActivityManager:
         self.running_actions = {}
         self.chained_actions = {}
         self.pending_actions = []
-        self.suspended_actions = (
-            {}
-        )  # suspended actions are all expected to be custom. They have been cleared above
+        self.suspended_actions = {}  # suspended actions are all expected to be custom. They have been cleared above
         self.action_complete_cb = None
         self.activity_complete_cb = None
         self.actions_lined_up = False
@@ -1360,9 +1301,7 @@ class ActivityManager:
             action_id,
             self.action_complete_cb,
         )
-        if self.external_notification_cb is not None and callable(
-            self.external_notification_cb
-        ):
+        if self.external_notification_cb is not None and callable(self.external_notification_cb):
             external_notification_cb = (
                 self.external_notification_cb
             )  # short circuit recursive callback.
@@ -1380,9 +1319,7 @@ class ActivityManager:
                 await complete_cb()
 
         if self.on_remote_play_next_activity:
-            logger.warning(
-                "on_action_completed: on remote play next activity, skip pending action"
-            )
+            logger.warning("on_action_completed: on remote play next activity, skip pending action")
             return
         # Do the pending actions
         if len(self.pending_actions) > 0:
@@ -1410,9 +1347,7 @@ class ActivityManager:
         elif len(self.suspended_actions) > 0:
             for _, args in self.suspended_actions.items():
                 args["_custom_obj"].restore_from_suspension()
-            self.running_actions = (
-                self.suspended_actions
-            )  # reinsert into running actions
+            self.running_actions = self.suspended_actions  # reinsert into running actions
             self.suspended_actions = {}
             logger.debug(
                 "on_action_completed: all current + queued actions are done, restore suspended custom actions"
@@ -1421,9 +1356,7 @@ class ActivityManager:
             logger.debug("on_action_completed: all current + queued actions are done.")
             if self.continue_playing:
                 self.continue_playing = False
-            elif self.activity_complete_cb is not None and callable(
-                self.activity_complete_cb
-            ):
+            elif self.activity_complete_cb is not None and callable(self.activity_complete_cb):
                 await self.activity_complete_cb()
                 self.activity_complete_cb = None
 
@@ -1435,7 +1368,7 @@ class ActivityManager:
         """
         self.fini()
 
-    async def on_update_user_data(self, data: Dict = {}):
+    async def on_update_user_data(self, data: dict = {}):
         """
         Update user data with the given activity ID and data.
 
@@ -1445,7 +1378,7 @@ class ActivityManager:
             activity_id: Identifier for the activity
             data: Dictionary containing user data
         """
-        if not data or not isinstance(data, Dict):
+        if not data or not isinstance(data, dict):
             logger.error("missing or invalid user data %s", data)
             return
 
@@ -1469,7 +1402,7 @@ class ActivityManager:
         """
         return access_key == self.knowledge["CURRENT_TURN_CONTEXT"]
 
-    async def process_remote_callback_payload(self, method: str, data: Dict):
+    async def process_remote_callback_payload(self, method: str, data: dict):
         """
         Process a remote callback payload.
 
@@ -1484,7 +1417,7 @@ class ActivityManager:
         )
 
     async def send_message(
-        self, status: int = 200, data: Dict | DataStreamHandler = {}, headers: Dict = {}
+        self, status: int = 200, data: dict | DataStreamHandler = {}, headers: dict = {}
     ):
         """
         Send a message to the user.
@@ -1544,7 +1477,7 @@ class ActivityManager:
 
         self.response = write_http_response(status, payload, headers=headers)
 
-    async def send_raw_message(self, status, payload, headers: Dict = {}):
+    async def send_raw_message(self, status, payload, headers: dict = {}):
         """
         Send a raw message with the given status and payload.
 
@@ -1572,9 +1505,7 @@ class ActivityManager:
         if behaviour in self.knowledge:
             behaviour = self.knowledge[behaviour]
         print(f"play queue behaviour {behaviour}")
-        await self.play_or_queue_action(
-            "manual_execution", [["play_behaviour", behaviour]]
-        )
+        await self.play_or_queue_action("manual_execution", [["play_behaviour", behaviour]])
 
     def get_response(self):
         """

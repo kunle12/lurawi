@@ -1,13 +1,7 @@
-"""
-Custom behaviour for randomly selecting an item from a list.
-
-This module defines the `random_picker` class, which allows the system
-to pick a random element from a given list (which can be a direct list
-or a knowledge base key pointing to a list) and store the selected item
-under a new knowledge base key.
-"""
+"""Custom behaviour for randomly selecting an item from a list (direct or KB reference) and storing it under a specified output key."""
 
 import random
+
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 
@@ -55,9 +49,7 @@ class random_picker(CustomBehaviour):
             return
 
         if not data_list:
-            logger.warning(
-                "random_picker: provided list is empty. No item to pick. Aborting."
-            )
+            logger.warning("random_picker: provided list is empty. No item to pick. Aborting.")
             await self.failed()
             return
 

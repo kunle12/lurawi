@@ -6,10 +6,9 @@ It parses Python files, looks for class docstrings containing a specific '"custo
 marker, and then extracts argument definitions to generate XML tags.
 """
 
-from __future__ import print_function
-import os
 import argparse
 import ast
+import os
 
 
 def parse_custom_scripts(fdir):
@@ -46,7 +45,7 @@ def extract_example_info(fname):
              if no valid example is found or an error occurs.
     """
     content = ""
-    with open(fname, "r", encoding="UTF-8") as f:
+    with open(fname, encoding="UTF-8") as f:
         tree = ast.parse(f.read())
 
         modef = tuple({ast.ClassDef: "Class"})
@@ -67,9 +66,7 @@ def extract_example_info(fname):
                     try:
                         exalet = ast.literal_eval(exstr)
                     except Exception as err:
-                        print(
-                            f"unable to parse doc string example 2: {exstr} error {err}"
-                        )
+                        print(f"unable to parse doc string example 2: {exstr} error {err}")
                         continue
 
                     if not isinstance(exalet, list) or len(exalet) != 2:
@@ -77,9 +74,7 @@ def extract_example_info(fname):
                         continue
                     if isinstance(exalet[1], dict):
                         # print("custom script {} with".format(exalet[1]['name']))
-                        content = (
-                            content + f"\t<cscript name=\"{exalet[1]['name']}\">\n"
-                        )
+                        content = content + f'\t<cscript name="{exalet[1]["name"]}">\n'
                         kargs = exalet[1]["args"]
                         for k, t in kargs.items():
                             atype = "any"
@@ -89,20 +84,13 @@ def extract_example_info(fname):
                                 atype = "string"
                             elif isinstance(t, float) or isinstance(t, int):
                                 atype = "number"
-                            elif isinstance(t, list) and (
-                                "action" in k or "command" in k
-                            ):
+                            elif isinstance(t, list) and ("action" in k or "command" in k):
                                 atype = "action"
-                            content = (
-                                content
-                                + f'\t\t<argument type="{atype}">{k}</argument>\n'
-                            )
+                            content = content + f'\t\t<argument type="{atype}">{k}</argument>\n'
                         content = content + "\t</cscript>\n"
                     elif isinstance(exalet[1], str):
                         # print("custom script: {} no arg".format(exalet[1]))
-                        content = (
-                            content + f'\t<cscript name="{exalet[1]}"></cscript>\n'
-                        )
+                        content = content + f'\t<cscript name="{exalet[1]}"></cscript>\n'
                     else:
                         print(f"unable to parse doc string example 4: {exstr}")
                         continue

@@ -14,8 +14,8 @@ and used throughout the application.
 """
 
 import asyncio
-from typing import Dict
 from threading import Thread
+
 from lurawi.utils import logger
 
 
@@ -83,7 +83,7 @@ class TimerManager:
         """
         self._run_thread: Thread | None = None
         self._loop = asyncio.new_event_loop()
-        self._timers: Dict[int, BotTimer] = {}
+        self._timers: dict[int, BotTimer] = {}
         self._next_timer_id = 1
         self._run_thread = Thread(target=self._start_run_thread)
         self._run_thread.start()
@@ -101,9 +101,7 @@ class TimerManager:
         if not self._run_thread:
             return
 
-        for timer in list(
-            self._timers.values()
-        ):  # Iterate over a copy to allow modification
+        for timer in list(self._timers.values()):  # Iterate over a copy to allow modification
             timer.cancel()
 
         self._loop.call_soon_threadsafe(self._loop.stop)

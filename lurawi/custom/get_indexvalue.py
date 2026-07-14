@@ -1,11 +1,4 @@
-"""
-Custom behaviour for retrieving a value from a list by its index.
-
-This module defines the `get_indexvalue` class, which allows the system
-to access an element within a list (stored in the knowledge base) using
-a specified index and then store the retrieved value under a new knowledge
-base key.
-"""
+"""Custom behaviour for retrieving an element from a list at a specified index, with KB-key resolution and bounds validation."""
 
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
@@ -57,11 +50,7 @@ class get_indexvalue(CustomBehaviour):
         stored in the knowledge base, and success/failure actions are triggered.
         """
         found = None
-        if (
-            isinstance(self.details, dict)
-            and "array" in self.details
-            and "index" in self.details
-        ):
+        if isinstance(self.details, dict) and "array" in self.details and "index" in self.details:
             array = self.details["array"]
             index = self.details["index"]
 

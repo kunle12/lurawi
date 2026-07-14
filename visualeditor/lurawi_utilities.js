@@ -31,7 +31,7 @@ class CrossTabCopyPaste {
         this.blockCopyToStorageContextMenu();
         this.blockPasteFromStorageContextMenu(typeErrorCallback);
       }
-  
+
       if (shortcut) {
         // Unregister the default KeyboardShortcuts
         Blockly.ShortcutRegistry.registry.unregister(
@@ -46,7 +46,7 @@ class CrossTabCopyPaste {
         this.blockPasteFromStorageShortcut(typeErrorCallback);
       }
     }
-  
+
     /**
      * Adds a copy command to the block context menu.
      */
@@ -80,7 +80,7 @@ class CrossTabCopyPaste {
       };
       Blockly.ContextMenuRegistry.registry.register(copyToStorageOption);
     }
-  
+
     /**
      * Adds a paste command to the block context menu.
      * @param {Function=} typeErrorCallback
@@ -124,7 +124,7 @@ class CrossTabCopyPaste {
       };
       Blockly.ContextMenuRegistry.registry.register(pasteFromStorageOption);
     }
-  
+
     /**
      * Adds a keyboard shortcut that will store copy information for a block
      * in localStorage.
@@ -154,21 +154,21 @@ class CrossTabCopyPaste {
         },
       };
       Blockly.ShortcutRegistry.registry.register(copyShortcut);
-  
+
       const ctrlC = Blockly.ShortcutRegistry.registry.createSerializedKey(
           Blockly.utils.KeyCodes.C, [Blockly.utils.KeyCodes.CTRL]);
       Blockly.ShortcutRegistry.registry.addKeyMapping(ctrlC, copyShortcut.name);
-  
+
       const altC =
         Blockly.ShortcutRegistry.registry.createSerializedKey(
             Blockly.utils.KeyCodes.C, [Blockly.utils.KeyCodes.ALT]);
       Blockly.ShortcutRegistry.registry.addKeyMapping(altC, copyShortcut.name);
-  
+
       const metaC = Blockly.ShortcutRegistry.registry.createSerializedKey(
           Blockly.utils.KeyCodes.C, [Blockly.utils.KeyCodes.META]);
       Blockly.ShortcutRegistry.registry.addKeyMapping(metaC, copyShortcut.name);
     }
-  
+
     /**
      * Adds a keyboard shortcut that will store copy information for a block
      * in local storage and delete the block.
@@ -200,20 +200,20 @@ class CrossTabCopyPaste {
         },
       };
       Blockly.ShortcutRegistry.registry.register(cutShortcut);
-  
+
       const ctrlX = Blockly.ShortcutRegistry.registry.createSerializedKey(
           Blockly.utils.KeyCodes.X, [Blockly.utils.KeyCodes.CTRL]);
       Blockly.ShortcutRegistry.registry.addKeyMapping(ctrlX, cutShortcut.name);
-  
+
       const altX = Blockly.ShortcutRegistry.registry.createSerializedKey(
           Blockly.utils.KeyCodes.X, [Blockly.utils.KeyCodes.ALT]);
       Blockly.ShortcutRegistry.registry.addKeyMapping(altX, cutShortcut.name);
-  
+
       const metaX = Blockly.ShortcutRegistry.registry.createSerializedKey(
           Blockly.utils.KeyCodes.X, [Blockly.utils.KeyCodes.META]);
       Blockly.ShortcutRegistry.registry.addKeyMapping(metaX, cutShortcut.name);
     }
-  
+
     /**
      * Adds a keyboard shortcut that will paste the block stored in localStorage.
      * @param {Function=} typeErrorCallback
@@ -253,16 +253,16 @@ class CrossTabCopyPaste {
         },
       };
       Blockly.ShortcutRegistry.registry.register(pasteShortcut);
-  
+
       const ctrlV = Blockly.ShortcutRegistry.registry.createSerializedKey(
           Blockly.utils.KeyCodes.V, [Blockly.utils.KeyCodes.CTRL]);
       Blockly.ShortcutRegistry.registry.addKeyMapping(ctrlV, pasteShortcut.name);
-  
+
       const altV =
         Blockly.ShortcutRegistry.registry.createSerializedKey(
             Blockly.utils.KeyCodes.V, [Blockly.utils.KeyCodes.ALT]);
       Blockly.ShortcutRegistry.registry.addKeyMapping(altV, pasteShortcut.name);
-  
+
       const metaV = Blockly.ShortcutRegistry.registry.createSerializedKey(
           Blockly.utils.KeyCodes.V, [Blockly.utils.KeyCodes.META]);
       Blockly.ShortcutRegistry.registry.addKeyMapping(metaV, pasteShortcut.name);
