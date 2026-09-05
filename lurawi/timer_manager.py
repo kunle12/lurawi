@@ -14,7 +14,7 @@ and used throughout the application.
 """
 
 import asyncio
-from threading import Thread
+from threading import Lock, Thread
 
 from lurawi.utils import logger
 
@@ -81,6 +81,7 @@ class TimerManager:
         Internal data structures for tracking timers are initialized, and a
         unique ID counter for new timers is set up.
         """
+        self._lock = Lock()
         self._run_thread: Thread | None = None
         self._loop = asyncio.new_event_loop()
         self._timers: dict[int, BotTimer] = {}
@@ -98,14 +99,18 @@ class TimerManager:
         is no longer required to ensure proper resource cleanup.
         """
         logger.info("Shutting down TimerManager")
-        if not self._run_thread:
+        with self._lock:
+            run_thread = self._run_thread
+            timers = list(self._timers.values())
+            self._timers = {}
+        if not run_thread:
             return
 
-        for timer in list(self._timers.values()):  # Iterate over a copy to allow modification
+        for timer in timers:
             timer.cancel()
 
         self._loop.call_soon_threadsafe(self._loop.stop)
-        self._timers = {}
+        run_thread.join()
 
     def is_running(self) -> bool:
         """
@@ -114,7 +119,8 @@ class TimerManager:
         Returns:
             bool: `True` if the timer manager is running, `False` otherwise.
         """
-        return self._run_thread is not None and self._run_thread.is_alive()
+        with self._lock:
+            return self._run_thread is not None and self._run_thread.is_alive()
 
     def _start_run_thread(self) -> None:
         """
@@ -131,7 +137,8 @@ class TimerManager:
         except Exception as e:  # pylint: disable=broad-exception-caught
             logger.error("Unable to run event loop, error %s", e)
 
-        self._run_thread = None
+        with self._lock:
+            self._run_thread = None
 
     def add_timer(
         self,
@@ -159,16 +166,17 @@ class TimerManager:
         Returns:
             int: The unique ID assigned to the newly created timer.
         """
-        timer_id = self._next_timer_id
-        self._next_timer_id += 1
-        self._timers[timer_id] = BotTimer(
-            tid=timer_id,
-            loop=self._loop,
-            client=client,
-            init_start=init_start,
-            interval=interval,
-            repeats=repeats,
-        )
+        with self._lock:
+            timer_id = self._next_timer_id
+            self._next_timer_id += 1
+            self._timers[timer_id] = BotTimer(
+                tid=timer_id,
+                loop=self._loop,
+                client=client,
+                init_start=init_start,
+                interval=interval,
+                repeats=repeats,
+            )
         return timer_id
 
     def add_task(self, coro) -> asyncio.Future:
@@ -198,13 +206,14 @@ class TimerManager:
         Args:
             timer_id (int): The unique ID of the timer to be deleted.
         """
-        if timer_id not in self._timers:
-            logger.error("Timer %d does not exist", timer_id)
-            return
+        with self._lock:
+            if timer_id not in self._timers:
+                logger.error("Timer %d does not exist", timer_id)
+                return
 
-        timer = self._timers[timer_id]
+            timer = self._timers[timer_id]
+            del self._timers[timer_id]
         timer.cancel()
-        del self._timers[timer_id]
 
 
 class BotTimer:
@@ -288,12 +297,11 @@ class BotTimer:
         """
         Cancels the timer, stopping any further scheduled events.
 
-        This method attempts to cancel the underlying asynchronous task and
-        marks the timer as inactive, preventing `on_timer` callbacks from
-        being invoked further.
+        This method marks the timer as inactive and cancels the underlying
+        task, preventing `on_timer` callbacks from being invoked further.
         """
-        self._task.cancel()
         self._is_running = False
+        self._task.cancel()
 
 
 # Global instance of TimerManager that can be imported and used throughout the application

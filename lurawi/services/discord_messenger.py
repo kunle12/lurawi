@@ -52,9 +52,15 @@ class HomeBot(discord.Client):
 
     async def on_ready(self):
         self._guild = discord.utils.get(self.guilds, name=self.kb.get("DiscordGuild", "default"))
+        if self._guild is None:
+            logger.error("Discord guild not found; cannot announce ready.")
+            return
         self._main_channel = discord.utils.get(
             self._guild.channels, name=self.kb.get("DiscordChannel", "default")
         )
+        if self._main_channel is None:
+            logger.error("Discord main channel not found; cannot announce ready.")
+            return
         await self._main_channel.send("I am alive", delete_after=5.0)
 
     async def on_message(self, message: Message):
@@ -64,6 +70,9 @@ class HomeBot(discord.Client):
         await self._owner.on_discord_event(user_name=user_name, message=message)
 
     async def logging_out(self):
+        if self._main_channel is None:
+            await self.close()
+            return
         msg = await self._main_channel.send("I am going offline")
         await msg.delete()
         await self.close()
@@ -97,11 +106,16 @@ class HomeBot(discord.Client):
             logger.error("not found")
             return None
 
+        if self._guild is None:
+            return None
+
         return discord.utils.get(self._guild.members, display_name=found_name)
 
     def _discord_name_to_user(self, name):
-        if "DiscordUserMap" in self.kb and name in self.kb["DiscordUserMap"]:
-            return self.kb["DiscordUserMap"][name]
+        if "DiscordUserMap" in self.kb:
+            for discord_id, user_name in self.kb["DiscordUserMap"].items():
+                if user_name == name:
+                    return discord_id
         return None
 
     def _start_run_thread(self):
@@ -116,6 +130,8 @@ class HomeBot(discord.Client):
         except (asyncio.exceptions.CancelledError, KeyboardInterrupt):
             self._loop.run_until_complete(self.logging_out())
             self._task = None
+        finally:
+            self._loop.close()
         self._run_thread = None
 
     def start_running(self):
@@ -131,7 +147,7 @@ class HomeBot(discord.Client):
 
         # also listen for termination of hearbeat / connection
         if self._task and not self._task.cancelled():
-            self._task.cancel()
+            self._loop.call_soon_threadsafe(self._task.cancel)
         self._run_thread.join()
 
 

@@ -1,6 +1,6 @@
 import operator
-import time
 
+from lurawi.arithmetic import evaluate_operand
 from lurawi.custom_behaviour import CustomBehaviour
 from lurawi.utils import logger
 
@@ -125,53 +125,4 @@ class compare(CustomBehaviour):
                 self.arith_operators.keys(),
             )
             return None
-        # print "\ninside getoperand, arg = {}".format(arg)
-        op_in_arg = [x for x in arg if x in operators]
-        # print 'opinarg=',op_in_arg
-        if len(op_in_arg) == 0:
-            # get operand
-            if arg.strip().lower() == "time":
-                operand = int(time.time())
-            elif arg in self.kb:
-                try:
-                    operand = float(self.kb[arg]) if "." in self.kb[arg] else int(self.kb[arg])
-                except Exception as _:
-                    operand = self.kb[arg]
-            else:
-                try:
-                    operand = float(arg) if "." in arg else int(arg)
-                except Exception as _:
-                    operand = arg
-            # print 'No op in arg. operand = {}\n'.format(operand)
-            return operand
-        else:
-            result = 0
-            splitted = arg.split(op_in_arg[0], 1)
-            _result = splitted[0]
-            _arg = splitted[1]
-            result = self.getOperand(_result, self.arith_operators)
-            for i, op in enumerate(op_in_arg):
-                # print "\n_arg = {} i={}, op={}, result={}".format(_arg, i, op, result)
-                if i + 1 < len(op_in_arg):
-                    splitted = _arg.split(op_in_arg[i + 1], 1)
-                    # print 'fwd splitted = {}'.format(splitted)
-                    _operand = splitted[0]
-                    _arg = splitted[1]
-                    operand = self.getOperand(_operand, self.arith_operators)
-                else:
-                    operand = self.getOperand(_arg, self.arith_operators)
-                if operand is None:
-                    return None
-                try:
-                    result = self.arith_operators[op](result, operand)
-                except Exception as e:
-                    logger.error(
-                        "compare: Exception while %s %s %s. e=%s",
-                        result,
-                        op,
-                        operand,
-                        e,
-                    )
-                    return None
-                # print 'operand = {}, result = {} _arg = {}'.format(operand, result, _arg)
-            return result
+        return evaluate_operand(arg, self.kb, operators)

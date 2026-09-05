@@ -17,6 +17,7 @@ and abstract away implementation details of various operations.
 # pylint: disable=broad-exception-caught,global-statement,dangerous-default-value
 
 import base64
+import builtins
 import logging
 import os
 import random
@@ -314,9 +315,7 @@ def cut_string(s, n_tokens=2500):
     if not _tiktokeniser:
         _tiktokeniser = _get_tiktoken_tokenizer()
     encoded_string = _tiktokeniser.encode(s)
-    if len(encoded_string) == 1:
-        return _tiktokeniser.decode_single_token_bytes(encoded_string)
-    elif len(encoded_string) <= n_tokens:
+    if len(encoded_string) <= n_tokens:
         return _tiktokeniser.decode(encoded_string)
     else:
         return _tiktokeniser.decode(encoded_string[:n_tokens])
@@ -330,7 +329,7 @@ def get_stickyness_cookie():
     """
     global _aws_sticky_cookie
     if _aws_sticky_cookie:
-        if _aws_sticky_cookie[1] - time.time() <= 10:  # ignore cookie is older than 10 sec
+        if time.time() - _aws_sticky_cookie[1] <= 10:  # ignore cookie older than 10 sec
             return _aws_sticky_cookie[0]
         _aws_sticky_cookie = None
     return None
@@ -528,7 +527,7 @@ def get_content_from_aws_s3(filepath, container="llamservice_data", as_binary=Fa
             else:
                 blobio = StringIO()
                 s3_client.download_fileobj(container, filepath, blobio)
-            content = blobio.read()
+            content = blobio.getvalue()
         except Exception as e:
             logger.error("unable to load '%s' from s3 storage: error %s", filepath, e)
     elif os.path.exists(filepath):
@@ -768,7 +767,7 @@ def get_remote_file_size(url: str) -> int:
         if content_length is not None:
             return int(content_length)
     except Exception as e:
-        print(f"Error checking file size: {e}")
+        logger.error("Error checking file size: %s", e)
     return -1
 
 
@@ -785,11 +784,15 @@ def write_http_response(status, body_dict, headers={}):
     """
     response = JSONResponse(status_code=status, content=body_dict)
     if headers:
-        response.headers = headers
+        for key, value in headers.items():
+            response.headers.append(key, value)
     cookies = get_stickyness_cookie()
     if cookies:
         for c in cookies:
-            response.set_cookie(key=c, value=cookies[c].value)
+            value = cookies[c]
+            if hasattr(value, "value"):
+                value = value.value
+            response.set_cookie(key=c, value=value)
     return response
 
 
@@ -847,9 +850,8 @@ def check_type(value: any, type_info: str) -> bool:
     expected_type = PYTHON_TYPE_MAPPING.get(type_info.lower())
 
     if expected_type is None:
-        try:
-            expected_type = eval(type_info)  # pylint: disable=eval-used
-        except Exception as _:
+        expected_type = getattr(builtins, type_info, None)
+        if expected_type is None:
             return False
 
     return isinstance(value, expected_type)
