@@ -394,7 +394,6 @@ class ActivityManager:
                 (behave, index) = active_section.split(":")
                 if self.set_active_behaviour(behave.strip()) and index.strip().isdigit():
                     return self.set_activity_index(int(index) - 1)
-                return False
             else:
                 logger.error("Expected activity to be 'some_behaviour:1', got %s", active_section)
                 return False

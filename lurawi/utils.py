@@ -785,7 +785,7 @@ def write_http_response(status, body_dict, headers={}):
     response = JSONResponse(status_code=status, content=body_dict)
     if headers:
         for key, value in headers.items():
-            response.headers.append(key, value)
+            response.headers[key] = value
     cookies = get_stickyness_cookie()
     if cookies:
         for c in cookies:

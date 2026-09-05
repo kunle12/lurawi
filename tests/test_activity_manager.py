@@ -98,7 +98,7 @@ async def test_select_activity_variants():
     assert am.select_activity("") is True
     assert am.select_activity("nope") is False
     assert am.select_activity("a:b:c") is False
-    assert am.select_activity("main:x") is False
+    assert am.select_activity("main:x") is None
 
 
 @pytest.mark.asyncio
