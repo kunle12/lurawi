@@ -1,0 +1,4 @@
+[run]
+omit =
+    lurawi/lurawi_agent.py
+    lurawi/custom/send_data_to_service_bus.py
