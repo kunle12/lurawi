@@ -80,6 +80,13 @@ class TimerManager:
         A new asyncio event loop is created and started in a separate thread.
         Internal data structures for tracking timers are initialized, and a
         unique ID counter for new timers is set up.
+
+        The ``_lock`` serialises access to the timer registry (``_timers``),
+        the ``_next_timer_id`` counter and the ``_run_thread`` handle. These are
+        mutated by the calling thread (``add_timer``/``del_timer``/``fini``) and
+        written by the background event-loop thread when it exits. Without the
+        lock a concurrent add/fini could observe a half-updated registry or a
+        stale thread handle.
         """
         self._lock = Lock()
         self._run_thread: Thread | None = None
@@ -110,7 +117,13 @@ class TimerManager:
             timer.cancel()
 
         self._loop.call_soon_threadsafe(self._loop.stop)
-        run_thread.join()
+        # Join with a timeout so shutdown cannot hang indefinitely if the
+        # background event-loop thread fails to stop. The thread is expected to
+        # exit once its loop stops; it clears ``_run_thread`` (under the lock)
+        # on its way out.
+        run_thread.join(timeout=10)
+        if run_thread.is_alive():
+            logger.error("TimerManager event loop thread failed to stop within 10s.")
 
     def is_running(self) -> bool:
         """

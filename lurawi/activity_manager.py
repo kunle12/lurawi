@@ -83,6 +83,10 @@ class ActivityManager:
         self.suspended_actions = {}  # suspended actions are all expected to be custom
         self.action_complete_cb = None
         self.action_complete_cb_args = None
+        # Explicit flag marking whether the next action_complete_cb invocation is
+        # the play_next_activity_router. Set at the registration sites (play_behaviour)
+        # so on_action_completed does not rely on fragile bound-method comparison.
+        self._continue_router_cb = False
         self.activity_complete_cb = None
         # notify external (not related to behaviour/actions) module of the completion of
         # action it is interested in.
@@ -708,6 +712,7 @@ class ActivityManager:
 
         if complete_cb is not None:
             self.action_complete_cb = complete_cb
+            self._continue_router_cb = False
 
         if external_notification_cb is not None:
             self.external_notification_cb = external_notification_cb
@@ -936,7 +941,7 @@ class ActivityManager:
                 )
                 await self.actionFailHandler(cmd)
         elif cmd == "delay":
-            if isinstance(arg, int | float) and arg > 0:
+            if isinstance(arg, (int, float)) and arg > 0:  # noqa: UP038
                 await asyncio.sleep(arg)
                 await self.actionHandler(cmd)
             else:
@@ -1029,6 +1034,7 @@ class ActivityManager:
         elif cmd == "select_behaviour":
             if self.select_activity(arg):
                 self.action_complete_cb = None
+                self._continue_router_cb = False
                 await self.actionHandler(cmd)
             else:
                 await self.actionFailHandler(cmd)
@@ -1061,6 +1067,7 @@ class ActivityManager:
                                     "play_behaviour: disruptable pending action, however we are in no disruption mode, continue current action and keep the queue"
                                 )
                                 self.action_complete_cb = self.play_next_activity_router
+                                self._continue_router_cb = True
                             else:
                                 logger.warning(
                                     "play_behaviour: only execute pending disruptable action %s. purge all other pending actions after current play_behaviour concludes",
@@ -1068,6 +1075,7 @@ class ActivityManager:
                                 )
                                 self.pending_actions = []
                                 self.action_complete_cb = self.play_action
+                                self._continue_router_cb = False
                                 self.action_complete_cb_args = disrupt_action
 
                             await self.actionHandler(cmd)
@@ -1080,6 +1088,7 @@ class ActivityManager:
                         self.pending_actions = []
 
                     self.action_complete_cb = self.play_next_activity_router
+                    self._continue_router_cb = True
                     await self.actionHandler(cmd)  # calling play_next_activity_router
                 else:
                     await self.actionFailHandler(cmd)
@@ -1190,6 +1199,7 @@ class ActivityManager:
         self.suspended_actions = {}  # suspended actions are all expected to be custom. They have been cleared above
         self.action_complete_cb = None
         self.activity_complete_cb = None
+        self._continue_router_cb = False
         self.actions_lined_up = False
         self.continue_playing = False
         self.knowledge["NO_DISRUPTION"] = 0
@@ -1224,13 +1234,14 @@ class ActivityManager:
         if self.action_complete_cb is not None and callable(self.action_complete_cb):
             complete_cb = self.action_complete_cb  # short circuit recursive callback.
             self.action_complete_cb = None
+            router_was_invoked = self._continue_router_cb
+            self._continue_router_cb = False
             if self.action_complete_cb_args is not None:
                 args = self.action_complete_cb_args  # must be a tuple
                 self.action_complete_cb_args = None
                 await _invoke_callback(complete_cb, *args)
             else:
                 await _invoke_callback(complete_cb)
-            router_was_invoked = complete_cb == self.play_next_activity_router
         else:
             router_was_invoked = False
 

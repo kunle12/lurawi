@@ -581,3 +581,14 @@ def test_aget_data_from_url_404_retry(monkeypatch):
     status, result = asyncio.run(u.aget_data_from_url({}, "http://x/404"))
     assert status == 404
     assert result is None
+
+
+def test_write_http_response_headers_and_cookies_together():
+    import time as _t
+
+    u._aws_sticky_cookie = ({"sid": "abc"}, _t.time())
+    r = u.write_http_response(200, {"status": "success"}, headers={"X-Test": "abc"})
+    assert r.headers.get("content-type") is not None
+    assert r.headers.get("X-Test") == "abc"
+    assert r.headers.get("set-cookie") is not None
+    u._aws_sticky_cookie = None
