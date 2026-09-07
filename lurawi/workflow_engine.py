@@ -143,7 +143,7 @@ class WorkflowEngine(TimerClient):
                 s3_client = boto3.client("s3")
                 blobio = StringIO()
                 s3_client.download_fileobj("lurawidata", kbase_path, blobio)
-                json_data = json.loads(blobio.read())
+                json_data = json.loads(blobio.getvalue())
             elif os.path.exists(kbase_path):
                 with open(kbase_path, encoding="utf-8") as data:
                     json_data = json.load(data)
@@ -221,7 +221,7 @@ class WorkflowEngine(TimerClient):
                 s3_client = boto3.client("s3")
                 blobio = StringIO()
                 s3_client.download_fileobj("lurawidata", behaviour_file, blobio)
-                loaded_behaviours = json.loads(blobio.read())
+                loaded_behaviours = json.loads(blobio.getvalue())
             elif os.path.exists(behaviour_file):
                 with open(behaviour_file, encoding="utf-8") as data:
                     loaded_behaviours = json.load(data)
@@ -242,7 +242,7 @@ class WorkflowEngine(TimerClient):
             return loaded_behaviours
 
         if "default" not in loaded_behaviours:
-            logger.error("missing default in custom behaviour file {behaviour_file}")
+            logger.error(f"missing default in custom behaviour file {behaviour_file}")
             return loaded_behaviours
 
         self.custom_behaviour = behaviour
@@ -508,7 +508,7 @@ class WorkflowEngine(TimerClient):
         idle_users = []
         self._mutex.acquire()
         for mid, member in self.conversation_members.items():
-            if member.idleTime() > 2400:
+            if member.idleTime() > 2400 and not member.is_busy():
                 idle_users.append(mid)
 
         for mid in idle_users:
@@ -540,15 +540,6 @@ class WorkflowEngine(TimerClient):
                                     logger.info("%s service is initialised.", name)
                             except Exception as err:
                                 logger.error("Unable to load %s service: %s.", name, err)
-
-    def fini_remote_services(self):
-        """Finalize all remote services.
-
-        Calls the fini method on all remote services and clears the services list.
-        """
-        for _, service in self.remote_services.items():
-            service.fini()
-        self.remote_services = {}
 
     def start_remote_services(self):
         """Start all initialized remote services.

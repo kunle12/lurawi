@@ -141,7 +141,9 @@ class UserMessageUpdateManager:
                 - True: If the message was processed by all listeners or no listener consumed it.
                 - False: If a listener explicitly consumed the message (returned `False` or `None`).
         """
-        for k, _ in self.listeners:
+        for k, interests in self.listeners:
+            if interests and not any(i in message for i in interests):
+                continue
             ret = await k.on_user_message_update(message)
             if (
                 ret is None or ret is False

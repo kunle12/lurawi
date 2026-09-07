@@ -339,7 +339,9 @@ class CustomBehaviour(UserMessageListener, RemoteCallbackMessageListener):
             logger.error("%s is not in suspension", self.__class__.__name__)
             return True
 
-        return self.on_restoration(data)
+        restored = self.on_restoration(data)
+        self._is_suspended = not restored
+        return restored
 
     def on_suspension(self, data):
         """
